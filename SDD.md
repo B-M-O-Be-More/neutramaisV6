@@ -1473,10 +1473,10 @@ Merge para main:
   "mode": "interactive",
   "model_profile": "balanced",
   "models": {
-    "planning": "claude-sonnet-4-5",
+    "planning": "claude-opus-4-7",
     "research": "claude-haiku-4-5",
-    "execution": "claude-sonnet-4-5",
-    "verification": "claude-sonnet-4-5"
+    "execution": "claude-sonnet-4-6",
+    "verification": "claude-sonnet-4-6"
   },
   "workflow": {
     "research": true,
