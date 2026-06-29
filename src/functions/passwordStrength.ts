@@ -1,0 +1,54 @@
+export type PasswordStrengthLevel = "weak" | "medium" | "strong";
+
+export interface PasswordStrength {
+  level: PasswordStrengthLevel;
+  /** Rótulo em PT-BR para exibição. */
+  label: string;
+  /** Valor 0–100 para a barra de progresso. */
+  value: number;
+  /** Etapas preenchidas (1–3) para o indicador de barras. */
+  step: 1 | 2 | 3;
+  /** colorPalette do Chakra. */
+  colorPalette: "red" | "orange" | "green";
+}
+
+/**
+ * Indicador visual de força de senha (US-02).
+ * Mínimo exigido pelo schema: 8 caracteres, 1 letra e 1 número.
+ */
+export function getPasswordStrength(password: string): PasswordStrength {
+  let score = 0;
+
+  if (password.length >= 8) score++;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^a-zA-Z0-9]/.test(password)) score++;
+
+  if (score <= 1) {
+    return {
+      level: "weak",
+      label: "Fraca",
+      value: 33,
+      step: 1,
+      colorPalette: "red",
+    };
+  }
+
+  if (score <= 3) {
+    return {
+      level: "medium",
+      label: "Média",
+      value: 66,
+      step: 2,
+      colorPalette: "orange",
+    };
+  }
+
+  return {
+    level: "strong",
+    label: "Forte",
+    value: 100,
+    step: 3,
+    colorPalette: "green",
+  };
+}

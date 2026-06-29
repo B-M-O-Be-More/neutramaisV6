@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"C:/Users/pepeu/.claude/projects/c--Users-pepeu-Desktop-Projects-bmo-neutramaisV6/memory/\" 2>/dev/null || echo \"no memory yet\")",
+      "Read(//c/Users/pepeu/.claude/projects/c--Users-pepeu-Desktop-Projects-bmo-neutramaisV6/memory/**)",
+      "Bash(cd /c/Users/pepeu/Desktop/Projects/bmo/neutramaisV5 && find . -type f -name \"*.json\" | grep -E \"\\(package|i18n|intl|lang|locale|translation\\)\" | head -20)",
+      "Read(//c/Users/pepeu/Desktop/Projects/bmo/neutramaisV5/**)",
+      "Bash(xargs grep -l \"import.*i18n\")",
+      "Bash(grep -r \"import.*\\\\.\\\\/i18n\" src --include=\"*.ts\" --include=\"*.tsx\")",
+      "Bash(xargs grep -l \"i18n\")",
+      "Bash(xargs grep -l \"\\\\.init\\\\|initI18n\")",
+      "Bash(ls -la public/locales/)",
+      "Bash(wc -l public/locales/*/translation.json)",
+      "PowerShell(npm install i18next@^25.6.0 react-i18next@^16.2.2 i18next-http-backend@^3.0.2 i18next-browser-languagedetector@^8.2.0)",
+      "PowerShell(npx tsc --noEmit)",
+      "Bash(node -e \"const ck=require\\('@chakra-ui/react'\\); console.log\\('Steps:',Object.keys\\(ck.Steps\\)\\); console.log\\('NativeSelect:',Object.keys\\(ck.NativeSelect\\)\\); console.log\\('Checkbox:',Object.keys\\(ck.Checkbox\\)\\); console.log\\('Field:',Object.keys\\(ck.Field\\)\\); console.log\\('Progress:',Object.keys\\(ck.Progress\\)\\);\")",
+      "Bash(npx tsc *)",
+      "Bash(npx eslint *)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(echo \"ESLINT EXIT: $?\")",
+      "Bash(ls src/components/FormControl)",
+      "Bash(ls src/components/Input src/components/Select)",
+      "Bash(find . -iname \"logo.png\" -not -path \"*/node_modules/*\")",
+      "Bash(find . -type d -iname \"assets\" -not -path \"*/node_modules/*\")",
+      "Bash(ls public *)",
+      "Bash(node -e \"console.log\\('react-imask', require\\('react-imask/package.json'\\).version\\)\")",
+      "Bash(ls node_modules/react-imask)",
+      "Bash(node -p \"require\\('./package.json'\\).dependencies['react-imask']\")",
+      "mcp__claude_ai_Figma__get_design_context"
+    ]
+  }
+}

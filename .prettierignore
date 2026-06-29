@@ -1,0 +1,15 @@
+# Build e dependências
+node_modules
+.next
+out
+build
+coverage
+
+# Artefatos e lockfiles
+package-lock.json
+pnpm-lock.yaml
+*.tsbuildinfo
+next-env.d.ts
+
+# Assets estáticos
+public
