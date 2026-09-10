@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import React from "react";
 
 import { COUNTRY_CODES } from "@/data/countries";
 
@@ -12,7 +12,7 @@ import { CountryOption, UseCountriesReturn } from "./interface";
  * Totalmente offline — sem requisições externas.
  */
 export function useCountries(language: string): UseCountriesReturn {
-  const countries = useMemo<CountryOption[]>(() => {
+  const countries = React.useMemo<CountryOption[]>(() => {
     let display: Intl.DisplayNames | undefined;
     try {
       display = new Intl.DisplayNames([language || "en"], { type: "region" });

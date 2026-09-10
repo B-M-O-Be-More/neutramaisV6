@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Button, Flex, Icon, Stack, Text } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { LuCheck, LuFileText, LuUpload } from "react-icons/lu";
 
@@ -27,20 +27,36 @@ function formatSize(bytes: number): string {
 export function DocumentsUpload({ documents, onChange }: DocumentsUploadProps) {
   const { t } = useTranslation();
 
-  const [states, setStates] = useState<Record<string, DocumentUploadState>>({});
-  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const timers = useRef<Record<string, ReturnType<typeof setInterval>>>({});
+  const [states, setStates] = React.useState<
+    Record<string, DocumentUploadState>
+  >({});
+  const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
+  const timers = React.useRef<Record<string, ReturnType<typeof setInterval>>>(
+    {},
+  );
+
+  // Mantém a última `onChange` sem colocá-la nas dependências do efeito abaixo.
+  const onChangeRef = React.useRef(onChange);
+  React.useEffect(() => {
+    onChangeRef.current = onChange;
+  });
 
   // Sincroniza com o formulário os arquivos já enviados.
-  useEffect(() => {
+  //
+  // `onChange` NÃO entra nas dependências de propósito: o consumidor normalmente
+  // passa uma função inline, cuja identidade muda a cada render. Com ela nas
+  // deps, o efeito redisparava, o consumidor fazia setState, o pai renderizava de
+  // novo com outra função — e o ciclo não fechava, travando a aba. Notificar
+  // depende só da mudança real de `states`.
+  React.useEffect(() => {
     const files = Object.values(states)
       .filter((s) => s.status === "sent" && s.file)
       .map((s) => s.file as File);
-    onChange?.(files);
-  }, [states, onChange]);
+    onChangeRef.current?.(files);
+  }, [states]);
 
   // Limpa timers ao desmontar.
-  useEffect(() => {
+  React.useEffect(() => {
     const running = timers.current;
     return () => {
       Object.values(running).forEach((id) => clearInterval(id));

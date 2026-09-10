@@ -7,7 +7,7 @@ import { renderWithProviders, screen, waitFor } from "../../test-utils";
 // O i18n devolve as chaves nos testes (traduções carregam via HTTP em runtime).
 describe("FormLogin", () => {
   it("renderiza título, campos e ações principais", () => {
-    renderWithProviders(<FormLogin />);
+    renderWithProviders(<FormLogin onSubmit={vi.fn()} />);
 
     expect(screen.getByText("Login.title")).toBeInTheDocument();
     expect(
@@ -25,7 +25,7 @@ describe("FormLogin", () => {
   });
 
   it("alterna a visibilidade da senha pelo botão do olho", async () => {
-    const { user } = renderWithProviders(<FormLogin />);
+    const { user } = renderWithProviders(<FormLogin onSubmit={vi.fn()} />);
 
     const password = screen.getByLabelText(/Login.fields.password.label/);
     expect(password).toHaveAttribute("type", "password");

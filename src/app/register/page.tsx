@@ -1,20 +1,23 @@
 "use client";
 
-import FormRegister from "@/components/Forms/FormRegister";
-import { Stack } from "@chakra-ui/react";
+import { Suspense } from "react";
 
+import AuthLayout from "@/components/AuthLayout";
+import RegisterSidebar from "@/components/RegisterSidebar";
+import FormRegister from "@/components/Forms/FormRegister";
+import { RegisterFlowProvider } from "@/contexts/RegisterFlowContext";
+
+// O RegisterFlowProvider lê `?resume=` para reposicionar o stepper quando o
+// usuário volta pelo link de confirmação de e-mail — e useSearchParams exige um
+// limite de Suspense no App Router.
 export default function RegisterPage() {
   return (
-    <Stack
-      w="full"
-      minH="100dvh"
-      align="center"
-      justify="center"
-      gap={6}
-      p={{ base: 4, md: 6 }}
-      bg="#010409"
-    >
-      <FormRegister />
-    </Stack>
+    <Suspense>
+      <RegisterFlowProvider>
+        <AuthLayout sidebar={<RegisterSidebar />}>
+          <FormRegister />
+        </AuthLayout>
+      </RegisterFlowProvider>
+    </Suspense>
   );
 }

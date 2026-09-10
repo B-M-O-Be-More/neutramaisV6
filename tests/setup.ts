@@ -6,6 +6,27 @@ import { initReactI18next } from "react-i18next";
 import { afterEach, beforeAll, vi } from "vitest";
 
 // ---------------------------------------------------------------------------
+// next/navigation — o jsdom não monta o App Router, então os hooks de
+// navegação (useRouter etc.) são stubados para os componentes de feature que
+// os consomem (ex.: cadastro que redireciona pós-submit).
+// ---------------------------------------------------------------------------
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({}),
+  redirect: vi.fn(),
+  notFound: vi.fn(),
+}));
+
+// ---------------------------------------------------------------------------
 // i18n para testes
 // Inicializa o singleton do i18next SEM backend HTTP. Sem recursos carregados,
 // t("Chave") devolve a própria chave — assertivas ficam determinísticas e

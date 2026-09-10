@@ -1,6 +1,19 @@
 import * as yup from "yup";
 
 import { isValidCnpj } from "@/functions/validateCnpj";
+import { passwordRule, type PasswordMessages } from "@/schemas/password";
+
+/** Mensagens da política de senha nesta tela. */
+export const REGISTER_PASSWORD_MESSAGES: PasswordMessages & {
+  lowercase: string;
+} = {
+  required: "Register.errors.passwordRequired",
+  tooShort: "Register.errors.passwordMin",
+  uppercase: "Register.errors.passwordUppercase",
+  digit: "Register.errors.passwordNumber",
+  symbol: "Register.errors.passwordSymbol",
+  lowercase: "Register.errors.passwordLowercase",
+};
 
 /* ---------------------------------------------------------------------------
  * US-02 — Cadastro de Empresa (KYC Básico)
@@ -56,12 +69,8 @@ export const responsibleSchema = yup.object({
     .trim()
     .email("Register.errors.emailInvalid")
     .required("Register.errors.emailRequired"),
-  password: yup
-    .string()
-    .required("Register.errors.passwordRequired")
-    .min(8, "Register.errors.passwordMin")
-    .matches(/[a-zA-Z]/, "Register.errors.passwordLetter")
-    .matches(/[0-9]/, "Register.errors.passwordNumber"),
+  // Política vem de schemas/password (fonte única, espelha a identity-api).
+  password: passwordRule(REGISTER_PASSWORD_MESSAGES),
   confirmPassword: yup
     .string()
     .required("Register.errors.confirmRequired")
@@ -86,3 +95,22 @@ export const registerPayerSchema = companyDataSchema
 
 /** Vendedor (Seller): etapas 1–4 */
 export const registerSellerSchema = registerPayerSchema.concat(documentsSchema);
+
+/* ---------------------------------------------------------------------------
+ * Fluxo unificado (light) — seleção de tipo integrada às etapas de dados.
+ * Etapa 0 (tipo) + 1 (empresa) + 2 (endereço) + 3 (responsável). `tradeName`
+ * (nome fantasia) é opcional e alimenta `trade_name` do payload de
+ * POST /organizations/register.
+ * ------------------------------------------------------------------------- */
+export const accountTypeSchema = yup.object({
+  type: yup
+    .string()
+    .oneOf(["buyer", "seller"], "Register.errors.type")
+    .required("Register.errors.type"),
+  tradeName: yup.string().trim().default(""),
+});
+
+export const registerFlowSchema = accountTypeSchema
+  .concat(companyDataSchema)
+  .concat(addressSchema)
+  .concat(responsibleSchema);

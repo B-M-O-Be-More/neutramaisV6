@@ -1,87 +1,41 @@
 "use client";
 
 import React from "react";
+
+import { api } from "@/services/api.client";
+import type { PaginationMetadata } from "@/types/api.types";
 import { useLoading } from "../useLoading/hook";
 import { FetchResponse, Options } from "./interface";
-import { Meta } from "@/interfaces/Meta";
 
-const defaultPagination: Meta["meta"] = {
-  count: 0,
-  page: 1,
-  next: null,
-  previous: null,
-  total_pages: 0,
-  total_results: 0,
-};
-
+/**
+ * Hook de conveniência para consumo do BFF a partir de componentes client.
+ * Delega ao `api.client` (base `/api`), expondo estado de loading, o último
+ * `data` e a paginação do envelope. Erros são propagados como AppError tipados
+ * (ver services/errors.ts) — trate-os no hook de feature, não no componente.
+ */
 export default function useFetch<T>() {
   const [data, setData] = React.useState<T>();
-  const [pagination, setPagination] =
-    React.useState<Meta["meta"]>(defaultPagination);
+  const [pagination, setPagination] = React.useState<PaginationMetadata | null>(
+    null,
+  );
   const { executeWithLoading, isLoading } = useLoading();
 
-  const request = async (
-    url: string,
-    options: Options,
-  ): Promise<FetchResponse<T>> => {
-    const params = new URLSearchParams();
-
-    if (options.params) {
-      Object.entries(options.params).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          value.forEach((item) => params.append(`${key}[]`, item));
-        } else {
-          params.append(key, String(value));
-        }
-      });
-    }
-
-    const headers: HeadersInit = {
-      Accept: "application/json",
-      ...(options.body instanceof FormData
-        ? {}
-        : { "Content-Type": "application/json" }),
-      ...(options.headers || {}),
-    };
-
-    const config: RequestInit = {
-      method: options.method,
-      headers,
-    };
-
-    if (options.method !== "GET" && options.body) {
-      if (options.body instanceof FormData) {
-        config.body = options.body;
-      } else {
-        config.body = JSON.stringify(options.body);
-      }
-    }
-
-    try {
-      const response = await executeWithLoading(() =>
-        fetch(`${url}?${params.toString()}`, config),
+  const request = React.useCallback(
+    async (url: string, options: Options): Promise<FetchResponse<T>> => {
+      const result = await executeWithLoading(() =>
+        api.request<T>(options.method, url, options.body ?? null, {
+          params: options.params,
+          headers: options.headers,
+        }),
       );
 
-      const responseData = await response.json();
+      setData(result.data);
+      setPagination(result.metadata);
 
-      if (!response.ok) {
-        throw new Error(responseData?.message || "Fetch error");
-      }
-
-      setData(responseData.data as T);
-      setPagination(responseData.meta || defaultPagination);
-
-      return {
-        data: responseData.data,
-        message: responseData.message ?? null,
-      };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An error occurred";
-
-      throw new Error(errorMessage);
-    }
-  };
+      return { data: result.data, message: result.message };
+    },
+    [executeWithLoading],
+  );
 
   return [request, isLoading, data, pagination] as const;
 }

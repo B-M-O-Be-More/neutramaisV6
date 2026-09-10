@@ -109,7 +109,7 @@ const theme = defineConfig({
 
         border: {
           default: {
-            _light: { value: "#E0E0E0" },
+            _light: { value: "#E5E8EE" },
             _dark: { value: "#30363D" },
           },
         },

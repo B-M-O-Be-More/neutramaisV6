@@ -11,7 +11,7 @@ import GlobalLoader from "../GlobalLoader/component";
 export function Provider({ children }: { children: React.ReactNode }) {
   return (
     <ChakraProvider value={system}>
-      <ColorModeProvider defaultTheme="dark">
+      <ColorModeProvider defaultTheme="light">
         <LanguageProvider>
           <AppProvider>
             <GlobalLoader />

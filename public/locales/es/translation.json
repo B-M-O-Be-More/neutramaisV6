@@ -1,18 +1,231 @@
 {
+  "ConfirmEmail": {
+    "loading": {
+      "title": "Confirmando tu correo...",
+      "subtitle": "Un momento."
+    },
+    "success": {
+      "title": "¡Correo confirmado!",
+      "subtitle": "Tu cuenta está activa. Ya puedes iniciar sesión.",
+      "cta": "Ir al inicio de sesión"
+    },
+    "error": {
+      "title": "No se pudo confirmar",
+      "subtitle": "El enlace es inválido o expiró. Puedes reenviar el correo de confirmación.",
+      "resend": "Reenviar correo",
+      "resent": "Correo reenviado. Revisa tu bandeja de entrada.",
+      "backToLogin": "Volver al inicio de sesión"
+    },
+    "missing": "Enlace inválido: faltan datos de confirmación.",
+    "resuming": {
+      "title": "¡Correo confirmado!",
+      "subtitle": "Volviendo al registro..."
+    }
+  },
+  "ForgotPassword": {
+    "title": "Recuperar contraseña",
+    "subtitle": {
+      "text": "Ingresa el correo corporativo registrado. Enviaremos un enlace para restablecer la contraseña válido por ",
+      "highlight": "30 minutos"
+    },
+    "fields": {
+      "email": {
+        "label": "Correo corporativo",
+        "placeholder": "usuario@empresa.com"
+      }
+    },
+    "submit": "Enviar enlace de restablecimiento",
+    "rememberedPassword": "¿Recordaste la contraseña?",
+    "backToLogin": "Volver al inicio de sesión",
+    "loading": {
+      "title": "Verificando cuenta...",
+      "subtitle": "Consultando el correo en la base de organizaciones"
+    },
+    "success": {
+      "title": "¡Correo enviado!",
+      "subtitle": "Enviamos un enlace de restablecimiento a",
+      "details": {
+        "validity": {
+          "label": "Validez del enlace",
+          "value": "30 minutos"
+        },
+        "attempts": {
+          "label": "Intentos permitidos",
+          "value": "1 uso por enlace · enlace inválido tras el uso"
+        },
+        "notReceived": {
+          "label": "¿No lo recibiste?",
+          "value": "Revisa la carpeta de spam / correo no deseado"
+        },
+        "sender": {
+          "label": "Dominio de envío",
+          "value": "no-reply@neutra.plus"
+        }
+      },
+      "warning": {
+        "text": "Si no solicitaste el restablecimiento, ",
+        "highlight": "ignora este correo",
+        "suffix": ". Tu contraseña actual permanece sin cambios. ¿Sospechas de acceso no autorizado? Contacta a suporte@neutra.plus de inmediato."
+      }
+    },
+    "error": {
+      "title": "Correo no encontrado",
+      "subtitle": "No se encontró ninguna cuenta activa para",
+      "causesTitle": "Posibles causas:",
+      "causes": {
+        "typo": "Correo escrito incorrectamente",
+        "differentEmail": "La cuenta puede estar vinculada a otro correo",
+        "disabled": "La cuenta puede haber sido desactivada o bloqueada por el admin",
+        "incomplete": "La organización aún no completó el registro"
+      },
+      "retry": "Intentar con otro correo",
+      "stillStuck": "¿Sigues con problemas?",
+      "supportEmail": "suporte@neutra.mais"
+    },
+    "sidebar": {
+      "headline": "Acceso seguro",
+      "headlineHighlight": "a tu cuenta.",
+      "subtitle": "Neutra+ utiliza autenticación segura con 2FA y enlaces de restablecimiento válidos por 30 minutos para proteger tu organización.",
+      "features": {
+        "expiry": "Enlace de restablecimiento válido por 30 minutos",
+        "corporate": "Verificación por correo corporativo (empresas)",
+        "strength": "Contraseña mínima: 8 caracteres con mayúscula, número y símbolo"
+      },
+      "support": "¿Problemas con el acceso? Contacto:",
+      "supportEmail": "suporte@neutra.plus"
+    },
+    "errors": {
+      "emailInvalid": "Correo inválido",
+      "emailRequired": "Ingresa el correo"
+    }
+  },
+  "Mfa": {
+    "back": "Volver",
+    "title": "Verificación en dos pasos",
+    "subtitle": {
+      "totp": "Ingresa el código de 6 dígitos generado por tu aplicación de autenticación.",
+      "recovery": "Ingresa uno de los códigos de recuperación que guardaste al activar la verificación en dos pasos."
+    },
+    "fields": {
+      "totp": {
+        "label": "Código de verificación",
+        "placeholder": "000000"
+      },
+      "recovery": {
+        "label": "Código de recuperación",
+        "placeholder": "xxxx-xxxx-xxxx"
+      }
+    },
+    "submit": "Verificar e iniciar sesión",
+    "useRecovery": "No puedo acceder a la app — usar código de recuperación",
+    "useTotp": "Usar el código de la aplicación de autenticación",
+    "hint": "Cada código de recuperación solo puede usarse una vez.",
+    "errors": {
+      "totpRequired": "Ingresa el código de verificación",
+      "totpInvalid": "El código tiene 6 dígitos",
+      "recoveryRequired": "Ingresa el código de recuperación",
+      "invalidCode": "Código inválido o expirado",
+      "challengeExpired": "Tu verificación expiró. Inicia sesión de nuevo para recibir un código nuevo."
+    },
+    "feedback": {
+      "error": "No se pudo completar la verificación. Inténtalo de nuevo."
+    }
+  },
+  "ResetPassword": {
+    "title": "Definir nueva contraseña",
+    "subtitle": "Elige una contraseña fuerte que no uses en otros servicios.",
+    "fields": {
+      "password": {
+        "label": "Nueva contraseña",
+        "placeholder": "••••••••••••"
+      },
+      "confirmation": {
+        "label": "Confirmar nueva contraseña",
+        "placeholder": "••••••••••••"
+      }
+    },
+    "requirements": {
+      "length": "Al menos {{count}} caracteres",
+      "uppercase": "Una letra mayúscula",
+      "number": "Un número",
+      "symbol": "Un símbolo"
+    },
+    "submit": "Guardar nueva contraseña",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "success": {
+      "title": "¡Contraseña cambiada!",
+      "subtitle": "Tu nueva contraseña ya está activa. Puedes iniciar sesión.",
+      "cta": "Ir al inicio de sesión"
+    },
+    "error": {
+      "title": "No se pudo restablecer",
+      "subtitle": "El enlace es inválido, expiró o ya fue usado. Cada enlace vale 30 minutos y solo puede usarse una vez.",
+      "missing": "Enlace inválido: falta el token de restablecimiento.",
+      "cta": "Solicitar nuevo enlace"
+    },
+    "errors": {
+      "passwordRequired": "Ingresa la nueva contraseña",
+      "passwordTooShort": "La contraseña necesita al menos 12 caracteres",
+      "passwordNeedsUppercase": "Incluye una letra mayúscula",
+      "passwordNeedsNumber": "Incluye un número",
+      "passwordNeedsSymbol": "Incluye un símbolo",
+      "passwordConfirmationRequired": "Confirma la nueva contraseña",
+      "passwordMismatch": "Las contraseñas no coinciden"
+    }
+  },
+  "AuthBrand": {
+    "logoAlt": "Neutra+",
+    "badge": "PLATAFORMA 100% B2B · SOLO EMPRESAS",
+    "headline": "El marketplace de los",
+    "headlineHighlight": "proveedores de telecom.",
+    "subtitle": "Conectividad, infraestructura física, hardware y recursos de numeración — con pago en escrow, SLA público y contratos electrónicos automáticos.",
+    "features": {
+      "escrow": {
+        "title": "Pago en escrow",
+        "description": "Fondos protegidos hasta confirmar la entrega"
+      },
+      "contract": {
+        "title": "Contrato electrónico automático",
+        "description": "Generado tras la aceptación del pedido"
+      },
+      "score": {
+        "title": "Score y SLA públicos",
+        "description": "Transparencia para la decisión de compra"
+      },
+      "tenant": {
+        "title": "Multi-tenant B2B",
+        "description": "Aislamiento por organización (empresa)"
+      }
+    },
+    "stats": {
+      "transacted": "Transaccionado",
+      "sellers": "Sellers activos",
+      "sla": "SLA cumplido"
+    }
+  },
   "Login": {
     "logoAlt": "Neutra+",
-    "title": "¡Bienvenido de nuevo!",
-    "subtitle": "Ingresa tus credenciales para acceder a tu cuenta",
+    "title": "Bienvenido de nuevo",
+    "subtitle": "Accede a tu cuenta organizacional Neutra+",
     "fields": {
-      "email": { "label": "Correo", "placeholder": "tu@email.com" },
-      "password": { "label": "Contraseña", "placeholder": "Contraseña" }
+      "email": {
+        "label": "Correo corporativo",
+        "placeholder": "usuario@empresa.com"
+      },
+      "password": {
+        "label": "Contraseña",
+        "placeholder": "••••••••"
+      }
     },
-    "rememberMe": "Mantenerme conectado",
+    "credentialsDivider": "ingresa con tus credenciales",
+    "rememberMe": "Mantener la sesión activa en este dispositivo",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "submit": "Entrar",
     "or": "o",
     "noAccount": "¿Aún no tienes una cuenta?",
-    "createAccount": "Crear cuenta",
+    "createAccount": "Registrar Empresa",
+    "pjOnly": "Plataforma exclusiva para empresas.",
     "showPassword": "Mostrar contraseña",
     "hidePassword": "Ocultar contraseña",
     "footer": {
@@ -21,10 +234,20 @@
       "privacy": "Privacidad",
       "help": "Ayuda"
     },
+    "feedback": {
+      "error": "No se pudo iniciar sesión. Inténtalo de nuevo.",
+      "rateLimit": "Demasiados intentos. Inténtalo de nuevo en unos instantes.",
+      "mfaRequired": "Se requiere verificación en dos pasos."
+    },
     "errors": {
       "emailInvalid": "Correo inválido",
       "emailRequired": "Ingresa tu correo",
-      "passwordRequired": "Ingresa tu contraseña"
+      "passwordRequired": "Ingresa tu contraseña",
+      "invalidCredentials": "Correo o contraseña inválidos"
+    },
+    "captcha": {
+      "prompt": "Confirma que no eres un robot para continuar.",
+      "unavailable": "La verificación anti-robot no está configurada en este entorno (NEXT_PUBLIC_HCAPTCHA_SITE_KEY)."
     }
   },
   "LoginPage": {
@@ -103,6 +326,147 @@
     "logoAlt": "Neutra+",
     "title": "Crear Cuenta",
     "subtitle": "Registra tu empresa en el Marketplace Neutra+",
+    "sidebar": {
+      "headline": "Crea tu cuenta",
+      "headlineHighlight": "organizacional",
+      "subtitle": "Plataforma exclusiva para empresas (persona jurídica). Identificación fiscal obligatoria.",
+      "steps": {
+        "role": {
+          "title": "Elige el tipo de cuenta",
+          "description": "Comprador (Buyer) o Vendedor (Seller)"
+        },
+        "company": {
+          "title": "Datos de la empresa",
+          "description": "Identificación fiscal, razón social, correo corporativo"
+        },
+        "address": {
+          "title": "Dirección",
+          "description": "País, calle, código postal"
+        },
+        "responsible": {
+          "title": "Representante legal",
+          "description": "Identificación, contacto y creación de contraseña"
+        },
+        "verify": {
+          "title": "Verificación",
+          "description": "Confirma correo y teléfono"
+        },
+        "kyc": {
+          "title": "KYC y próximos pasos",
+          "description": "Documentación para operar en la plataforma"
+        }
+      }
+    },
+    "flow": {
+      "backToLogin": "Volver al inicio de sesión",
+      "back": "Volver",
+      "stepLabel": "Paso {{current}} de {{total}}",
+      "role": {
+        "heading": "Tipo de cuenta",
+        "question": "¿Cómo usará tu empresa Neutra+?",
+        "buyer": {
+          "title": "Comprador",
+          "description": "Encuentra y contrata conectividad, hardware y recursos de proveedores verificados."
+        },
+        "seller": {
+          "title": "Vendedor",
+          "description": "Publica ofertas, recibe pedidos y gestiona ventas de servicios de telecom."
+        },
+        "selected": "Seleccionado",
+        "sellerNotice": "<strong>Vendedores:</strong> el registro siempre es revisado manualmente por Compliance + Legal (SLA: 72 horas hábiles tras documentos completos). Puedes acceder al panel antes de la aprobación, pero no transaccionar.",
+        "pjOnly": "<strong>Solo para empresas:</strong> no aceptamos personas físicas (identificación personal). Necesitarás una identificación fiscal de empresa activa."
+      },
+      "verify": {
+        "subtitle": "Enviamos un enlace de verificación a tu correo corporativo. Abre el correo y haz clic en el botón para continuar el registro.",
+        "email": {
+          "title": "Verificar correo",
+          "fallback": "tu@correo.com",
+          "hint": "Enlace de verificación enviado a este correo. ¿No lo recibiste? Revisa la carpeta de spam. El enlace solo puede usarse una vez."
+        },
+        "phone": {
+          "title": "Verificar teléfono",
+          "fallback": "+55 (00) 00000-0000",
+          "emailFirst": "Valida primero el correo",
+          "sendHint": "Enviaremos un código de 6 dígitos por SMS a este número.",
+          "sentHint": "Ingresa el código de 6 dígitos que enviamos por SMS.",
+          "code": {
+            "label": "Código de verificación",
+            "placeholder": "000000"
+          },
+          "sendCode": "Enviar código",
+          "validate": "Validar",
+          "resendCode": "Reenviar código",
+          "errors": {
+            "missingUser": "No pudimos identificar tu registro. Abre nuevamente el enlace enviado por correo.",
+            "send": "No pudimos enviar el código. Inténtalo de nuevo.",
+            "invalidCode": "Código inválido o vencido. Solicita uno nuevo.",
+            "confirm": "No pudimos validar el código. Inténtalo de nuevo.",
+            "rateLimit": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo."
+          }
+        },
+        "button": "Verificar",
+        "verified": "Verificado ✓",
+        "demoHint": "Para la demo, cualquier 6 dígitos funciona",
+        "waiting": "Esperando la confirmación mediante el enlace del correo.",
+        "subtitleConfirmed": "Correo confirmado. Ahora valida tu teléfono para completar la verificación.",
+        "finish": "Finalizar registro"
+      },
+      "continue": "Continuar",
+      "finish": "Finalizar registro",
+      "kyc": {
+        "heading": "Próximos pasos",
+        "created": {
+          "title": "¡Cuenta creada!",
+          "subtitle": "Autoaprobación en el nivel básico. Envía documentos para desbloquear compras."
+        },
+        "levelQuestion": "¿Qué nivel deseas alcanzar ahora?",
+        "levels": {
+          "basic": {
+            "title": "Básico",
+            "description": "Ya activo — solo visualización",
+            "current": "ACTUAL"
+          },
+          "verified": {
+            "title": "Verificado",
+            "description": "Comprar / pagar pedidos"
+          },
+          "complete": {
+            "title": "Completo",
+            "description": "Retirar wallet · volúmenes altos"
+          }
+        },
+        "groups": {
+          "verified": "KYC Verificado — documentos",
+          "complete": "KYC Completo — documentos adicionales"
+        },
+        "sentCount": "{{sent}}/{{total}} enviados",
+        "docs": {
+          "scm_outorga": "Licencia SCM o equivalente",
+          "bank_proof": "Datos bancarios (comprobante)",
+          "legal_rep_id": "Documento del representante legal",
+          "articles_of_incorporation": "Contrato social / Estatuto",
+          "address_proof": "Comprobante de domicilio de la sede",
+          "revenue_proof": "Comprobante de facturación (12 meses)",
+          "representative_selfie": "Selfie del representante legal con documento",
+          "ubo_declaration": "Declaración de beneficiarios finales",
+          "federal_clearance": "Certificado de no adeudo federal"
+        },
+        "optional": "Opcional",
+        "sending": "Enviando...",
+        "actions": {
+          "upload": "Enviar",
+          "replace": "Cambiar"
+        },
+        "errors": {
+          "mimeType": "Formato no aceptado. Envía PDF, JPG o PNG.",
+          "upload": "No pudimos enviar el documento. Inténtalo de nuevo.",
+          "submit": "No pudimos enviar la documentación para análisis. Inténtalo de nuevo."
+        },
+        "notice": "Puedes enviar los documentos ahora o después en <strong>Mi Empresa / KYC</strong>. Los compradores BR básicos tienen autoaprobación. Los sellers siempre exigen revisión manual en hasta 72h hábiles.",
+        "cta": "Explorar marketplace",
+        "redirecting": "Redirigiendo a la página de inicio de sesión..."
+      }
+    },
     "accountType": {
       "title": "Crear Cuenta",
       "subtitle": "Elige el tipo de cuenta que deseas crear",
@@ -145,24 +509,86 @@
       "documents": "Documentos"
     },
     "fields": {
-      "companyName": { "label": "Razón Social", "placeholder": "Nombre de la empresa" },
-      "document": { "label": "Identificación fiscal", "placeholder": "XX.XXX.XXX/XXXX-XX", "helper": "CNPJ, NIF, EIN, VAT o equivalente" },
-      "country": { "label": "País", "placeholder": "Seleccionar País", "loading": "Cargando países..." },
-      "phone": { "label": "Teléfono con código de país", "placeholder": "+55 (12) 31231-2312" },
-      "phoneCountry": { "label": "País del teléfono", "br": "Brasil (+55)", "us": "Estados Unidos (+1)", "other": "Otro" },
-      "sector": { "label": "Sector", "placeholder": "Seleccionar Sector" },
-      "zipCode": { "label": "Código Postal", "placeholder": "00000-000" },
-      "street": { "label": "Calle", "placeholder": "Calle" },
-      "number": { "label": "Número", "placeholder": "Nº" },
-      "complement": { "label": "Complemento", "placeholder": "Sala, piso, bloque (opcional)" },
-      "neighborhood": { "label": "Barrio", "placeholder": "Barrio" },
-      "city": { "label": "Ciudad", "placeholder": "Ciudad" },
-      "state": { "label": "Provincia", "placeholder": "Seleccionar provincia" },
-      "responsibleName": { "label": "Nombre del responsable", "placeholder": "Nombre completo" },
-      "email": { "label": "Correo electrónico", "placeholder": "tu@empresa.com" },
-      "password": { "label": "Contraseña", "placeholder": "Mínimo 8 caracteres" },
-      "confirmPassword": { "label": "Confirmar contraseña", "placeholder": "Repite la contraseña" },
-      "documents": { "label": "Documentos de la empresa", "helper": "Documentos necesarios para habilitar la venta (KYC Verificado de vendedor)." }
+      "companyName": {
+        "label": "Razón Social",
+        "placeholder": "Nombre de la empresa"
+      },
+      "tradeName": {
+        "label": "Nombre comercial",
+        "placeholder": "Nombre comercial (opcional)"
+      },
+      "document": {
+        "label": "Identificación fiscal",
+        "placeholder": "XX.XXX.XXX/XXXX-XX",
+        "helper": "CNPJ, NIF, EIN, VAT o equivalente"
+      },
+      "country": {
+        "label": "País",
+        "placeholder": "Seleccionar País",
+        "loading": "Cargando países..."
+      },
+      "phone": {
+        "label": "Teléfono con código de país",
+        "placeholder": "+55 (12) 31231-2312"
+      },
+      "phoneCountry": {
+        "label": "País del teléfono",
+        "br": "Brasil (+55)",
+        "us": "Estados Unidos (+1)",
+        "other": "Otro"
+      },
+      "sector": {
+        "label": "Sector",
+        "placeholder": "Seleccionar Sector"
+      },
+      "zipCode": {
+        "label": "Código Postal",
+        "placeholder": "00000-000"
+      },
+      "street": {
+        "label": "Calle",
+        "placeholder": "Calle"
+      },
+      "number": {
+        "label": "Número",
+        "placeholder": "Nº"
+      },
+      "complement": {
+        "label": "Complemento",
+        "placeholder": "Sala, piso, bloque (opcional)"
+      },
+      "neighborhood": {
+        "label": "Barrio",
+        "placeholder": "Barrio"
+      },
+      "city": {
+        "label": "Ciudad",
+        "placeholder": "Ciudad"
+      },
+      "state": {
+        "label": "Provincia",
+        "placeholder": "Seleccionar provincia"
+      },
+      "responsibleName": {
+        "label": "Nombre del responsable",
+        "placeholder": "Nombre completo"
+      },
+      "email": {
+        "label": "Correo electrónico",
+        "placeholder": "tu@empresa.com"
+      },
+      "password": {
+        "label": "Contraseña",
+        "placeholder": "Mínimo 8 caracteres"
+      },
+      "confirmPassword": {
+        "label": "Confirmar contraseña",
+        "placeholder": "Repite la contraseña"
+      },
+      "documents": {
+        "label": "Documentos de la empresa",
+        "helper": "Documentos necesarios para habilitar la venta (KYC Verificado de vendedor)."
+      }
     },
     "sectors": {
       "telecom": "Telecomunicaciones",
@@ -195,9 +621,20 @@
         "bankData": "Datos bancarios (titular = razón social)",
         "fiscalDeclaration": "Última declaración fiscal"
       },
-      "tags": { "basic": "Básico", "verified": "Verificado", "complete": "Completo" },
-      "status": { "pending": "Pendiente", "sending": "Enviando...", "sent": "Enviado" },
-      "actions": { "upload": "Enviar archivo", "cancel": "Cancelar" }
+      "tags": {
+        "basic": "Básico",
+        "verified": "Verificado",
+        "complete": "Completo"
+      },
+      "status": {
+        "pending": "Pendiente",
+        "sending": "Enviando...",
+        "sent": "Enviado"
+      },
+      "actions": {
+        "upload": "Enviar archivo",
+        "cancel": "Cancelar"
+      }
     },
     "errors": {
       "companyName": "Ingrese la razón social",
@@ -216,12 +653,23 @@
       "emailInvalid": "Correo electrónico inválido",
       "emailRequired": "Ingrese el correo electrónico",
       "passwordRequired": "Ingrese una contraseña",
-      "passwordMin": "Mínimo 8 caracteres",
+      "passwordMin": "Mínimo de 12 caracteres",
       "passwordLetter": "Incluya al menos 1 letra",
       "passwordNumber": "Incluya al menos 1 número",
       "confirmRequired": "Confirme la contraseña",
       "confirmMatch": "Las contraseñas no coinciden",
-      "acceptTerms": "Es necesario aceptar los Términos de Uso y la Política de Privacidad"
+      "acceptTerms": "Es necesario aceptar los Términos de Uso y la Política de Privacidad",
+      "type": "Selecciona el tipo de cuenta",
+      "documentTaken": "Este documento ya está registrado",
+      "emailTaken": "Este correo ya está registrado",
+      "passwordUppercase": "Incluye al menos 1 letra mayúscula",
+      "passwordSymbol": "Incluye al menos 1 símbolo",
+      "passwordLowercase": "Incluye al menos 1 letra minúscula",
+      "passwordPolicy": "La contraseña no cumple la política de seguridad"
+    },
+    "feedback": {
+      "error": "No se pudo completar el registro",
+      "rateLimit": "Demasiados intentos. Inténtalo de nuevo en unos instantes."
     }
   },
   "RecoveryPage": {
