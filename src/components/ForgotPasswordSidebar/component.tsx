@@ -77,7 +77,7 @@ export function ForgotPasswordSidebar() {
             borderWidth="1px"
             borderColor="rgba(31, 90, 255, 0.30)"
           >
-            <Icon as={LuKeyRound} boxSize="22px" color="#6B9FFF" />
+            <Icon as={LuKeyRound} boxSize="22px" color="#1F5AFF" />
           </Flex>
 
           <Text

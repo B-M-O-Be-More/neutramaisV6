@@ -1,16 +1,19 @@
 "use client";
 
+import TenantIcon from "@/components/TenantIcon";
 import { Box, Flex, Grid, Icon, Image, Stack, Text } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
+import { CiLock, CiStar } from "react-icons/ci";
+import { IoClipboardOutline } from "react-icons/io5";
 import { LuShieldCheck } from "react-icons/lu";
 
 // Destaques exibidos no painel de marca. Título/descrição vêm do i18n
-// (AuthBrand.features.<key>); o emoji é decorativo e fica fixo aqui.
+// (AuthBrand.features.<key>); o ícone é decorativo e fica fixo aqui.
 const FEATURES = [
-  { key: "escrow", icon: "🔒" },
-  { key: "contract", icon: "📋" },
-  { key: "score", icon: "⭐" },
-  { key: "tenant", icon: "🏢" },
+  { key: "escrow", icon: CiLock },
+  { key: "contract", icon: IoClipboardOutline },
+  { key: "score", icon: CiStar },
+  { key: "tenant", icon: TenantIcon },
 ] as const;
 
 // Números ilustrativos (placeholder até virem métricas reais da plataforma).
@@ -85,11 +88,11 @@ export function AuthBrandPanel() {
             py={1}
             mb={6}
           >
-            <Icon as={LuShieldCheck} boxSize="12px" color="#6B9FFF" />
+            <Icon as={LuShieldCheck} boxSize="12px" color="#1F5AFF" />
             <Text
               fontSize="11px"
               fontWeight={700}
-              color="#6B9FFF"
+              color="#1F5AFF"
               letterSpacing="0.5px"
             >
               {t("AuthBrand.badge")}
@@ -105,7 +108,7 @@ export function AuthBrandPanel() {
           >
             {t("AuthBrand.headline")}
             <br />
-            <Text as="span" color="#6B9FFF">
+            <Text as="span" color="#1F5AFF">
               {t("AuthBrand.headlineHighlight")}
             </Text>
           </Text>
@@ -127,7 +130,7 @@ export function AuthBrandPanel() {
                   borderWidth="1px"
                   borderColor="rgba(255, 255, 255, 0.10)"
                 >
-                  <Text fontSize="16px">{feature.icon}</Text>
+                  <Icon as={feature.icon} boxSize="16px" color="white" />
                 </Flex>
                 <Box>
                   <Text color="white" fontSize="13px" fontWeight={600}>
@@ -152,7 +155,7 @@ export function AuthBrandPanel() {
         >
           {STATS.map((stat) => (
             <Stack key={stat.labelKey} gap={0} textAlign="center">
-              <Text color="#6B9FFF" fontSize="18px" fontWeight={800}>
+              <Text color="#1F5AFF" fontSize="18px" fontWeight={800}>
                 {stat.value}
               </Text>
               <Text color="#5A6478" fontSize="11px">
