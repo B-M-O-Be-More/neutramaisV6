@@ -1,0 +1,23 @@
+# Dependências e artefatos de build são refeitos dentro da imagem.
+node_modules
+.next
+out
+coverage
+tsconfig.tsbuildinfo
+
+# Arquivos de ambiente locais NUNCA entram na imagem: o `npm run build` embute
+# as variáveis NEXT_PUBLIC_* no bundle do browser, então um .env.local copiado
+# junto sobrescreveria a configuração do deploy — e ainda levaria COOKIE_SECRET
+# para dentro das camadas da imagem.
+.env
+.env.*
+!.env.example
+
+# Metadados e ferramentas que não participam do build.
+.git
+.gitignore
+.claude
+Dockerfile
+.dockerignore
+docker-compose.yml
+npm-debug.log*

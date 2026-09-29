@@ -243,7 +243,8 @@
       "emailInvalid": "Invalid email",
       "emailRequired": "Enter your email",
       "passwordRequired": "Enter your password",
-      "invalidCredentials": "Invalid email or password"
+      "invalidCredentials": "Invalid email or password",
+      "captchaRequired": "Too many login attempts. Complete the anti-bot check to continue."
     },
     "captcha": {
       "prompt": "Confirm you are not a robot to continue.",
@@ -2019,5 +2020,420 @@
     "value": "Value",
     "installation_estimate": "Installation Estimate",
     "business_days": "business days"
+  },
+  "Marketplace": {
+    "header": {
+      "logoAlt": "Neutra+",
+      "section": "Marketplace",
+      "searchPlaceholder": "Quick search...",
+      "language": "Language",
+      "login": "Login",
+      "register": "Sign up now"
+    },
+    "hero": {
+      "logoAlt": "Neutra+",
+      "badge": "100% B2B platform · Multi-tenant · KYC/KYB verified",
+      "headline": "The marketplace for",
+      "headlineHighlight": "telecom providers.",
+      "subtitle": "Connectivity, physical infrastructure, hardware and numbering resources — with escrow payments, electronic contracts and public SLA. No sole traders. Registered companies only.",
+      "exploreCta": "Explore marketplace",
+      "registerCta": "Create account now",
+      "trust": {
+        "escrow": "Guaranteed escrow",
+        "score": "Public score",
+        "sla": "Contractual SLA"
+      }
+    },
+    "stats": {
+      "transactedVolume": {
+        "label": "Transacted volume",
+        "caption": "last 12 months"
+      },
+      "activeProviders": {
+        "label": "Active providers",
+        "caption": "KYC verified"
+      },
+      "slaCompliance": {
+        "label": "SLA met",
+        "caption": "platform average"
+      },
+      "averageResponseTime": {
+        "label": "Average response time",
+        "caption": "order acceptance"
+      }
+    },
+    "categories": {
+      "title": "Explore by category",
+      "subtitle": "4 categories available in the MVP — templates approved by Operations, Product and Legal",
+      "seeAll": "See all categories",
+      "items": {
+        "connectivity": {
+          "title": "Connectivity",
+          "badge": "Most searched",
+          "description": "Optical fiber, dedicated link, MPLS, VoIP, IP transit and more. Coverage verified by KMZ with public SLA.",
+          "tags": [
+            "Fiber",
+            "Dedicated Link",
+            "MPLS",
+            "VoIP",
+            "IP Transit"
+          ],
+          "footer": "{{total}} offers"
+        },
+        "infrastructure": {
+          "title": "Physical Infrastructure",
+          "badge": "B2B Enterprise",
+          "description": "Colocation, towers, dark fiber, cross-connect and datacenter space. Capacity, power and location verified.",
+          "tags": [
+            "Colocation",
+            "Tower",
+            "Dark Fiber",
+            "Cross-connect"
+          ],
+          "footer": "{{total}} offers"
+        },
+        "hardware": {
+          "title": "Hardware / CPE",
+          "badge": "Verified stock",
+          "description": "Routers, switches, ONTs and CPE equipment. Finite stock, verified warranty, invoice included.",
+          "tags": [
+            "Routers",
+            "Switches",
+            "ONT/ONU",
+            "CPE"
+          ],
+          "footer": "{{total}} SKUs"
+        },
+        "numbering": {
+          "title": "Numbering Resources",
+          "badge": "Regulatory",
+          "description": "IPv4/IPv6 blocks, ASN, PSTN numbering. Documented ownership and verified regulatory compliance.",
+          "tags": [
+            "IPv4",
+            "IPv6",
+            "ASN",
+            "Numbering"
+          ],
+          "footer": "{{total}} blocks"
+        }
+      }
+    },
+    "promotions": {
+      "title": "Public prices · aggregated coverage · Neutra score",
+      "subtitle": "Escrow payment · price snapshot · acceptance within 72h · automatic e-contract",
+      "seeAll": "See all",
+      "items": {
+        "flashSale": {
+          "badge": "Flash sale",
+          "title": "1 Gbps fiber with 30% OFF",
+          "description": "Valid until 07/31 · New business contracts only",
+          "cta": "See offer"
+        },
+        "news": {
+          "badge": "New",
+          "title": "IPv6 /48 available now",
+          "description": "Numbering resources with verified delegation · ANATEL",
+          "cta": "Learn more"
+        },
+        "highlight": {
+          "badge": "Highlight of the month",
+          "title": "Top Sellers in SP · Score 4.9+",
+          "description": "Verified providers with the best activation SLA in the region",
+          "cta": "Explore"
+        }
+      }
+    },
+    "howItWorks": {
+      "badge": "How it works",
+      "title": "From search to order in under 3 minutes",
+      "subtitle": "100% B2B platform. Escrow protects your company. KYC/KYB verified. Automatic e-contract.",
+      "steps": {
+        "search": {
+          "title": "Search by category",
+          "description": "Filter by location, category, score and price range. See KMZ-verified coverage before taking any action."
+        },
+        "feasibility": {
+          "title": "Check feasibility",
+          "description": "The system generates automatic coverage evidence (FeasibilityEvidence). Negative? Open an RFQ for the provider to review."
+        },
+        "escrow": {
+          "title": "Pay in escrow",
+          "description": "PIX or credit card. The amount is held in escrow — released to the seller only after acceptance and confirmed delivery."
+        },
+        "tracking": {
+          "title": "Track & public SLA",
+          "description": "Automatic service order. Monitored technical SLA, centralized support and disputes mediated by Neutra+."
+        }
+      }
+    },
+    "ctaBanner": {
+      "badge": "B2B platform · Business accounts only",
+      "title": "Get started now — no sign-up fee",
+      "description": "Register your company, complete the basic KYC and start exploring every marketplace feature for free. Escrow transactions, public score and support included.",
+      "buyerCta": "Create Buyer account",
+      "sellerCta": "Register as Seller",
+      "note": "Businesses only"
+    },
+    "footer": {
+      "copyright": "© {{year}} Neutra+ — B2B platform exclusive to businesses. We do not serve individuals or sole proprietors (MEI).",
+      "links": {
+        "terms": "Terms of Use",
+        "privacy": "Privacy",
+        "compliance": "Compliance",
+        "support": "Support"
+      }
+    },
+    "offers": {
+      "add": "Add",
+      "buy": "Buy now",
+      "kyc": "KYC",
+      "ratingLabel": "Rated {{rating}} out of 5",
+      "perMonth": "/mo",
+      "free": "Free",
+      "months_one": "{{count}} month",
+      "months_other": "{{count}} months",
+      "capital": "{{state}} · Capital",
+      "countryside": "{{state}} · Countryside",
+      "corporate": "Corporate",
+      "stats": {
+        "installation": "Installation",
+        "contract": "Contract",
+        "location": "Location"
+      },
+      "metadata": {
+        "ipFixo": "Static IP included"
+      },
+      "empty": "No public offers available right now.",
+      "error": "Couldn't load the offers.",
+      "retry": "Try again",
+      "filter": {
+        "label": "Filter offers by category",
+        "all": "All",
+        "connectivity": "Connectivity",
+        "infrastructure": "Infra",
+        "hardware": "Hardware",
+        "numbering": "Resources"
+      },
+      "emptyCategory": "No {{category}} offers available right now."
+    }
+  },
+  "AppSidebar": {
+    "logoAlt": "Neutra+",
+    "navLabel": "Main navigation",
+    "openMenu": "Open menu",
+    "personas": {
+      "buyer": "Buyer",
+      "seller": "Seller"
+    },
+    "personaInitials": {
+      "buyer": "B",
+      "seller": "S"
+    },
+    "sections": {
+      "marketplace": "Marketplace",
+      "purchases": "Purchases",
+      "support": "Support",
+      "finance": "Finance",
+      "catalog": "Catalog",
+      "sales": "Sales",
+      "sellerFinance": "Seller Finance",
+      "performance": "Performance",
+      "settings": "Settings"
+    },
+    "items": {
+      "home": "Home",
+      "searchNetwork": "Search Network",
+      "proposals": "Proposals / RFQ",
+      "contracts": "My Contracts",
+      "offers": "Offers",
+      "orders": "Orders",
+      "serviceOrders": "Service Orders",
+      "disputes": "Disputes",
+      "reports": "Reports",
+      "tickets": "Tickets",
+      "wallet": "Wallet",
+      "paymentMethods": "Payment Methods",
+      "sellerOffers": "My Offers",
+      "sponsoredOffers": "Sponsored Offers",
+      "coverage": "Coverage / KMZ",
+      "receivedOrders": "Received Orders",
+      "receivedRfqs": "Received RFQs",
+      "sellerServiceOrders": "Service Orders",
+      "sellerDisputes": "Seller Disputes",
+      "payouts": "Finance / Payout",
+      "advances": "Advances",
+      "sellerReports": "Seller Reports",
+      "score": "Score & Ranking",
+      "sellerTickets": "Tickets / Support",
+      "crm": "CRM",
+      "team": "Team",
+      "company": "Company / KYC"
+    },
+    "user": {
+      "menu": "User menu",
+      "logout": "Log out"
+    }
+  },
+  "Dashboard": {
+    "hero": {
+      "greeting": {
+        "morning": "Good morning,",
+        "afternoon": "Good afternoon,",
+        "evening": "Good evening,"
+      },
+      "name": "{{name}} 👋",
+      "summary": "You have <b>{{count}} pending actions</b> today — {{critical}} critical SLA and {{proposals}} proposals awaiting.",
+      "exploreMarketplace": "Explore marketplace",
+      "searchNetworks": "Search networks",
+      "activeOrders": "Active orders",
+      "openRfqs": "Open RFQs",
+      "credit": "Neutra+ credit",
+      "sellerScore": "Seller score"
+    },
+    "stats": {
+      "activeOrders": "Active orders",
+      "ordersInProgress": "{{count}} in progress",
+      "openRfqs": "Open RFQs",
+      "rfqsWithProposal": "{{count}} with proposal",
+      "credit": "Neutra+ credit",
+      "available": "Available",
+      "activeContracts": "Active contracts",
+      "renewingContracts": "{{count}} renewing in {{days}}d"
+    },
+    "quickAccess": {
+      "title": "Quick access",
+      "searchNetwork": {
+        "title": "Search Network",
+        "description": "Explore the full catalog"
+      },
+      "proposals": {
+        "title": "Proposals / RFQ",
+        "description": "View received quotes"
+      },
+      "orders": {
+        "title": "My Orders",
+        "description": "Track status"
+      },
+      "wallet": {
+        "title": "Wallet",
+        "description": "Credit: {{value}}"
+      },
+      "disputes": {
+        "title": "Disputes",
+        "description": "Track my disputes"
+      },
+      "finance": {
+        "title": "Finance",
+        "description": "Payment methods"
+      }
+    },
+    "featuredOffers": {
+      "title": "Featured offers",
+      "viewAll": "View all →",
+      "buy": "Buy →",
+      "perMonth": "/mo",
+      "sla": "SLA {{value}}"
+    },
+    "recentActivity": {
+      "title": "Recent activity"
+    },
+    "sellerPerformance": {
+      "title": "Seller · Performance",
+      "ratingLabel": "Rated {{rating}} out of {{max}}",
+      "reviews": "{{count}} reviews",
+      "acceptanceSla": "Acceptance SLA",
+      "onTimeDelivery": "On-time delivery",
+      "fullReport": "View full report →"
+    }
+  },
+  "SearchNetwork": {
+    "hero": {
+      "detected": "{{count}} networks detected in your region",
+      "title": "Find the <hl>best</hl> provider<br/>for your company",
+      "subtitle": "KMZ-verified coverage · public SLA · price snapshot · escrow payment",
+      "searchLabel": "Search networks",
+      "searchPlaceholder": "Search by region, product or seller...",
+      "submit": "Check availability",
+      "stats": {
+        "verifiedSellers": "Verified sellers",
+        "averageSla": "Average SLA",
+        "categories": "Categories",
+        "nearbyNetworks": "Nearby networks"
+      },
+      "quickFilters": {
+        "fiber": "Fiber optics",
+        "dedicatedLink": "Dedicated Link",
+        "colocation": "Colocation",
+        "ip": "IPv4/IPv6",
+        "cpeHardware": "CPE Hardware"
+      }
+    },
+    "tabs": {
+      "label": "Search type",
+      "nearby": "Nearby Networks",
+      "available": "Available Networks"
+    },
+    "promotions": {
+      "label": "Featured campaigns",
+      "cta": "View offer →"
+    },
+    "filters": {
+      "title": "Filters",
+      "search": "Search",
+      "searchPlaceholder": "Name or company...",
+      "serviceType": "Service Type",
+      "serviceTypes": {
+        "fiber": "Fiber optics",
+        "dedicatedLink": "Dedicated link",
+        "voip": "VoIP",
+        "mpls": "MPLS",
+        "colocation": "Colocation",
+        "ipTransit": "IP Transit"
+      },
+      "priceRange": "Price Range",
+      "priceMin": "Minimum price",
+      "priceMax": "Maximum price",
+      "minSla": "Minimum SLA",
+      "slaOptions": {
+        "99": "99% or more",
+        "any": "Any",
+        "99_5": "99.5% or more",
+        "99_9": "99.9% or more"
+      },
+      "state": "State",
+      "allStates": "All states",
+      "clear": "Clear filters"
+    },
+    "catalog": {
+      "title": {
+        "nearby": "Nearby catalog",
+        "available": "Available catalog"
+      },
+      "subtitle": "Best opportunities for you",
+      "count": "{{shown}} of {{total}} networks found",
+      "viewAll": "View all →",
+      "empty": "No offers registered yet.",
+      "emptyFiltered": "No offers match the filters.",
+      "error": "Could not load the offers.",
+      "retry": "Try again",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{page}} of {{total}}",
+      "card": {
+        "ratingLabel": "Rated {{rating}} out of 5",
+        "kyc": "KYC ✓",
+        "installation": "Installation",
+        "free": "Free",
+        "sla": "SLA",
+        "contract": "Contract",
+        "add": "Add",
+        "propose": "Make Proposal"
+      }
+    }
+  },
+  "AuthenticatedLayout": {
+    "loading": "Loading your session",
+    "error": "We couldn't load your data.",
+    "retry": "Try again"
   }
 }

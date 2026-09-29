@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { setAuthCookies } from "@/server/authCookies";
 import { callIdentity, envelopeError } from "@/server/identityProxy";
+import { REMEMBER_ME_HEADER } from "@/services/auth.service";
 
 // BFF: POST /api/auth/login → identity-api POST /auth/login
 // Rota pública. ADR-002: em vez de devolver os tokens ao browser, grava
-// access_token/refresh_token em cookies httpOnly (respeitando rememberMe) e
-// remove-os do corpo da resposta. `rememberMe` é um sinal só do front (a
-// identity-api não o recebe).
+// access_token/refresh_token em cookies httpOnly (respeitando o "manter
+// conectado") e remove-os do corpo da resposta.
+//
+// O corpo é o LoginRequest da identity-api (email, password e, quando o
+// desafio está ativo, h-captcha-response) e é repassado como veio. O "manter
+// conectado" chega no header X-Remember-Me — sinal só do front que a
+// identity-api não recebe.
 export async function POST(request: NextRequest) {
-  const { rememberMe, ...credentials } = await request.json();
+  const credentials = await request.json();
+  const rememberMe = request.headers.get(REMEMBER_ME_HEADER) === "true";
 
   const result = await callIdentity({
     method: "POST",
