@@ -53,12 +53,14 @@ export interface LoginBody {
    * tentativa falha de login (artefato: Auth & Tokens · /auth/login).
    */
   "h-captcha-response"?: string;
-  /**
-   * Sinal só do front: o BFF usa para decidir se os cookies de sessão são
-   * persistentes. A identity-api não recebe este campo.
-   */
-  rememberMe?: boolean;
 }
+
+/**
+ * Header que leva o "manter conectado" do login ao BFF. Fica fora do corpo
+ * para o payload ser exatamente o `LoginRequest` da identity-api; o BFF usa o
+ * valor só para decidir se os cookies de sessão são persistentes.
+ */
+export const REMEMBER_ME_HEADER = "X-Remember-Me";
 
 /**
  * Payload de `POST /auth/mfa/verify`. O código vem em EXATAMENTE UM de
@@ -97,7 +99,35 @@ export interface LoginResponse {
   mfa_challenge_token?: string;
 }
 
+/** Perfil do usuário autenticado — `GET /me`. */
+export interface MeProfile {
+  id: string;
+  organization_id: string;
+  display_name: string;
+  email: string;
+  phone: string | null;
+  email_confirmed: boolean;
+  phone_confirmed: boolean;
+  status: string;
+  created_at: string;
+  last_login_at: string | null;
+  /** Ex.: ["buyer_owner"]. */
+  roles: string[];
+  permissions: string[];
+  /** Estado de MFA do token corrente. */
+  mfa: boolean;
+}
+
 export const authService = {
+  /**
+   * Perfil do usuário da sessão corrente. GET /api/v1/me
+   *
+   * 401/403 significam token ausente, expirado ou inválido — o chamador tenta
+   * `refresh` e, se falhar, encerra a sessão.
+   */
+  me: (options: { signal?: AbortSignal } = {}) =>
+    api.get<MeProfile>("/me", { signal: options.signal }),
+
   /**
    * Confirma o e-mail a partir do `token` + `user_id` enviados por link.
    * GET /api/v1/auth/confirm-email?token=...&user_id=...
@@ -147,7 +177,10 @@ export const authService = {
    * emitido: vem `mfa_required: true` + `mfa_challenge_token` para resolver em
    * `mfaVerify`.
    */
-  login: (body: LoginBody) => api.post<LoginResponse>("/auth/login", body),
+  login: (body: LoginBody, rememberMe = false) =>
+    api.post<LoginResponse>("/auth/login", body, {
+      headers: { [REMEMBER_ME_HEADER]: String(rememberMe) },
+    }),
 
   /**
    * Resolve o desafio de MFA aberto pelo login. POST /api/v1/auth/mfa/verify

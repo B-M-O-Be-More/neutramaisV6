@@ -243,7 +243,8 @@
       "emailInvalid": "Correo inválido",
       "emailRequired": "Ingresa tu correo",
       "passwordRequired": "Ingresa tu contraseña",
-      "invalidCredentials": "Correo o contraseña inválidos"
+      "invalidCredentials": "Correo o contraseña inválidos",
+      "captchaRequired": "Demasiados intentos de inicio de sesión. Completa la verificación anti-robot para continuar."
     },
     "captcha": {
       "prompt": "Confirma que no eres un robot para continuar.",
@@ -2007,5 +2008,420 @@
     "value": "Valor",
     "installation_estimate": "Previsión de Instalación",
     "business_days": "días hábiles"
+  },
+  "Marketplace": {
+    "header": {
+      "logoAlt": "Neutra+",
+      "section": "Marketplace",
+      "searchPlaceholder": "Búsqueda rápida...",
+      "language": "Idioma",
+      "login": "Acceso",
+      "register": "Registrarse ahora"
+    },
+    "hero": {
+      "logoAlt": "Neutra+",
+      "badge": "Plataforma 100% B2B · Multi-tenant · KYC/KYB verificado",
+      "headline": "El marketplace de los",
+      "headlineHighlight": "proveedores de telecom.",
+      "subtitle": "Conectividad, infraestructura física, hardware y recursos numéricos — con pago en escrow, contratos electrónicos y SLA público. Sin autónomos. Solo empresas.",
+      "exploreCta": "Explorar marketplace",
+      "registerCta": "Crear cuenta ahora",
+      "trust": {
+        "escrow": "Escrow garantizado",
+        "score": "Score público",
+        "sla": "SLA contractual"
+      }
+    },
+    "stats": {
+      "transactedVolume": {
+        "label": "Volumen transaccionado",
+        "caption": "últimos 12 meses"
+      },
+      "activeProviders": {
+        "label": "Proveedores activos",
+        "caption": "KYC verificado"
+      },
+      "slaCompliance": {
+        "label": "SLA cumplido",
+        "caption": "media de la plataforma"
+      },
+      "averageResponseTime": {
+        "label": "Tiempo medio de respuesta",
+        "caption": "aceptación del pedido"
+      }
+    },
+    "categories": {
+      "title": "Explora por categoría",
+      "subtitle": "4 categorías disponibles en el MVP — plantillas aprobadas por Operaciones, Producto y Jurídico",
+      "seeAll": "Ver todas las categorías",
+      "items": {
+        "connectivity": {
+          "title": "Conectividad",
+          "badge": "Más buscado",
+          "description": "Fibra óptica, enlace dedicado, MPLS, VoIP, tránsito IP y más. Cobertura verificada por KMZ con SLA público.",
+          "tags": [
+            "Fibra",
+            "Enlace Dedicado",
+            "MPLS",
+            "VoIP",
+            "Tránsito IP"
+          ],
+          "footer": "{{total}} ofertas"
+        },
+        "infrastructure": {
+          "title": "Infraestructura Física",
+          "badge": "B2B Enterprise",
+          "description": "Colocation, torres, dark fiber, cross-connect y espacio en datacenter. Capacidad, energía y localidad verificados.",
+          "tags": [
+            "Colocation",
+            "Torre",
+            "Dark Fiber",
+            "Cross-connect"
+          ],
+          "footer": "{{total}} ofertas"
+        },
+        "hardware": {
+          "title": "Hardware / CPE",
+          "badge": "Stock verificado",
+          "description": "Routers, switches, ONTs y equipos CPE. Stock finito, garantía verificada, factura incluida.",
+          "tags": [
+            "Routers",
+            "Switches",
+            "ONT/ONU",
+            "CPE"
+          ],
+          "footer": "{{total}} SKUs"
+        },
+        "numbering": {
+          "title": "Recursos Numéricos",
+          "badge": "Regulatorio",
+          "description": "Bloques IPv4/IPv6, ASN, numeración PSTN. Titularidad documentada y conformidad regulatoria verificada.",
+          "tags": [
+            "IPv4",
+            "IPv6",
+            "ASN",
+            "Numeración"
+          ],
+          "footer": "{{total}} bloques"
+        }
+      }
+    },
+    "promotions": {
+      "title": "Precios públicos · cobertura agregada · score Neutra",
+      "subtitle": "Pago en escrow · price snapshot · aceptación en hasta 72h · contrato electrónico automático",
+      "seeAll": "Ver todas",
+      "items": {
+        "flashSale": {
+          "badge": "Promoción relámpago",
+          "title": "Fibra 1 Gbps con 30% OFF",
+          "description": "Válido hasta el 31/07 · Solo para nuevas contrataciones de empresas",
+          "cta": "Ver oferta"
+        },
+        "news": {
+          "badge": "Novedad",
+          "title": "IPv6 /48 disponible ahora",
+          "description": "Recursos numéricos con delegación verificada · ANATEL",
+          "cta": "Más información"
+        },
+        "highlight": {
+          "badge": "Destacado del mes",
+          "title": "Top Sellers en SP · Score 4.9+",
+          "description": "Proveedores verificados con el mejor SLA de activación de la región",
+          "cta": "Explorar"
+        }
+      }
+    },
+    "howItWorks": {
+      "badge": "Cómo funciona",
+      "title": "De la búsqueda al pedido en menos de 3 minutos",
+      "subtitle": "Plataforma 100% B2B. El escrow protege a tu empresa. KYC/KYB verificado. Contrato electrónico automático.",
+      "steps": {
+        "search": {
+          "title": "Busca por categoría",
+          "description": "Filtra por ubicación, categoría, score y rango de precio. Consulta la cobertura verificada por KMZ antes de cualquier acción."
+        },
+        "feasibility": {
+          "title": "Verifica la viabilidad",
+          "description": "El sistema genera evidencia automática de cobertura (FeasibilityEvidence). ¿Negativa? Abre una RFQ para análisis del proveedor."
+        },
+        "escrow": {
+          "title": "Paga en escrow",
+          "description": "PIX o tarjeta de crédito. El valor queda en escrow — liberado al seller solo tras la aceptación y la entrega confirmada."
+        },
+        "tracking": {
+          "title": "Seguimiento y SLA público",
+          "description": "Orden de servicio automática. SLA técnico monitoreado, soporte centralizado y disputas con mediación de Neutra+."
+        }
+      }
+    },
+    "ctaBanner": {
+      "badge": "Plataforma B2B · Solo empresas",
+      "title": "Empieza ahora — sin costo de adhesión",
+      "description": "Registra tu empresa, completa el KYC básico y empieza a explorar todas las funcionalidades del marketplace gratis. Transacciones con escrow, score público y soporte incluidos.",
+      "buyerCta": "Crear cuenta de Comprador",
+      "sellerCta": "Registrarse como Vendedor",
+      "note": "Exclusivo para empresas"
+    },
+    "footer": {
+      "copyright": "© {{year}} Neutra+ — Plataforma B2B exclusiva para empresas. No atendemos personas físicas ni MEI.",
+      "links": {
+        "terms": "Términos de Uso",
+        "privacy": "Privacidad",
+        "compliance": "Compliance",
+        "support": "Soporte"
+      }
+    },
+    "offers": {
+      "add": "Agregar",
+      "buy": "Comprar ahora",
+      "kyc": "KYC",
+      "ratingLabel": "Nota {{rating}} de 5",
+      "perMonth": "/mes",
+      "free": "Gratis",
+      "months_one": "{{count}} mes",
+      "months_other": "{{count}} meses",
+      "capital": "{{state}} · Capital",
+      "countryside": "{{state}} · Interior",
+      "corporate": "Corporativo",
+      "stats": {
+        "installation": "Instalación",
+        "contract": "Contrato",
+        "location": "Ubicación"
+      },
+      "metadata": {
+        "ipFixo": "IP fija incluida"
+      },
+      "empty": "No hay ofertas públicas disponibles en este momento.",
+      "error": "No fue posible cargar las ofertas.",
+      "retry": "Intentar de nuevo",
+      "filter": {
+        "label": "Filtrar ofertas por categoría",
+        "all": "Todos",
+        "connectivity": "Conectividad",
+        "infrastructure": "Infra",
+        "hardware": "Hardware",
+        "numbering": "Recursos"
+      },
+      "emptyCategory": "No hay ofertas de {{category}} disponibles en este momento."
+    }
+  },
+  "AppSidebar": {
+    "logoAlt": "Neutra+",
+    "navLabel": "Navegación principal",
+    "openMenu": "Abrir menú",
+    "personas": {
+      "buyer": "Buyer · Comprador",
+      "seller": "Seller · Vendedor"
+    },
+    "personaInitials": {
+      "buyer": "B",
+      "seller": "S"
+    },
+    "sections": {
+      "marketplace": "Marketplace",
+      "purchases": "Compras",
+      "support": "Soporte",
+      "finance": "Finanzas",
+      "catalog": "Catálogo",
+      "sales": "Ventas",
+      "sellerFinance": "Finanzas Seller",
+      "performance": "Rendimiento",
+      "settings": "Configuración"
+    },
+    "items": {
+      "home": "Inicio",
+      "searchNetwork": "Buscar Red",
+      "proposals": "Propuestas / RFQ",
+      "contracts": "Mis Contratos",
+      "offers": "Ofertas",
+      "orders": "Pedidos",
+      "serviceOrders": "Orden de Servicio",
+      "disputes": "Disputas",
+      "reports": "Informes",
+      "tickets": "Tickets",
+      "wallet": "Billetera",
+      "paymentMethods": "Métodos de Pago",
+      "sellerOffers": "Mis Ofertas",
+      "sponsoredOffers": "Ofertas Patrocinadas",
+      "coverage": "Cobertura / KMZ",
+      "receivedOrders": "Pedidos Recibidos",
+      "receivedRfqs": "RFQ Recibidas",
+      "sellerServiceOrders": "Órdenes de Servicio",
+      "sellerDisputes": "Disputas Seller",
+      "payouts": "Finanzas / Payout",
+      "advances": "Anticipo",
+      "sellerReports": "Informes Seller",
+      "score": "Score y Ranking",
+      "sellerTickets": "Tickets / Soporte",
+      "crm": "CRM",
+      "team": "Equipo",
+      "company": "Empresa / KYC"
+    },
+    "user": {
+      "menu": "Menú del usuario",
+      "logout": "Salir"
+    }
+  },
+  "Dashboard": {
+    "hero": {
+      "greeting": {
+        "morning": "Buenos días,",
+        "afternoon": "Buenas tardes,",
+        "evening": "Buenas noches,"
+      },
+      "name": "{{name}} 👋",
+      "summary": "Tienes <b>{{count}} acciones pendientes</b> hoy — {{critical}} SLA crítico y {{proposals}} propuestas en espera.",
+      "exploreMarketplace": "Explorar marketplace",
+      "searchNetworks": "Buscar redes",
+      "activeOrders": "Pedidos activos",
+      "openRfqs": "RFQs abiertas",
+      "credit": "Crédito Neutra+",
+      "sellerScore": "Score seller"
+    },
+    "stats": {
+      "activeOrders": "Pedidos activos",
+      "ordersInProgress": "{{count}} en ejecución",
+      "openRfqs": "RFQs abiertas",
+      "rfqsWithProposal": "{{count}} con propuesta",
+      "credit": "Crédito Neutra+",
+      "available": "Disponible",
+      "activeContracts": "Contratos activos",
+      "renewingContracts": "{{count}} renovando en {{days}}d"
+    },
+    "quickAccess": {
+      "title": "Acceso rápido",
+      "searchNetwork": {
+        "title": "Buscar Red",
+        "description": "Explora el catálogo completo"
+      },
+      "proposals": {
+        "title": "Propuestas / RFQ",
+        "description": "Ver cotizaciones recibidas"
+      },
+      "orders": {
+        "title": "Mis Pedidos",
+        "description": "Seguir estado"
+      },
+      "wallet": {
+        "title": "Billetera",
+        "description": "Crédito: {{value}}"
+      },
+      "disputes": {
+        "title": "Disputas",
+        "description": "Seguir mis disputas"
+      },
+      "finance": {
+        "title": "Finanzas",
+        "description": "Métodos de pago"
+      }
+    },
+    "featuredOffers": {
+      "title": "Ofertas destacadas",
+      "viewAll": "Ver todas →",
+      "buy": "Comprar →",
+      "perMonth": "/mes",
+      "sla": "SLA {{value}}"
+    },
+    "recentActivity": {
+      "title": "Actividad reciente"
+    },
+    "sellerPerformance": {
+      "title": "Seller · Rendimiento",
+      "ratingLabel": "Nota {{rating}} de {{max}}",
+      "reviews": "{{count}} reseñas",
+      "acceptanceSla": "SLA de aceptación",
+      "onTimeDelivery": "Entrega a tiempo",
+      "fullReport": "Ver informe completo →"
+    }
+  },
+  "SearchNetwork": {
+    "hero": {
+      "detected": "{{count}} redes detectadas en tu región",
+      "title": "Encuentra el <hl>mejor</hl> proveedor<br/>para tu empresa",
+      "subtitle": "Cobertura verificada por KMZ · SLA público · price snapshot · pago en escrow",
+      "searchLabel": "Buscar redes",
+      "searchPlaceholder": "Busco por región, producto o seller...",
+      "submit": "Buscar viabilidad",
+      "stats": {
+        "verifiedSellers": "Sellers verificados",
+        "averageSla": "SLA promedio",
+        "categories": "Categorías",
+        "nearbyNetworks": "Redes cercanas"
+      },
+      "quickFilters": {
+        "fiber": "Fibra óptica",
+        "dedicatedLink": "Enlace Dedicado",
+        "colocation": "Colocation",
+        "ip": "IPv4/IPv6",
+        "cpeHardware": "Hardware CPE"
+      }
+    },
+    "tabs": {
+      "label": "Tipo de búsqueda",
+      "nearby": "Redes Cercanas",
+      "available": "Redes Disponibles"
+    },
+    "promotions": {
+      "label": "Campañas destacadas",
+      "cta": "Ver oferta →"
+    },
+    "filters": {
+      "title": "Filtros",
+      "search": "Buscar",
+      "searchPlaceholder": "Nombre o empresa...",
+      "serviceType": "Tipo de Servicio",
+      "serviceTypes": {
+        "fiber": "Fibra óptica",
+        "dedicatedLink": "Enlace dedicado",
+        "voip": "VoIP",
+        "mpls": "MPLS",
+        "colocation": "Colocation",
+        "ipTransit": "Tránsito IP"
+      },
+      "priceRange": "Rango de Precio",
+      "priceMin": "Precio mínimo",
+      "priceMax": "Precio máximo",
+      "minSla": "SLA Mínimo",
+      "slaOptions": {
+        "99": "99% o más",
+        "any": "Cualquiera",
+        "99_5": "99,5% o más",
+        "99_9": "99,9% o más"
+      },
+      "state": "Estado (UF)",
+      "allStates": "Todos los estados",
+      "clear": "Limpiar filtros"
+    },
+    "catalog": {
+      "title": {
+        "nearby": "Catálogo cercano",
+        "available": "Catálogo disponible"
+      },
+      "subtitle": "Las mejores oportunidades para ti",
+      "count": "{{shown}} de {{total}} redes encontradas",
+      "viewAll": "Ver todas →",
+      "empty": "Aún no hay ofertas registradas.",
+      "emptyFiltered": "Ninguna oferta coincide con los filtros.",
+      "error": "No se pudieron cargar las ofertas.",
+      "retry": "Intentar de nuevo",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "page": "Página {{page}} de {{total}}",
+      "card": {
+        "ratingLabel": "Nota {{rating}} de 5",
+        "kyc": "KYC ✓",
+        "installation": "Instalación",
+        "free": "Gratis",
+        "sla": "SLA",
+        "contract": "Contrato",
+        "add": "Agregar",
+        "propose": "Hacer Propuesta"
+      }
+    }
+  },
+  "AuthenticatedLayout": {
+    "loading": "Cargando tu sesión",
+    "error": "No pudimos cargar tus datos.",
+    "retry": "Intentar de nuevo"
   }
 }

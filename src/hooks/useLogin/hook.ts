@@ -23,8 +23,8 @@ import type { CredentialsInput, LoginStep, MfaInput } from "./interface";
  */
 export const CAPTCHA_AFTER_FAILED_ATTEMPTS = 3;
 
-// Destino pós-login. TODO: apontar para o dashboard quando ele existir.
-const POST_LOGIN_ROUTE = "/";
+// Destino pós-login: início da área autenticada.
+const POST_LOGIN_ROUTE = "/dashboard";
 
 /**
  * Orquestra o login (US-01) conforme o artefato da identity-api: credenciais →
@@ -49,7 +49,14 @@ export function useLogin() {
   const [challengeToken, setChallengeToken] = React.useState("");
   const [rememberMe, setRememberMe] = React.useState(false);
 
-  const captchaRequired = failedAttempts >= CAPTCHA_AFTER_FAILED_ATTEMPTS;
+  // O upstream conta as falhas por IP, não por navegador: após um reload (ou
+  // tentativas em outra aba) o contador local zera, mas o servidor continua
+  // exigindo o desafio. Quando ele responde CAPTCHA_REQUIRED, o desafio passa
+  // a ser exibido independentemente da contagem local.
+  const [captchaDemanded, setCaptchaDemanded] = React.useState(false);
+
+  const captchaRequired =
+    captchaDemanded || failedAttempts >= CAPTCHA_AFTER_FAILED_ATTEMPTS;
 
   /** Erros comuns às duas etapas. Retorna true se tratou o erro. */
   const handleSharedError = React.useCallback(
@@ -84,18 +91,21 @@ export function useLogin() {
       setIsSubmitting(true);
 
       try {
-        const data = await authService.login({
-          email,
-          password,
-          rememberMe: remember,
-          ...(captchaToken ? { "h-captcha-response": captchaToken } : {}),
-        });
+        const data = await authService.login(
+          {
+            email,
+            password,
+            ...(captchaToken ? { "h-captcha-response": captchaToken } : {}),
+          },
+          remember,
+        );
 
         // MFA habilitado: nenhum token foi emitido, seguimos para o desafio.
         if (data?.mfa_required) {
           setChallengeToken(data.mfa_challenge_token ?? "");
           setRememberMe(remember);
           setFailedAttempts(0);
+          setCaptchaDemanded(false);
           setStep("mfa");
           return;
         }
@@ -107,6 +117,15 @@ export function useLogin() {
         // Toda falha aqui consome uma tentativa no upstream — é o que move o
         // gatilho do CAPTCHA.
         setFailedAttempts((count) => count + 1);
+
+        // Desafio ausente ou recusado (token expirado/inválido). Checado antes
+        // dos demais: o código vem em metadata.code e o status pode ser um que
+        // os outros ramos capturariam (ex.: 429).
+        if (upstreamErrorCode(error)?.startsWith("CAPTCHA")) {
+          setCaptchaDemanded(true);
+          setFormError(t("Login.errors.captchaRequired"));
+          return;
+        }
 
         // Credenciais inválidas: ancoramos no código do upstream, não no status.
         // A identity-api responde INVALID_CREDENTIALS com HTTP 500 (não 401), então

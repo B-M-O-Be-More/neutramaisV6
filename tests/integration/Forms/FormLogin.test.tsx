@@ -53,6 +53,12 @@ describe("FormLogin", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it("exibe o desafio anti-robô quando captchaRequired", () => {
+    renderWithProviders(<FormLogin onSubmit={vi.fn()} captchaRequired />);
+
+    expect(screen.getByText("Login.captcha.prompt")).toBeInTheDocument();
+  });
+
   it("submete os valores válidos via onSubmit", async () => {
     const onSubmit = vi.fn();
     const { user } = renderWithProviders(<FormLogin onSubmit={onSubmit} />);

@@ -36,6 +36,10 @@ export function FormLogin({
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = React.useState(false);
   const [captchaToken, setCaptchaToken] = React.useState<string | undefined>();
+  // O token do hCaptcha é de uso único. Incrementar a chave remonta o widget
+  // após cada envio — sem isso ele continuaria marcado como resolvido, sem
+  // token válido, e o botão ficaria bloqueado até o desafio expirar.
+  const [captchaKey, setCaptchaKey] = React.useState(0);
 
   const {
     register,
@@ -55,7 +59,10 @@ export function FormLogin({
 
   const submit = handleSubmit(async (values) => {
     await onSubmit({ ...values, captchaToken });
-    setCaptchaToken(undefined);
+    if (captchaToken) {
+      setCaptchaToken(undefined);
+      setCaptchaKey((key) => key + 1);
+    }
   });
 
   return (
@@ -145,13 +152,15 @@ export function FormLogin({
           )}
         />
 
-        {/* Desafio exigido a partir da 3ª tentativa falha */}
+        {/* Desafio exigido a partir da 3ª tentativa falha, ou quando o
+            upstream responde CAPTCHA_REQUIRED */}
         {captchaRequired && (
           <Stack gap={2}>
             <Text fontSize="12px" color="#5A6478">
               {t("Login.captcha.prompt")}
             </Text>
             <Captcha
+              key={captchaKey}
               onVerify={setCaptchaToken}
               unavailableLabel={t("Login.captcha.unavailable")}
             />
