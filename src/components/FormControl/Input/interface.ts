@@ -5,10 +5,16 @@ import { ReactNode } from "react";
 export interface InputProps extends Omit<ChakraInputProps, "mask"> {
   /** Texto exibido acima do campo. */
   label?: string;
+  /** Elemento exibido à direita, na mesma linha do rótulo (ex.: "Esqueceu a senha?"). */
+  labelEnd?: ReactNode;
   /** Mensagem de erro inline (geralmente errors.campo?.message do RHF). */
   error?: string;
   /** Texto auxiliar abaixo do campo. */
   helperText?: ReactNode;
+  /** Ícone/elemento fixo à esquerda do campo. */
+  startElement?: ReactNode;
+  /** Ícone/elemento à direita do campo (ex.: botão de mostrar/ocultar senha). */
+  endElement?: ReactNode;
   /**
    * Máscara (react-imask). Quando informada, o input passa a usar IMaskInput.
    * Use com Controller do RHF + onAccept para popular o valor.

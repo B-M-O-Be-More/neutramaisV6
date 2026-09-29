@@ -15,7 +15,13 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <Field.Root invalid={!!error} required={required}>
         {!!label && (
-          <Field.Label fontWeight={500} color="#D1D5DC" htmlFor={fieldId}>
+          <Field.Label
+            fontSize="13px"
+            fontWeight={600}
+            color="fg.default"
+            htmlFor={fieldId}
+            mb={0}
+          >
             {label}
             <Field.RequiredIndicator />
           </Field.Label>
@@ -23,9 +29,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
         <NativeSelect.Root>
           <NativeSelect.Field
-            border="1px solid #364153"
-            bg={"#0A0E1A"}
-            rounded={"8px"}
+            h="47px"
+            bg="bg.surface"
+            borderWidth="1px"
+            borderColor="border.default"
+            rounded="14px"
+            color="fg.default"
+            fontSize="14px"
+            _focus={{ borderColor: "primary.default" }}
             id={fieldId}
             name={name}
             ref={ref}

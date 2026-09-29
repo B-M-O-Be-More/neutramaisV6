@@ -1,3 +1,5 @@
+import { MIN_PASSWORD_LENGTH } from "@/schemas/password";
+
 export type PasswordStrengthLevel = "weak" | "medium" | "strong";
 
 export interface PasswordStrength {
@@ -14,12 +16,16 @@ export interface PasswordStrength {
 
 /**
  * Indicador visual de força de senha (US-02).
- * Mínimo exigido pelo schema: 8 caracteres, 1 letra e 1 número.
+ *
+ * Os critérios espelham a política real da identity-api (ver schemas/password):
+ * mínimo de 12 caracteres, maiúscula, dígito e símbolo. Antes o comprimento
+ * pontuava a partir de 8, então uma senha de 9 caracteres aparecia como "Forte"
+ * e o servidor a recusava — o medidor precisa concordar com o que é aceito.
  */
 export function getPasswordStrength(password: string): PasswordStrength {
   let score = 0;
 
-  if (password.length >= 8) score++;
+  if (password.length >= MIN_PASSWORD_LENGTH) score++;
   if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
   if (/[0-9]/.test(password)) score++;
   if (/[^a-zA-Z0-9]/.test(password)) score++;

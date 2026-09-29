@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Link from "next/link";
-import { useState } from "react";
+import React from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Trans, useTranslation } from "react-i18next";
 
@@ -26,6 +26,8 @@ import { BRAZILIAN_UFS } from "@/data/brazilianStates";
 import { DIAL_CODES } from "@/data/dialCodes";
 import { TAX_ID_MASKS } from "@/data/taxIdMasks";
 import { useCountries } from "@/hooks/useCountries/hook";
+import { useRegisterFlow } from "@/contexts/RegisterFlowContext";
+import { useRegisterOrganization } from "@/hooks/useRegisterOrganization/hook";
 import { registerSellerSchema } from "@/schemas/register";
 import { SECTOR_VALUES } from "@/types/register";
 
@@ -76,14 +78,27 @@ const STEPS: { titleKey: string; fields: (keyof RegisterSellerValues)[] }[] = [
 
 export function FormRegisterSeller({ onSubmit }: FormRegisterSellerProps) {
   const { t, i18n } = useTranslation();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = React.useState(0);
   const lastStep = STEPS.length - 1;
+
+  // Reflete a etapa atual na barra lateral. As sub-etapas empresa/endereço/
+  // responsável são as etapas 2/3/4 do fluxo do Figma (+1). A sub-etapa de
+  // documentos é o KYC (etapa 6, índice 5); a Verificação (índice 4) ainda não
+  // existe, então é pulada no mapeamento.
+  const FLOW_STEP_BY_SUBSTEP = [1, 2, 3, 5];
+  const { setStep: setFlowStep } = useRegisterFlow();
+  React.useEffect(() => {
+    setFlowStep(FLOW_STEP_BY_SUBSTEP[step] ?? step + 1);
+    // FLOW_STEP_BY_SUBSTEP é constante; depende apenas de `step`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, setFlowStep]);
 
   const {
     register,
     handleSubmit,
     trigger,
     control,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<RegisterSellerValues>({
     resolver: yupResolver(registerSellerSchema),
@@ -117,9 +132,12 @@ export function FormRegisterSeller({ onSubmit }: FormRegisterSellerProps) {
 
   const { countries } = useCountries(i18n.language);
 
+  const { submit: registerOrganization } =
+    useRegisterOrganization<RegisterSellerValues>("seller", { setError });
+
   // País do telefone é independente do país da empresa — uma empresa pode ter
   // telefone de outro país. Controla apenas a máscara.
-  const [phoneCountry, setPhoneCountry] = useState<string>("BR");
+  const [phoneCountry, setPhoneCountry] = React.useState<string>("BR");
 
   // Máscara de ID fiscal conforme o país da empresa (BR=CNPJ, US=EIN, ...).
   // Países sem máscara definida entram livres (alfanuméricos como VAT/NIF).
@@ -192,10 +210,12 @@ export function FormRegisterSeller({ onSubmit }: FormRegisterSellerProps) {
   const submit = handleSubmit(async (values) => {
     // TODO: persistir aceite clickwrap (timestamp, IP, user agent, versão dos
     // documentos e hash SHA-256) em log WORM de 5 anos.
-    // TODO: criar Organization (status=active, kyc_level=basic), responsável com
-    // role=admin, enviar email de verificação (TTL 1h) e redirecionar para
-    // "/register/confirm". Upgrade para verified_seller depende dos documentos.
-    await onSubmit?.(values);
+    // Cadastra a organização (seller) + usuário-raiz e redireciona para a
+    // confirmação. Os documentos (etapa 4) NÃO são enviados aqui — o upload de
+    // artifacts KYC exige autenticação e acontece no fluxo pós-login
+    // (POST /organizations/{org_id}/kyc/artifacts + /kyc/submit).
+    const ok = await registerOrganization(values);
+    if (ok) await onSubmit?.(values);
   });
 
   const emailField = register("email");
@@ -210,11 +230,15 @@ export function FormRegisterSeller({ onSubmit }: FormRegisterSellerProps) {
       textAlign="left"
     >
       <KycBasicNotice maxW="2xl" />
-      <Stepper
-        steps={STEPS.map((s) => t(s.titleKey))}
-        step={step}
-        onStepClick={goTo}
-      />
+      {/* No desktop (lg+) a barra lateral é o stepper; aqui fica só o compacto
+          para telas menores, onde a barra é ocultada. */}
+      <Box display={{ base: "block", lg: "none" }} w="full">
+        <Stepper
+          steps={STEPS.map((s) => t(s.titleKey))}
+          step={step}
+          onStepClick={goTo}
+        />
+      </Box>
 
       <Stack p={"32px"} bg={"#151B2D"} rounded={"16px"}>
         <Text fontSize={"20px"} fontWeight={600} mb={6}>

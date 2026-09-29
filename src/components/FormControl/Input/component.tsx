@@ -1,15 +1,28 @@
 "use client";
 
-import { Field, Input as ChakraInput } from "@chakra-ui/react";
+import {
+  Field,
+  Flex,
+  Input as ChakraInput,
+  InputGroup,
+} from "@chakra-ui/react";
 import { forwardRef, type Ref } from "react";
 import { IMaskMixin } from "react-imask";
 
 import { InputProps } from "./interface";
 
+// Estilo base do campo — usa tokens semânticos do tema, acompanhando o
+// modo claro/escuro (fundo da superfície, borda padrão, foco na cor primária).
 const styleProps = {
-  border: "1px solid #364153",
-  bg: "#0A0E1A",
-  rounded: "8px",
+  h: "47px",
+  bg: "bg.surface",
+  borderWidth: "1px",
+  borderColor: "border.default",
+  rounded: "14px",
+  color: "fg.default",
+  fontSize: "14px",
+  _placeholder: { color: "fg.muted" },
+  _focus: { borderColor: "primary.default" },
 } as const;
 
 // Chakra Input com máscara (react-imask). O IMask gerencia o <input> via inputRef,
@@ -25,36 +38,66 @@ const MaskedInput = IMaskMixin(
 );
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, error, helperText, required, id, name, mask, onAccept, ...rest },
+  {
+    label,
+    labelEnd,
+    error,
+    helperText,
+    required,
+    id,
+    name,
+    mask,
+    onAccept,
+    startElement,
+    endElement,
+    ...rest
+  },
   ref,
 ) {
   const fieldId = id ?? name;
 
+  const control = mask ? (
+    <MaskedInput
+      mask={mask}
+      onAccept={onAccept}
+      id={fieldId}
+      name={name}
+      {...rest}
+    />
+  ) : (
+    <ChakraInput {...styleProps} id={fieldId} name={name} ref={ref} {...rest} />
+  );
+
   return (
     <Field.Root invalid={!!error} required={required}>
-      {!!label && (
-        <Field.Label fontWeight={500} color="#D1D5DC" htmlFor={fieldId}>
-          {label}
-          <Field.RequiredIndicator />
-        </Field.Label>
+      {(!!label || !!labelEnd) && (
+        <Flex w="full" align="center" justify="space-between" gap={2}>
+          {!!label && (
+            <Field.Label
+              fontSize="13px"
+              fontWeight={600}
+              color="fg.default"
+              htmlFor={fieldId}
+              mb={0}
+            >
+              {label}
+              <Field.RequiredIndicator />
+            </Field.Label>
+          )}
+          {labelEnd}
+        </Flex>
       )}
 
-      {mask ? (
-        <MaskedInput
-          mask={mask}
-          onAccept={onAccept}
-          id={fieldId}
-          name={name}
-          {...rest}
-        />
+      {startElement || endElement ? (
+        <InputGroup
+          startElement={startElement}
+          endElement={endElement}
+          endElementProps={endElement ? { pointerEvents: "auto" } : undefined}
+        >
+          {control}
+        </InputGroup>
       ) : (
-        <ChakraInput
-          {...styleProps}
-          id={fieldId}
-          name={name}
-          ref={ref}
-          {...rest}
-        />
+        control
       )}
 
       {!!helperText && <Field.HelperText>{helperText}</Field.HelperText>}

@@ -29,8 +29,9 @@ const validAddress = {
 const validResponsible = {
   responsibleName: "João da Silva",
   email: "joao@bmo.dev.br",
-  password: "senha1234",
-  confirmPassword: "senha1234",
+  // Política da identity-api: 12+ caracteres, maiúscula, dígito e símbolo.
+  password: "SenhaForte12!",
+  confirmPassword: "SenhaForte12!",
   acceptTerms: true,
 };
 
@@ -91,21 +92,51 @@ describe("responsibleSchema", () => {
     ).resolves.toBeDefined();
   });
 
-  it("rejeita senha com menos de 8 caracteres", async () => {
+  it("rejeita senha com menos de 12 caracteres", async () => {
     await expect(
       responsibleSchema.validate({
         ...validResponsible,
-        password: "abc12",
-        confirmPassword: "abc12",
+        password: "Abc12!",
+        confirmPassword: "Abc12!",
       }),
     ).rejects.toThrow("Register.errors.passwordMin");
+  });
+
+  it("rejeita senha sem maiúscula", async () => {
+    await expect(
+      responsibleSchema.validate({
+        ...validResponsible,
+        password: "senhaforte12!",
+        confirmPassword: "senhaforte12!",
+      }),
+    ).rejects.toThrow("Register.errors.passwordUppercase");
+  });
+
+  it("rejeita senha sem dígito", async () => {
+    await expect(
+      responsibleSchema.validate({
+        ...validResponsible,
+        password: "SenhaForte!!!",
+        confirmPassword: "SenhaForte!!!",
+      }),
+    ).rejects.toThrow("Register.errors.passwordNumber");
+  });
+
+  it("rejeita senha sem símbolo", async () => {
+    await expect(
+      responsibleSchema.validate({
+        ...validResponsible,
+        password: "SenhaForte123",
+        confirmPassword: "SenhaForte123",
+      }),
+    ).rejects.toThrow("Register.errors.passwordSymbol");
   });
 
   it("rejeita quando a confirmação de senha não confere", async () => {
     await expect(
       responsibleSchema.validate({
         ...validResponsible,
-        confirmPassword: "outra1234",
+        confirmPassword: "OutraSenha12!",
       }),
     ).rejects.toThrow("Register.errors.confirmMatch");
   });

@@ -13,3 +13,9 @@ next-env.d.ts
 
 # Assets estáticos
 public
+
+# Coleções exportadas (Insomnia) — artefato gerado, formato preservado
+docs/insomnia
+
+# Configuração local do Claude Code (fora do versionamento)
+.claude/settings.local.json
