@@ -81,6 +81,44 @@ export interface MfaVerifyBody {
   rememberMe?: boolean;
 }
 
+/**
+ * Payload de `POST /auth/mfa/enroll` — início do cadastro de MFA obrigatório no
+ * primeiro login (NEU-479). Sem Bearer: a credencial é o `mfa_enrollment_token`
+ * de uso único devolvido pelo login, mais a senha atual.
+ */
+export interface MfaEnrollStartBody {
+  enrollment_token: string;
+  password: string;
+}
+
+/**
+ * Resposta de `POST /auth/mfa/enroll`. Os segredos são devolvidos UMA vez e
+ * não podem ser recuperados depois — só vivem na memória da tela.
+ */
+export interface MfaEnrollmentSetup {
+  /** URI `otpauth://totp/...` — o QR é gerado localmente a partir dela. */
+  otpauth_uri: string;
+  /** Chave base32 para cadastro manual no autenticador. */
+  manual_key: string;
+  /** Códigos de recuperação. A quantidade é configurável no servidor. */
+  recovery_codes: string[];
+  /** NOVA credencial, agora de confirmação — substitui a do login. */
+  enrollment_token: string;
+  /** Prazo (s) da credencial de confirmação. */
+  expires_in: number;
+}
+
+/**
+ * Payload de `POST /auth/mfa/enroll/confirm`. `totp_code` é string de seis
+ * dígitos (preserva zeros à esquerda); código de recuperação não confirma.
+ */
+export interface MfaEnrollConfirmBody {
+  enrollment_token: string;
+  totp_code: string;
+  /** Sinal só do front (persistência do cookie), igual ao login. */
+  rememberMe?: boolean;
+}
+
 /** Payload de `POST /auth/password-reset/execute`. */
 export interface PasswordResetExecuteBody {
   /** Token recebido no link do e-mail — é a credencial da operação. */
@@ -96,7 +134,17 @@ export interface PasswordResetExecuteBody {
  */
 export interface LoginResponse {
   mfa_required: boolean;
-  mfa_challenge_token?: string;
+  mfa_challenge_token?: string | null;
+  /**
+   * MFA obrigatório ainda não cadastrado (Admin/Seller no primeiro login). Tem
+   * prioridade sobre `mfa_required`: abre a configuração do autenticador, não o
+   * desafio.
+   */
+  mfa_enrollment_required?: boolean;
+  /** Credencial opaca de início do cadastro — de uso único, nunca como Bearer. */
+  mfa_enrollment_token?: string | null;
+  /** Com cadastro pendente, é o prazo (s) do `mfa_enrollment_token`. */
+  expires_in?: number;
 }
 
 /** Perfil do usuário autenticado — `GET /me`. */
@@ -194,6 +242,28 @@ export const authService = {
    * o que retentar, é preciso refazer o login.
    */
   mfaVerify: (body: MfaVerifyBody) => api.post<null>("/auth/mfa/verify", body),
+
+  /**
+   * Inicia o cadastro de MFA obrigatório do primeiro login.
+   * POST /api/v1/auth/mfa/enroll
+   *
+   * Consome o `mfa_enrollment_token` do login e devolve os segredos do
+   * autenticador + a credencial de confirmação. Um novo início substitui o
+   * cadastro pendente anterior (QR/chave/códigos antigos deixam de valer).
+   */
+  mfaEnrollStart: (body: MfaEnrollStartBody) =>
+    api.post<MfaEnrollmentSetup>("/auth/mfa/enroll", body),
+
+  /**
+   * Conclui o cadastro com o primeiro TOTP do autenticador.
+   * POST /api/v1/auth/mfa/enroll/confirm
+   *
+   * Só aqui a sessão é criada: o BFF grava o par de tokens nos cookies.
+   * `401 INVALID_MFA_CODE` permite nova tentativa com a mesma credencial;
+   * `401 MFA_ENROLLMENT_TOKEN_INVALID` exige refazer o login.
+   */
+  mfaEnrollConfirm: (body: MfaEnrollConfirmBody) =>
+    api.post<null>("/auth/mfa/enroll/confirm", body),
 
   /**
    * Renova o par de tokens. POST /api/v1/auth/refresh

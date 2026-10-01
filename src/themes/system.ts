@@ -36,6 +36,7 @@ const theme = defineConfig({
       fonts: {
         body: { value: "var(--font-app)" },
         heading: { value: "var(--font-app)" },
+        mono: { value: "var(--font-mono), ui-monospace, monospace" },
       },
 
       colors: {

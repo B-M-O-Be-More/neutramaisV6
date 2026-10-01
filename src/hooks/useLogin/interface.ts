@@ -1,9 +1,10 @@
 /**
- * Etapas do login. O desafio de MFA é uma etapa da MESMA página, não uma rota
- * separada: assim o `mfa_challenge_token` nunca sai da memória do componente
- * (não vai para a URL, nem para sessionStorage).
+ * Etapas do login. O desafio de MFA e o cadastro de MFA obrigatório do primeiro
+ * login são etapas da MESMA página, não rotas separadas: assim as credenciais
+ * de curta duração (`mfa_challenge_token`, `mfa_enrollment_token`) e os segredos
+ * do autenticador nunca saem da memória (não vão para a URL, nem para storage).
  */
-export type LoginStep = "credentials" | "mfa";
+export type LoginStep = "credentials" | "mfa" | "mfaEnrollment";
 
 /** Valores das credenciais, já validados pelo loginSchema. */
 export interface CredentialsInput {

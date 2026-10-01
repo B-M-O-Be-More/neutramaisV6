@@ -20,6 +20,12 @@ export interface ForwardOptions {
   body?: unknown;
   /** Bearer explícito. Se omitido, usa o access_token do cookie (quando houver). */
   authToken?: string;
+  /**
+   * Não envia Authorization em hipótese alguma — nem o access_token do cookie.
+   * Para rotas cuja credencial vai no corpo e que não podem carregar uma sessão
+   * anterior esquecida no browser (ex.: cadastro de MFA do primeiro login).
+   */
+  anonymous?: boolean;
   /** Headers adicionais a propagar. */
   headers?: Record<string, string>;
 }
@@ -74,6 +80,7 @@ export async function callIdentity({
   path,
   body,
   authToken,
+  anonymous = false,
   headers,
 }: ForwardOptions): Promise<IdentityCallResult> {
   if (!IDENTITY_API_URL) {
@@ -91,7 +98,7 @@ export async function callIdentity({
   }
 
   const hasBody = body !== undefined && method !== "GET" && method !== "DELETE";
-  const bearer = await resolveBearer(authToken);
+  const bearer = anonymous ? undefined : await resolveBearer(authToken);
 
   const upstreamHeaders: Record<string, string> = {
     Accept: "application/json",

@@ -80,3 +80,35 @@ describe("identityProxy — Authorization em /kyc/artifacts", () => {
     expect(headersOfLastCall(fetchMock)).not.toHaveProperty("Authorization");
   });
 });
+
+describe("identityProxy — chamadas anônimas", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    jar = {};
+    fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => "{}",
+      headers: { get: () => "application/json" },
+    });
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("anonymous ignora o access_token do cookie e o authToken explícito", async () => {
+    // Sessão antiga esquecida no browser não pode vazar para o cadastro de MFA.
+    jar.access_token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.YW50aWdv";
+
+    await callIdentity({
+      method: "POST",
+      path: "/auth/mfa/enroll",
+      body: { enrollment_token: "start", password: "senha" },
+      authToken: "explicito",
+      anonymous: true,
+    });
+
+    expect(headersOfLastCall(fetchMock)).not.toHaveProperty("Authorization");
+  });
+});

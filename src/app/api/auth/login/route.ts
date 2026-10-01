@@ -67,9 +67,14 @@ export async function POST(request: NextRequest) {
     return res;
   }
 
-  // MFA pendente (precisa do mfa_challenge_token no corpo) ou erro → passthrough.
+  // MFA pendente ou erro → passthrough. O corpo precisa levar ao browser o
+  // mfa_challenge_token (desafio) ou o mfa_enrollment_token (cadastro no
+  // primeiro login) — credenciais de curta duração, daí o `no-store`.
   return new NextResponse(result.text, {
     status: result.status,
-    headers: { "Content-Type": result.contentType },
+    headers: {
+      "Content-Type": result.contentType,
+      "Cache-Control": "no-store",
+    },
   });
 }

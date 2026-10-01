@@ -17,7 +17,8 @@ export function AuthLayout({ children, sidebar }: AuthLayoutProps) {
     <Flex minH="100dvh" w="full" bg="bg.page">
       {sidebar ?? <AuthBrandPanel />}
 
-      <Box flex="1" overflowY="auto">
+      {/* relative: ancora avisos posicionados no canto do painel (ex.: MFA) */}
+      <Box flex="1" overflowY="auto" position="relative">
         <Flex
           minH="100dvh"
           direction="column"
