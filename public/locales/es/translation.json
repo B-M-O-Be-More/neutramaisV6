@@ -131,6 +131,103 @@
       "error": "No se pudo completar la verificación. Inténtalo de nuevo."
     }
   },
+  "MfaEnrollment": {
+    "back": "Volver",
+    "backToLogin": "Volver al inicio de sesión",
+    "copyFailed": "No se pudo copiar. Selecciona el texto y cópialo manualmente.",
+    "intro": {
+      "title": "Activa la Autenticación de Múltiples Factores",
+      "subtitle": "Por tu seguridad, los perfiles de Administrador y Vendedor deben activar la autenticación de múltiples factores (MFA) antes de acceder al portal.",
+      "warning": "Esta medida aumenta la seguridad de tu cuenta y protege tus datos contra accesos no autorizados.",
+      "features": {
+        "app": {
+          "title": "Usa una aplicación de autenticación",
+          "description": "Ej.: Google Authenticator, Microsoft Authenticator, Authy."
+        },
+        "codes": {
+          "title": "Guarda tus códigos de recuperación",
+          "description": "Serán necesarios si pierdes el acceso."
+        },
+        "fast": {
+          "title": "Proceso rápido y sencillo",
+          "description": "En pocos minutos tu cuenta será más segura."
+        }
+      },
+      "start": "Continuar para habilitar MFA"
+    },
+    "qrCode": {
+      "title": "Aumenta la seguridad de tu cuenta",
+      "subtitle": "Para acceder al portal de Neutra, la autenticación de múltiples factores (MFA) es obligatoria.",
+      "qrLabel": "Código QR para agregar la cuenta en la aplicación de autenticación",
+      "info": {
+        "scan": "Escanea este código QR con tu aplicación de autenticación.",
+        "apps": "Ej.: Google Authenticator, Microsoft Authenticator, Authy."
+      },
+      "manualKey": {
+        "title": "O usa la clave manualmente",
+        "hint": "Copia esta clave y agrégala manualmente en tu aplicación si no puedes escanear el código QR.",
+        "copy": "Copiar clave",
+        "copied": "Clave copiada"
+      },
+      "next": "Siguiente"
+    },
+    "recoveryCodes": {
+      "title": "Guarda tus códigos de recuperación",
+      "subtitle": "Si pierdes tu celular, estos códigos serán la única forma de acceder a tu cuenta. No se pueden recuperar después.",
+      "important": {
+        "title": "¡Importante!",
+        "description": "Guarda estos códigos en un lugar seguro. Son la única forma de acceder a tu cuenta si pierdes tu dispositivo de autenticación."
+      },
+      "listLabel": "Códigos de recuperación",
+      "copy": "Copiar todos los códigos",
+      "copied": "Códigos copiados",
+      "download": "Descargar como .TXT",
+      "fileName": "neutramais-codigos-de-recuperacion.txt",
+      "fileHeader": "NeutraMais — códigos de recuperación de la autenticación de múltiples factores. Cada código puede usarse una sola vez.",
+      "acknowledge": "Entiendo que soy responsable de guardar estos códigos de forma segura.",
+      "next": "Avanzar a la Validación"
+    },
+    "totp": {
+      "title": "Ingresa el código de 6 dígitos",
+      "subtitle": "Ingresa el código numérico generado por tu aplicación de autenticación.",
+      "label": "Código de 6 dígitos",
+      "placeholder": "000000",
+      "info": "El código se actualiza cada 30 segundos.",
+      "submit": "Confirmar y acceder"
+    },
+    "failure": {
+      "error": {
+        "title": "No se pudo procesar la activación",
+        "description": "Si la app ya fue configurada, intenta iniciar sesión normalmente. Si persiste, contacta al soporte.",
+        "support": "¿Sigues con problemas? <mail>{{email}}</mail>"
+      },
+      "rateLimit": {
+        "title": "¡Calma! Demasiados intentos",
+        "description": "Este acceso fue bloqueado temporalmente por exceso de intentos de verificación.",
+        "blocked": {
+          "title": "Acceso bloqueado temporalmente",
+          "description_one": "Por seguridad, bloqueamos nuevos intentos por <b>{{count}} minuto</b>. Esto protege tu cuenta contra intentos de acceso no autorizados.",
+          "description_other": "Por seguridad, bloqueamos nuevos intentos por <b>{{count}} minutos</b>. Esto protege tu cuenta contra intentos de acceso no autorizados."
+        },
+        "release": {
+          "label": "Liberación estimada",
+          "inMinutes_one": "~{{count}} minuto",
+          "inMinutes_other": "~{{count}} minutos",
+          "now": "Liberado"
+        },
+        "suspicious": "Si no hiciste estos intentos, contacta a <b>{{email}}</b> de inmediato, ya que puede haber actividad sospechosa."
+      },
+      "timeout": {
+        "title": "Tiempo límite alcanzado",
+        "description": "Se alcanzó el tiempo máximo de espera para el MFA. Reinicia el proceso de inicio de sesión para intentarlo de nuevo."
+      }
+    },
+    "errors": {
+      "recoveryCodesNotSaved": "Confirma que guardaste los códigos de recuperación para continuar",
+      "invalidCode": "Código inválido. Espera el siguiente código en la aplicación e inténtalo de nuevo.",
+      "invalidCredentials": "No pudimos validar tu contraseña. Inicia sesión de nuevo con tu contraseña actual."
+    }
+  },
   "ResetPassword": {
     "title": "Definir nueva contraseña",
     "subtitle": "Elige una contraseña fuerte que no uses en otros servicios.",

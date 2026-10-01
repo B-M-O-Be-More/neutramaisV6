@@ -84,4 +84,38 @@ describe("BFF POST /api/auth/login", () => {
       false,
     );
   });
+
+  it("cadastro de MFA pendente: repassa a credencial de início sem criar sessão", async () => {
+    const enrollmentEnvelope = JSON.stringify({
+      message: "ok",
+      data: {
+        access_token: null,
+        refresh_token: null,
+        token_type: "Bearer",
+        expires_in: 300,
+        mfa_required: true,
+        mfa_enrollment_required: true,
+        mfa_enrollment_token: "start-credential",
+        mfa_challenge_token: null,
+      },
+      errors: null,
+      metadata: null,
+    });
+    vi.mocked(callIdentity).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      text: enrollmentEnvelope,
+      contentType: "application/json",
+    });
+
+    const res = await POST(
+      loginRequest({ email: "admin@bmo.dev.br", password: "senha" }),
+    );
+
+    expect(setAuthCookies).not.toHaveBeenCalled();
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+    expect((await res.json()).data.mfa_enrollment_token).toBe(
+      "start-credential",
+    );
+  });
 });

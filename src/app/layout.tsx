@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Providers } from "./providers";
-import { appFont } from "@/components/ui/fonts";
+import { appFont, monoFont } from "@/components/ui/fonts";
 import MainLayout from "@/components/Layouts/Main";
 
 export const metadata: Metadata = {
@@ -15,7 +15,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    // A variável da fonte mono fica no <html> porque o token `fonts.mono` do
+    // Chakra é resolvido no :root — declarada só no <body>, ela não existiria
+    // lá e o token ficaria inválido.
+    <html lang="pt-BR" className={monoFont.variable} suppressHydrationWarning>
       <body
         className={appFont.className}
         style={{

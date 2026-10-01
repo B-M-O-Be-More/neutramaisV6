@@ -5,6 +5,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { toaster } from "@/components/ui/toaster";
+import { useMfaEnrollment } from "@/hooks/useMfaEnrollment";
 import { authService } from "@/services/auth.service";
 import {
   AuthError,
@@ -28,7 +29,8 @@ const POST_LOGIN_ROUTE = "/dashboard";
 
 /**
  * Orquestra o login (US-01) conforme o artefato da identity-api: credenciais →
- * (opcional) desafio de MFA → sessão estabelecida.
+ * (opcional) desafio de MFA ou cadastro de MFA obrigatório (NEU-479) → sessão
+ * estabelecida.
  *
  * Os tokens nunca chegam aqui: o BFF grava access_token/refresh_token em cookies
  * httpOnly (ADR-002) e devolve só o estado de MFA. Erros são tratados neste hook
@@ -57,6 +59,22 @@ export function useLogin() {
 
   const captchaRequired =
     captchaDemanded || failedAttempts >= CAPTCHA_AFTER_FAILED_ATTEMPTS;
+
+  // Cadastro de MFA do primeiro login. O hook guarda sozinho a credencial, a
+  // senha e os segredos; aqui só decidimos para onde a tela vai depois.
+  const restartFromEnrollment = React.useCallback((message?: string) => {
+    setFormError(message);
+    setStep("credentials");
+  }, []);
+  const completeLogin = React.useCallback(
+    () => router.push(POST_LOGIN_ROUTE),
+    [router],
+  );
+  const enrollment = useMfaEnrollment({
+    onRestart: restartFromEnrollment,
+    onComplete: completeLogin,
+  });
+  const beginEnrollment = enrollment.begin;
 
   /** Erros comuns às duas etapas. Retorna true se tratou o erro. */
   const handleSharedError = React.useCallback(
@@ -99,6 +117,28 @@ export function useLogin() {
           },
           remember,
         );
+
+        // Ordem do contrato: cadastro pendente → desafio → login normal. Com
+        // `mfa_enrollment_required` o `mfa_required` também vem true, então este
+        // ramo precisa vir antes. Nenhuma sessão existe até o fim do cadastro.
+        if (data?.mfa_enrollment_required) {
+          if (!data.mfa_enrollment_token) {
+            toaster.create({ type: "error", title: t("Login.feedback.error") });
+            return;
+          }
+          // A senha segue direto para o cadastro (única troca em que é usada)
+          // e não fica guardada neste hook.
+          beginEnrollment({
+            enrollmentToken: data.mfa_enrollment_token,
+            password,
+            expiresIn: data.expires_in ?? 300,
+            rememberMe: remember,
+          });
+          setFailedAttempts(0);
+          setCaptchaDemanded(false);
+          setStep("mfaEnrollment");
+          return;
+        }
 
         // MFA habilitado: nenhum token foi emitido, seguimos para o desafio.
         if (data?.mfa_required) {
@@ -150,7 +190,7 @@ export function useLogin() {
         setIsSubmitting(false);
       }
     },
-    [handleSharedError, router, t],
+    [beginEnrollment, handleSharedError, router, t],
   );
 
   const submitMfa = React.useCallback(
@@ -220,5 +260,6 @@ export function useLogin() {
     submitCredentials,
     submitMfa,
     backToCredentials,
+    enrollment,
   };
 }
