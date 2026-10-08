@@ -424,6 +424,8 @@
     "logoAlt": "Neutra+",
     "title": "Crear Cuenta",
     "subtitle": "Registra tu empresa en el Marketplace Neutra+",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
     "sidebar": {
       "headline": "Crea tu cuenta",
       "headlineHighlight": "organizacional",
@@ -521,12 +523,12 @@
         "levels": {
           "basic": {
             "title": "Básico",
-            "description": "Ya activo — solo visualización",
+            "description": "Ya activo — visualización de la plataforma",
             "current": "ACTUAL"
           },
           "verified": {
             "title": "Verificado",
-            "description": "Comprar / pagar pedidos"
+            "description": "Comprar, pagar\ny generar pedidos"
           },
           "complete": {
             "title": "Completo",
@@ -545,9 +547,7 @@
           "articles_of_incorporation": "Contrato social / Estatuto",
           "address_proof": "Comprobante de domicilio de la sede",
           "revenue_proof": "Comprobante de facturación (12 meses)",
-          "representative_selfie": "Selfie del representante legal con documento",
-          "ubo_declaration": "Declaración de beneficiarios finales",
-          "federal_clearance": "Certificado de no adeudo federal"
+          "representative_selfie": "Selfie del representante legal con documento"
         },
         "optional": "Opcional",
         "sending": "Enviando...",
@@ -558,9 +558,10 @@
         "errors": {
           "mimeType": "Formato no aceptado. Envía PDF, JPG o PNG.",
           "upload": "No pudimos enviar el documento. Inténtalo de nuevo.",
-          "submit": "No pudimos enviar la documentación para análisis. Inténtalo de nuevo."
+          "submit": "No pudimos enviar la documentación para análisis. Inténtalo de nuevo.",
+          "missingOrganization": "No encontramos el registro de la empresa en este navegador. Envía los documentos después, en Mi Perfil."
         },
-        "notice": "Puedes enviar los documentos ahora o después en <strong>Mi Empresa / KYC</strong>. Los compradores BR básicos tienen autoaprobación. Los sellers siempre exigen revisión manual en hasta 72h hábiles.",
+        "notice": "Puedes enviar los documentos ahora o después en <strong>Mi Perfil / Roles y accesos</strong>. Los compradores básicos tienen autoaprobación. Los sellers siempre exigen revisión manual en hasta 72h hábiles.",
         "cta": "Explorar marketplace",
         "redirecting": "Redirigiendo a la página de inicio de sesión..."
       }

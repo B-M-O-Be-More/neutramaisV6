@@ -8,6 +8,7 @@ import {
   Field,
   Flex,
   Icon,
+  IconButton,
   SimpleGrid,
   Stack,
   Text,
@@ -23,6 +24,8 @@ import {
   LuChevronLeft,
   LuCircleAlert,
   LuCircleCheck,
+  LuEye,
+  LuEyeOff,
   LuMail,
   LuPhone,
   LuStore,
@@ -194,6 +197,10 @@ export function FormRegister({ typeRegister }: FormRegisterProps) {
 
   // País do telefone é independente do país da empresa (controla só a máscara).
   const [phoneCountry, setPhoneCountry] = React.useState<string>("BR");
+
+  // Mostra/oculta senha e confirmação (toggles independentes).
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   // POST /organizations/register em andamento (disparado no fim da etapa 3).
   const [registering, setRegistering] = React.useState(false);
@@ -912,9 +919,27 @@ export function FormRegister({ typeRegister }: FormRegisterProps) {
               <Input
                 label={t("Register.fields.password.label")}
                 required
-                type="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 placeholder={t("Register.fields.password.placeholder")}
                 error={tError(errors.password?.message)}
+                endElement={
+                  <IconButton
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    color="#A0ABB8"
+                    aria-label={t(
+                      showPassword
+                        ? "Register.hidePassword"
+                        : "Register.showPassword",
+                    )}
+                    onClick={() => setShowPassword((v) => !v)}
+                    _hover={{ bg: "transparent", color: "#5A6478" }}
+                  >
+                    <Icon as={showPassword ? LuEyeOff : LuEye} boxSize="16px" />
+                  </IconButton>
+                }
                 {...register("password")}
               />
               {password.length > 0 && (
@@ -946,9 +971,30 @@ export function FormRegister({ typeRegister }: FormRegisterProps) {
             <Input
               label={t("Register.fields.confirmPassword.label")}
               required
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
+              autoComplete="new-password"
               placeholder={t("Register.fields.confirmPassword.placeholder")}
               error={tError(errors.confirmPassword?.message)}
+              endElement={
+                <IconButton
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  color="#A0ABB8"
+                  aria-label={t(
+                    showConfirmPassword
+                      ? "Register.hidePassword"
+                      : "Register.showPassword",
+                  )}
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  _hover={{ bg: "transparent", color: "#5A6478" }}
+                >
+                  <Icon
+                    as={showConfirmPassword ? LuEyeOff : LuEye}
+                    boxSize="16px"
+                  />
+                </IconButton>
+              }
               {...register("confirmPassword")}
             />
 

@@ -14,6 +14,7 @@ import {
   upstreamDetailMessage,
   upstreamErrorCode,
 } from "@/services/errors";
+import { kycService, type KycState } from "@/services/kyc.service";
 
 import type { CredentialsInput, LoginStep, MfaInput } from "./interface";
 
@@ -26,6 +27,33 @@ export const CAPTCHA_AFTER_FAILED_ATTEMPTS = 3;
 
 // Destino pós-login: início da área autenticada.
 const POST_LOGIN_ROUTE = "/dashboard";
+const KYC_ROUTE = "/kyc";
+
+// Estados de KYC em que a organização ainda deve documentos para chegar ao
+// nível Verified — `under_review` (já enviados) e os finais ficam de fora.
+const AWAITING_DOCUMENTS: KycState[] = [
+  "pending",
+  "basic",
+  "pending_documents",
+];
+
+/**
+ * Destino depois do login: quem ainda não enviou os documentos da empresa cai
+ * na tela de KYC (fluxo de autenticação Neutra+, passo 6 — o Seller envia os
+ * documentos logo após o primeiro login com MFA). Qualquer falha nas consultas
+ * leva ao dashboard: o login já deu certo e não deve travar aqui.
+ */
+async function resolvePostLoginRoute(): Promise<string> {
+  try {
+    const profile = await authService.me();
+    const { kyc_state } = await kycService.getStatus(profile.organization_id);
+    return AWAITING_DOCUMENTS.includes(kyc_state)
+      ? KYC_ROUTE
+      : POST_LOGIN_ROUTE;
+  } catch {
+    return POST_LOGIN_ROUTE;
+  }
+}
 
 /**
  * Orquestra o login (US-01) conforme o artefato da identity-api: credenciais →
@@ -66,10 +94,9 @@ export function useLogin() {
     setFormError(message);
     setStep("credentials");
   }, []);
-  const completeLogin = React.useCallback(
-    () => router.push(POST_LOGIN_ROUTE),
-    [router],
-  );
+  const completeLogin = React.useCallback(async () => {
+    router.push(await resolvePostLoginRoute());
+  }, [router]);
   const enrollment = useMfaEnrollment({
     onRestart: restartFromEnrollment,
     onComplete: completeLogin,
@@ -152,7 +179,7 @@ export function useLogin() {
 
         // Sessão já estabelecida via cookies pelo BFF.
         setFailedAttempts(0);
-        router.push(POST_LOGIN_ROUTE);
+        await completeLogin();
       } catch (error) {
         // Toda falha aqui consome uma tentativa no upstream — é o que move o
         // gatilho do CAPTCHA.
@@ -190,7 +217,7 @@ export function useLogin() {
         setIsSubmitting(false);
       }
     },
-    [beginEnrollment, handleSharedError, router, t],
+    [beginEnrollment, completeLogin, handleSharedError, t],
   );
 
   const submitMfa = React.useCallback(
@@ -210,7 +237,7 @@ export function useLogin() {
           rememberMe,
         });
 
-        router.push(POST_LOGIN_ROUTE);
+        await completeLogin();
       } catch (error) {
         const code = upstreamErrorCode(error);
 
@@ -242,7 +269,7 @@ export function useLogin() {
         setIsSubmitting(false);
       }
     },
-    [challengeToken, handleSharedError, rememberMe, router, t],
+    [challengeToken, completeLogin, handleSharedError, rememberMe, t],
   );
 
   /** Abandona o desafio e volta às credenciais, descartando o challenge token. */
