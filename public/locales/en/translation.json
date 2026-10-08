@@ -424,6 +424,8 @@
     "logoAlt": "Neutra+",
     "title": "Create Account",
     "subtitle": "Register your company on the Neutra+ Marketplace",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "sidebar": {
       "headline": "Create your",
       "headlineHighlight": "organizational account",
@@ -521,12 +523,12 @@
         "levels": {
           "basic": {
             "title": "Basic",
-            "description": "Already active — view only",
+            "description": "Already active — platform view",
             "current": "CURRENT"
           },
           "verified": {
             "title": "Verified",
-            "description": "Buy / pay orders"
+            "description": "Buy, pay\nand create orders"
           },
           "complete": {
             "title": "Complete",
@@ -545,9 +547,7 @@
           "articles_of_incorporation": "Articles of incorporation / Bylaws",
           "address_proof": "Head office address proof",
           "revenue_proof": "Revenue statement (12 months)",
-          "representative_selfie": "Legal representative selfie with ID",
-          "ubo_declaration": "Ultimate beneficial owners declaration",
-          "federal_clearance": "Federal tax clearance certificate"
+          "representative_selfie": "Legal representative selfie with ID"
         },
         "optional": "Optional",
         "sending": "Sending...",
@@ -558,9 +558,10 @@
         "errors": {
           "mimeType": "Format not accepted. Send a PDF, JPG or PNG.",
           "upload": "We could not send the document. Please try again.",
-          "submit": "We could not submit the documents for review. Please try again."
+          "submit": "We could not submit the documents for review. Please try again.",
+          "missingOrganization": "We could not find the company registration in this browser. Send the documents later under My Profile."
         },
-        "notice": "You can send the documents now or later under <strong>My Company / KYC</strong>. Basic BR buyers are auto-approved. Sellers always require manual review within 72 business hours.",
+        "notice": "You can send the documents now or later under <strong>My Profile / Roles and access</strong>. Basic buyers are auto-approved. Sellers always require manual review within 72 business hours.",
         "cta": "Explore marketplace",
         "redirecting": "Redirecting to the login page..."
       }

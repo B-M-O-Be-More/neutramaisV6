@@ -1,14 +1,10 @@
-// Service de KYC — declaração de artefatos e submissão do lote (SDD §12.2).
+// Service de KYC — registro de artefatos e submissão para análise (SDD §12.2).
 // Sem React e sem tratamento de erro: propaga AppError tipado para o hook.
 // O browser fala com o BFF (`/api/*`), que anexa o Bearer do cookie httpOnly.
 
 import { api } from "./api.client";
 
-/**
- * `document_type` aceitos pela identity-api. Os nomes vêm do domínio
- * (kyc_constants) e NÃO são os ids usados hoje na UI antiga do FormRegisterSeller
- * (`socialContract`, `legalRep`...), que são invenções do front.
- */
+/** `document_type` aceitos pela identity-api (kyc_constants do domínio). */
 export type KycDocumentType =
   | "cnpj_card"
   | "scm_outorga"
@@ -17,10 +13,9 @@ export type KycDocumentType =
   | "bank_proof"
   | "address_proof"
   | "revenue_proof"
-  | "representative_selfie"
-  | "international_tax_doc";
+  | "representative_selfie";
 
-export type KycLevelSupported = "basic" | "verified" | "complete";
+export type KycLevelSupported = "pending" | "basic" | "verified" | "complete";
 
 export type KycState =
   | "pending"
@@ -28,84 +23,75 @@ export type KycState =
   | "verified"
   | "complete"
   | "pending_documents"
+  | "under_review"
   | "rejected"
   | "suspended";
+
+/** MIME whitelist do `/kyc/artifacts` (§14.4). */
+export const KYC_MIME_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+] as const;
+
+export type KycMimeType = (typeof KYC_MIME_TYPES)[number];
 
 /**
  * Payload de `POST /organizations/{org_id}/kyc/artifacts`.
  *
- * ATENÇÃO: este endpoint NÃO recebe o arquivo — só o metadado. O binário precisa
- * já estar no S3 e `s3_reference` aponta para ele. A identity-api não expõe
- * (ainda) endpoint de upload nem de URL pré-assinada, então quem produz o
- * `s3_reference` é uma peça de backend que ainda não existe.
+ * O endpoint recebe só o metadado: o binário deveria estar no S3 e
+ * `s3_reference` apontar para ele. Enquanto não existe o upload para o S3, o
+ * front manda o nome do arquivo nesse campo (limite de 512 caracteres).
  */
-export interface DeclareArtifactDto {
+export interface UploadKycArtifactDto {
   document_type: KycDocumentType;
   kyc_level_supported: KycLevelSupported;
-  /** Ex.: "s3://kyc/acme/cnpj.pdf" — vem do upload, não do front. */
   s3_reference: string;
   /** SHA-256 hex (64 chars) do conteúdo — ver functions/fileHash. */
   content_hash: string;
-  mime_type: string;
+  mime_type: KycMimeType;
 }
 
-/** Resposta de `POST /organizations/{org_id}/kyc/submit`. */
+/** Resposta (201) de `POST /organizations/{org_id}/kyc/artifacts`. */
+export interface KycArtifact {
+  artifact_id: string;
+  document_type: KycDocumentType;
+  kyc_level_supported: KycLevelSupported;
+  content_hash: string;
+  created_at: string;
+}
+
+/** Corpo de `POST /organizations/{org_id}/kyc/submit`: ids dos artefatos. */
+export interface SubmitKycDto {
+  artifacts: string[];
+}
+
+/** Resposta (200) de `POST /organizations/{org_id}/kyc/submit`. */
 export interface KycSubmitResult {
   organization_id: string;
   kyc_state: KycState;
-  kyc_level: KycLevelSupported | "pending";
+  submitted_at: string;
 }
 
 /** Resposta de `GET /organizations/{org_id}/kyc/status`. */
 export interface KycStatus {
   kyc_state: KycState;
-  kyc_level: KycLevelSupported | "pending";
-}
-
-/**
- * Documentos exigidos para o nível `basic` (RN-200): cartão CNPJ mais UM entre
- * outorga SCM e contrato social. Além dos documentos, o nível também exige
- * e-mail E TELEFONE confirmados.
- */
-export const BASIC_KYC_DOCUMENTS = {
-  required: ["cnpj_card"] as const,
-  /** Basta um destes. */
-  oneOf: ["scm_outorga", "articles_of_incorporation"] as const,
-};
-
-/** Corpo de `POST /organizations/{org_id}/kyc/submit` com o lote de documentos. */
-export interface SubmitKycDto {
-  artifacts: DeclareArtifactDto[];
+  kyc_level: KycLevelSupported;
 }
 
 export const kycService = {
-  /** Declara um documento já presente no S3. Exige sessão (kyc:submit). */
-  declareArtifact: (orgId: string, data: DeclareArtifactDto) =>
-    api.post<null>(`/organizations/${orgId}/kyc/artifacts`, data),
+  /** Registra UM documento e devolve o `artifact_id`. Exige `kyc:submit`. */
+  uploadArtifact: (orgId: string, data: UploadKycArtifactDto) =>
+    api.post<KycArtifact>(`/organizations/${orgId}/kyc/artifacts`, data),
 
   /**
-   * Envia a documentação para avaliação de completude — é ESTE o endpoint do
-   * envio: os documentos vão todos juntos, num lote só, no mesmo formato de
-   * artefato aceito pelo `/kyc/artifacts` (`document_type`,
-   * `kyc_level_supported`, `s3_reference`, `content_hash`, `mime_type`).
-   *
-   * Sem `artifacts`, submete o que já estiver declarado na organização.
-   *
-   * Se os documentos de `basic` estiverem presentes, o nível avança na hora —
-   * mas o `status` da organização permanece "pending" (RN-538).
-   *
-   * Falta de documento devolve 422 com `{ "missing": [...] }`, onde
-   * "scm_outorga|articles_of_incorporation" indica alternativa, não dois itens.
+   * Envia para análise os artefatos já registrados, referenciados pelos
+   * `artifact_id` devolvidos em `uploadArtifact`. Exige `kyc:submit`.
    */
-  submit: (orgId: string, artifacts?: DeclareArtifactDto[]) => {
-    const body: SubmitKycDto | Record<string, never> = artifacts
-      ? { artifacts }
-      : {};
-    return api.post<KycSubmitResult>(
-      `/organizations/${orgId}/kyc/submit`,
-      body,
-    );
-  },
+  submit: (orgId: string, artifactIds: string[]) =>
+    api.post<KycSubmitResult>(`/organizations/${orgId}/kyc/submit`, {
+      artifacts: artifactIds,
+    } satisfies SubmitKycDto),
 
   /** Estado e nível atuais. Exige sessão. */
   getStatus: (orgId: string) =>
