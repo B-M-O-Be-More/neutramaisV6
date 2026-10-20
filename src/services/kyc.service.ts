@@ -27,7 +27,7 @@ export type KycState =
   | "rejected"
   | "suspended";
 
-/** MIME whitelist do `/kyc/artifacts` (§14.4). */
+/** Formatos aceitos no envio de documentos. */
 export const KYC_MIME_TYPES = [
   "application/pdf",
   "image/jpeg",
@@ -36,24 +36,29 @@ export const KYC_MIME_TYPES = [
 
 export type KycMimeType = (typeof KYC_MIME_TYPES)[number];
 
-/**
- * Payload de `POST /organizations/{org_id}/kyc/artifacts`.
- *
- * O endpoint recebe só o metadado: o binário deveria estar no S3 e
- * `s3_reference` apontar para ele. Enquanto não existe o upload para o S3, o
- * front manda o nome do arquivo nesse campo (limite de 512 caracteres).
- */
+export const KYC_MAX_BYTES = 10 * 1024 * 1024;
+
+/** Metadados para autorizar o envio. Hash e referência são definidos no servidor. */
 export interface UploadKycArtifactDto {
   document_type: KycDocumentType;
   kyc_level_supported: KycLevelSupported;
-  s3_reference: string;
-  /** SHA-256 hex (64 chars) do conteúdo — ver functions/fileHash. */
-  content_hash: string;
   mime_type: KycMimeType;
+  size_bytes: number;
+}
+
+export interface KycUploadAuthorization {
+  upload_id: string;
+  upload: {
+    url: string;
+    fields: Record<string, string>;
+    expires_at: string;
+    max_bytes: number;
+    content_type: KycMimeType;
+  };
 }
 
 /**
- * Resposta (201) de `POST /organizations/{org_id}/kyc/artifacts`. O id vem
+ * Resposta da confirmação do upload. O id vem
  * como `artifact_id` no contrato combinado e como `id` no openapi da
  * identity-api — o front aceita os dois.
  */
@@ -85,9 +90,40 @@ export interface KycStatus {
 }
 
 export const kycService = {
-  /** Registra UM documento e devolve o `artifact_id`. Exige `kyc:submit`. */
-  uploadArtifact: (orgId: string, data: UploadKycArtifactDto) =>
-    api.post<KycArtifact>(`/organizations/${orgId}/kyc/artifacts`, data),
+  /** Autoriza, envia os bytes e confirma UM documento. */
+  uploadArtifact: async (
+    orgId: string,
+    data: UploadKycArtifactDto,
+    file: File,
+  ) => {
+    const authorization = await api.post<KycUploadAuthorization>(
+      `/organizations/${orgId}/kyc/uploads`,
+      data,
+    );
+    const { upload, upload_id: uploadId } = authorization;
+    if (
+      !uploadId ||
+      file.size > upload.max_bytes ||
+      upload.content_type !== file.type ||
+      Date.parse(upload.expires_at) <= Date.now()
+    ) {
+      throw new Error("KYC upload authorization invalid");
+    }
+    const body = new FormData();
+    for (const [key, value] of Object.entries(upload.fields))
+      body.append(key, value);
+    body.append("file", file);
+    const response = await fetch(upload.url, {
+      method: "POST",
+      credentials: "omit",
+      body,
+    });
+    if (!response.ok) throw new Error("KYC upload failed");
+    return api.post<KycArtifact>(
+      `/organizations/${orgId}/kyc/uploads/${uploadId}/confirm`,
+      {},
+    );
+  },
 
   /**
    * Envia para análise os artefatos já registrados, referenciados pelos

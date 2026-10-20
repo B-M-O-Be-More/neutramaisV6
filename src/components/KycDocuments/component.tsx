@@ -84,7 +84,7 @@ const HEADERS: Record<
  * - Verificado: o grupo "KYC Verificado".
  * - Completo: os grupos "KYC Verificado" e "KYC Completo".
  *
- * Cada arquivo é registrado na hora em `/kyc/artifacts` (ver useKycDocuments).
+ * Cada arquivo é enviado e confirmado antes de ser registrado (ver useKycDocuments).
  * No CTA, os `artifact_id` registrados vão todos para `/kyc/submit`; sem
  * nenhum documento enviado, a tela só é encerrada.
  */

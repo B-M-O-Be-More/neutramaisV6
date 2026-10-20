@@ -558,6 +558,7 @@
           "replace": "Trocar"
         },
         "errors": {
+          "fileSize": "Envie um arquivo com conteúdo e tamanho de até 10 MB.",
           "mimeType": "Formato não aceito. Envie PDF, JPG ou PNG.",
           "upload": "Não foi possível enviar o documento. Tente novamente.",
           "submit": "Não foi possível enviar a documentação para análise. Tente novamente.",

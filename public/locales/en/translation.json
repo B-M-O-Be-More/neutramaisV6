@@ -558,6 +558,7 @@
           "replace": "Replace"
         },
         "errors": {
+          "fileSize": "Send a non-empty file up to 10 MB.",
           "mimeType": "Format not accepted. Send a PDF, JPG or PNG.",
           "upload": "We could not send the document. Please try again.",
           "submit": "We could not submit the documents for review. Please try again.",

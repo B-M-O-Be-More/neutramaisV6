@@ -41,7 +41,7 @@ function mockUpload() {
       artifact_id: `artifact-${++next}`,
       document_type: data.document_type,
       kyc_level_supported: data.kyc_level_supported,
-      content_hash: data.content_hash,
+      content_hash: "server-computed",
       created_at: "2026-08-06T14:32:10Z",
     }));
 }
@@ -81,7 +81,7 @@ describe("KycDocuments", () => {
     ).toBeInTheDocument();
   });
 
-  it("registra cada arquivo em /kyc/artifacts com hash e nome do arquivo", async () => {
+  it("envia cada arquivo para autorização e confirmação", async () => {
     const upload = mockUpload();
     renderWithProviders(
       <KycDocuments organizationId={ORG_ID} onFinish={vi.fn()} />,
@@ -90,13 +90,16 @@ describe("KycDocuments", () => {
     sendDocument("revenue_proof", pdf("faturamento.pdf"));
 
     await waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
-    expect(upload).toHaveBeenCalledWith(ORG_ID, {
-      document_type: "revenue_proof",
-      kyc_level_supported: "complete",
-      s3_reference: "faturamento.pdf",
-      content_hash: expect.stringMatching(/^[0-9a-f]{64}$/),
-      mime_type: "application/pdf",
-    });
+    expect(upload).toHaveBeenCalledWith(
+      ORG_ID,
+      {
+        document_type: "revenue_proof",
+        kyc_level_supported: "complete",
+        size_bytes: 8,
+        mime_type: "application/pdf",
+      },
+      expect.any(File),
+    );
     expect(await screen.findByText("faturamento.pdf")).toBeInTheDocument();
   });
 
@@ -119,6 +122,7 @@ describe("KycDocuments", () => {
         document_type: "cnpj_card",
         kyc_level_supported: "basic",
       }),
+      expect.any(File),
     );
   });
 
