@@ -11,6 +11,12 @@ describe("rolesToPersonas", () => {
       ["buyer", "seller"],
     ],
     [["SELLER_OWNER"], ["seller"]],
+    [["admin_neutra"], ["admin"]],
+    [["super_admin"], ["admin", "buyer", "seller"]],
+    [
+      ["buyer_owner", "admin_neutra"],
+      ["admin", "buyer"],
+    ],
   ])("%j → %j", (roles, expected) => {
     expect(rolesToPersonas(roles)).toEqual(expected);
   });

@@ -6,9 +6,9 @@ import { forwardToIdentity } from "@/server/identityProxy";
 // BFF: POST /api/organizations/{orgId}/kyc/submit
 //   → identity-api POST /organizations/{org_id}/kyc/submit
 //
-// É por aqui que a documentação é enviada: o lote inteiro vai numa request só,
-// em `{ artifacts: [...] }`, no mesmo formato de artefato do /kyc/artifacts.
-// Sem corpo (ou com `{}`), o upstream avalia o que já estiver declarado.
+// Envia para análise os artefatos já registrados no /kyc/artifacts: o corpo
+// leva só os ids, em `{ artifact_ids: [...] }`. O BFF repassa o corpo como
+// veio.
 //
 // Rota autenticada (`kyc:submit` sobre a própria organização). No cadastro ainda
 // não há sessão, então o Bearer sai do mesmo lugar que no /artifacts — ver

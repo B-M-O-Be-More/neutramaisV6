@@ -66,9 +66,15 @@ export function useKycDocuments(
         content_hash: await sha256Hex(file),
         mime_type: file.type,
       });
+      // O id vem como `artifact_id` no contrato combinado e como `id` no
+      // openapi da identity-api. Sem nenhum dos dois, o documento não teria o
+      // que mandar para o /kyc/submit — então conta como falha do envio.
+      const artifactId = artifact?.artifact_id ?? artifact?.id;
+      if (!artifactId) throw new Error("Resposta do /kyc/artifacts sem id");
+
       patch(documentType, {
         status: "sent",
-        artifactId: artifact.artifact_id,
+        artifactId,
         fileName: file.name,
       });
     } catch {

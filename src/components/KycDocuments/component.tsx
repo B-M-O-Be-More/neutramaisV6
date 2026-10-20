@@ -17,9 +17,12 @@ import {
   LuCheck,
   LuCircleAlert,
   LuCircleCheckBig,
+  LuCircleX,
+  LuFileWarning,
   LuShieldCheck,
   LuUpload,
 } from "react-icons/lu";
+import type { IconType } from "react-icons";
 
 import { toaster } from "@/components/ui/toaster";
 import {
@@ -32,7 +35,7 @@ import {
 import { useKycDocuments } from "@/hooks/useKycDocuments";
 import { KYC_MIME_TYPES } from "@/services/kyc.service";
 
-import { KycDocumentsProps } from "./interface";
+import { KycDocumentsProps, KycDocumentsVariant } from "./interface";
 
 // Paleta por nível: o card selecionado e o cabeçalho do grupo usam a mesma.
 const LEVEL_COLORS: Record<
@@ -42,6 +45,31 @@ const LEVEL_COLORS: Record<
   basic: { bg: "#EEF3FF", border: "#C7D8FF", fg: "#1F5AFF" },
   verified: { bg: "#EEF3FF", border: "#C7D8FF", fg: "#1F5AFF" },
   complete: { bg: "#EDFBF5", border: "#AAECD5", fg: "#10B981" },
+};
+
+// Cabeçalho de cada cenário: ícone, cores e chave dos textos (title/subtitle).
+const HEADERS: Record<
+  KycDocumentsVariant,
+  { icon: IconType; bg: string; fg: string; textKey: string }
+> = {
+  submit: {
+    icon: LuCircleCheckBig,
+    bg: "#EDFBF5",
+    fg: "#10B981",
+    textKey: "Register.flow.kyc.created",
+  },
+  resubmit: {
+    icon: LuFileWarning,
+    bg: "#FFFBEB",
+    fg: "#D97706",
+    textKey: "Kyc.screens.resubmit",
+  },
+  rejected: {
+    icon: LuCircleX,
+    bg: "#FEF2F2",
+    fg: "#EF4444",
+    textKey: "Kyc.screens.rejected",
+  },
 };
 
 /**
@@ -60,8 +88,13 @@ const LEVEL_COLORS: Record<
  * No CTA, os `artifact_id` registrados vão todos para `/kyc/submit`; sem
  * nenhum documento enviado, a tela só é encerrada.
  */
-export function KycDocuments({ organizationId, onFinish }: KycDocumentsProps) {
+export function KycDocuments({
+  organizationId,
+  variant = "submit",
+  onFinish,
+}: KycDocumentsProps) {
   const { t } = useTranslation();
+  const header = HEADERS[variant];
   const kyc = useKycDocuments(organizationId);
 
   const [level, setLevel] = React.useState<KycTargetLevel>("complete");
@@ -80,18 +113,28 @@ export function KycDocuments({ organizationId, onFinish }: KycDocumentsProps) {
     inputRef.current?.click();
   };
 
-  // Tudo o que já foi registrado vai para análise, completo ou não: quem decide
-  // se basta para o nível é o backend.
+  // Só avança com todos os obrigatórios do nível escolhido enviados (os
+  // opcionais não travam). O nível básico não pede documentos e não é uma
+  // escolha aqui.
+  const requiredDocs = groups.flatMap((group) =>
+    group.documents.filter((doc) => !doc.optional),
+  );
+  const sentRequired = requiredDocs.filter(
+    (doc) => kyc.documents[doc.type]?.status === "sent",
+  ).length;
+  const canFinish =
+    requiredDocs.length > 0 && sentRequired === requiredDocs.length;
+
+  // Tudo o que foi registrado (opcionais inclusos) vai para análise.
   const finish = async () => {
-    if (kyc.artifactIds.length > 0) {
-      const ok = await kyc.submit();
-      if (!ok) {
-        toaster.create({
-          type: "error",
-          title: t("Register.flow.kyc.errors.submit"),
-        });
-        return;
-      }
+    if (!canFinish) return;
+    const ok = await kyc.submit();
+    if (!ok) {
+      toaster.create({
+        type: "error",
+        title: t("Register.flow.kyc.errors.submit"),
+      });
+      return;
     }
     onFinish();
   };
@@ -99,13 +142,16 @@ export function KycDocuments({ organizationId, onFinish }: KycDocumentsProps) {
   const renderLevelCard = (option: KycTargetLevel) => {
     const selected = level === option;
     const colors = LEVEL_COLORS[option];
+    // O básico é o nível atual (informativo): escolhê-lo dispensaria o envio.
+    const selectable = option !== "basic";
 
     return (
       <chakra.button
         key={option}
         type="button"
         onClick={() => setLevel(option)}
-        aria-pressed={selected}
+        disabled={!selectable}
+        aria-pressed={selectable ? selected : undefined}
         display="flex"
         flexDirection="column"
         justifyContent="center"
@@ -117,9 +163,13 @@ export function KycDocuments({ organizationId, onFinish }: KycDocumentsProps) {
         borderColor={selected ? colors.fg : "border.default"}
         bg={selected ? colors.bg : "bg.surface"}
         textAlign="left"
-        cursor="pointer"
+        cursor={selectable ? "pointer" : "default"}
         transition="border-color 0.2s, background 0.2s"
-        _hover={{ borderColor: selected ? undefined : "gray.300" }}
+        _hover={
+          selectable && !selected ? { borderColor: "gray.300" } : undefined
+        }
+        // Desabilitado só para não ser escolhido: mantém a aparência normal.
+        _disabled={{ opacity: 1 }}
       >
         <Text fontSize="12px" fontWeight={700} lineHeight="18px">
           {t(`Register.flow.kyc.levels.${option}.title`)}
@@ -307,16 +357,16 @@ export function KycDocuments({ organizationId, onFinish }: KycDocumentsProps) {
 
   return (
     <Stack gap="20px" w="full">
-      {/* Conta criada */}
+      {/* Cabeçalho do cenário */}
       <Stack gap={0} align="center">
         <Flex
           align="center"
           justify="center"
           boxSize="56px"
           rounded="16px"
-          bg="#EDFBF5"
+          bg={header.bg}
         >
-          <Icon as={LuCircleCheckBig} boxSize="26px" color="#10B981" />
+          <Icon as={header.icon} boxSize="26px" color={header.fg} />
         </Flex>
 
         <Text
@@ -327,7 +377,7 @@ export function KycDocuments({ organizationId, onFinish }: KycDocumentsProps) {
           color="fg.default"
           textAlign="center"
         >
-          {t("Register.flow.kyc.created.title")}
+          {t(`${header.textKey}.title`)}
         </Text>
 
         <Text
@@ -337,7 +387,7 @@ export function KycDocuments({ organizationId, onFinish }: KycDocumentsProps) {
           color="fg.muted"
           textAlign="center"
         >
-          {t("Register.flow.kyc.created.subtitle")}
+          {t(`${header.textKey}.subtitle`)}
         </Text>
       </Stack>
 
@@ -384,26 +434,44 @@ export function KycDocuments({ organizationId, onFinish }: KycDocumentsProps) {
         </Text>
       </Flex>
 
-      <Button
-        type="button"
-        onClick={finish}
-        loading={kyc.submitting}
-        disabled={kyc.uploading}
-        w="full"
-        h="55px"
-        rounded="14px"
-        bg="brand.500"
-        color="white"
-        fontSize="14px"
-        fontWeight={700}
-        justifyContent="flex-start"
-        gap="8px"
-        px="12px"
-        _hover={{ bg: "brand.600" }}
-      >
-        <Icon as={LuArrowRight} boxSize="15px" />
-        {t("Register.flow.kyc.cta")}
-      </Button>
+      <Stack gap="8px">
+        <Button
+          type="button"
+          onClick={finish}
+          loading={kyc.submitting}
+          disabled={!canFinish || kyc.uploading}
+          aria-describedby={canFinish ? undefined : "kyc-required-hint"}
+          w="full"
+          h="55px"
+          rounded="14px"
+          bg="brand.500"
+          color="white"
+          fontSize="14px"
+          fontWeight={700}
+          justifyContent="flex-start"
+          gap="8px"
+          px="12px"
+          _hover={{ bg: "brand.600" }}
+        >
+          <Icon as={LuArrowRight} boxSize="15px" />
+          {t("Register.flow.kyc.cta")}
+        </Button>
+
+        {!canFinish && (
+          <Text
+            id="kyc-required-hint"
+            fontSize="12px"
+            lineHeight="18px"
+            color="fg.muted"
+            textAlign="center"
+          >
+            {t("Register.flow.kyc.requiredHint", {
+              sent: sentRequired,
+              total: requiredDocs.length,
+            })}
+          </Text>
+        )}
+      </Stack>
 
       <input
         ref={inputRef}

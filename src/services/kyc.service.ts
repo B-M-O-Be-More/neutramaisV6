@@ -52,9 +52,14 @@ export interface UploadKycArtifactDto {
   mime_type: KycMimeType;
 }
 
-/** Resposta (201) de `POST /organizations/{org_id}/kyc/artifacts`. */
+/**
+ * Resposta (201) de `POST /organizations/{org_id}/kyc/artifacts`. O id vem
+ * como `artifact_id` no contrato combinado e como `id` no openapi da
+ * identity-api — o front aceita os dois.
+ */
 export interface KycArtifact {
-  artifact_id: string;
+  artifact_id?: string;
+  id?: string;
   document_type: KycDocumentType;
   kyc_level_supported: KycLevelSupported;
   content_hash: string;
@@ -63,7 +68,7 @@ export interface KycArtifact {
 
 /** Corpo de `POST /organizations/{org_id}/kyc/submit`: ids dos artefatos. */
 export interface SubmitKycDto {
-  artifacts: string[];
+  artifact_ids: string[];
 }
 
 /** Resposta (200) de `POST /organizations/{org_id}/kyc/submit`. */
@@ -90,7 +95,7 @@ export const kycService = {
    */
   submit: (orgId: string, artifactIds: string[]) =>
     api.post<KycSubmitResult>(`/organizations/${orgId}/kyc/submit`, {
-      artifacts: artifactIds,
+      artifact_ids: artifactIds,
     } satisfies SubmitKycDto),
 
   /** Estado e nível atuais. Exige sessão. */

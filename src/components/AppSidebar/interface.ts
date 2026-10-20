@@ -1,7 +1,8 @@
 import type { IconType } from "react-icons";
 
-// Papel da organização no marketplace. Cada papel libera um grupo da navegação.
-export type SidebarPersona = "buyer" | "seller";
+// Papel do usuário: buyer/seller (organização no marketplace) ou admin (equipe
+// da plataforma). Cada papel libera um grupo da navegação.
+export type SidebarPersona = "buyer" | "seller" | "admin";
 
 // Cor do contador de um item: segue o papel do grupo, ou alerta (vermelho).
 export type SidebarBadgeTone = "persona" | "danger";
@@ -24,6 +25,10 @@ export interface SidebarNavSection {
 
 export interface SidebarNavGroup {
   persona: SidebarPersona;
+  // Rota do logo e do "início" do grupo (ex.: /dashboard, /admin).
+  homeHref: string;
+  // O grupo admin começa direto nas seções, sem o título do papel.
+  hideHeading?: boolean;
   sections: SidebarNavSection[];
 }
 

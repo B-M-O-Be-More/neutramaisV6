@@ -24,15 +24,13 @@ const ORG_ID = "019ff71b-a3c3-71e0-89af-a613b08f3ddf";
 const CONFIRM_TOKEN = "OhDmalA75QBiUyCdpxPuhtkEgzTCsyyLr4XYBHEdGAA.2580fc67";
 const ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.YWNjZXNz";
 
-const ARTIFACTS = [
-  {
-    document_type: "bank_proof",
-    kyc_level_supported: "verified",
-    s3_reference: "kyc/org/bank_proof/abc",
-    content_hash: "0".repeat(64),
-    mime_type: "application/pdf",
-  },
-];
+// Corpo do submit: só os ids dos artefatos registrados no /kyc/artifacts.
+const BODY = {
+  artifact_ids: [
+    "01a14764-5c75-7054-baa9-9f3a3b5f4530",
+    "01a14764-6bc7-7897-8428-d4de936a0a85",
+  ],
+};
 
 const params = Promise.resolve({ orgId: ORG_ID });
 
@@ -71,28 +69,28 @@ describe("POST /api/organizations/{orgId}/kyc/submit — Authorization de saída
   it("manda o Bearer do token de confirmação quando não há sessão", async () => {
     jar.email_confirm_token = CONFIRM_TOKEN;
 
-    await POST(request({ artifacts: ARTIFACTS }), { params });
+    await POST(request(BODY), { params });
 
     const { url, headers, init } = outgoing();
     expect(url).toBe(
       `https://upstream.test/identity/api/v1/organizations/${ORG_ID}/kyc/submit`,
     );
     expect(headers.Authorization).toBe(`Bearer ${CONFIRM_TOKEN}`);
-    // E o lote sobe inteiro no corpo, no formato de artefato.
-    expect(JSON.parse(init.body as string)).toEqual({ artifacts: ARTIFACTS });
+    // E o corpo segue como veio: a lista de artifact_ids.
+    expect(JSON.parse(init.body as string)).toEqual(BODY);
   });
 
   it("manda o Bearer da sessão quando ela existe", async () => {
     jar.access_token = ACCESS_TOKEN;
     jar.email_confirm_token = CONFIRM_TOKEN;
 
-    await POST(request({ artifacts: ARTIFACTS }), { params });
+    await POST(request(BODY), { params });
 
     expect(outgoing().headers.Authorization).toBe(`Bearer ${ACCESS_TOKEN}`);
   });
 
   it("OMITE o header quando não há sessão nem token de confirmação", async () => {
-    await POST(request({ artifacts: ARTIFACTS }), { params });
+    await POST(request(BODY), { params });
 
     expect(outgoing().headers).not.toHaveProperty("Authorization");
   });
