@@ -536,11 +536,13 @@
           }
         },
         "groups": {
+          "basic": "Basic KYC — company document",
           "verified": "Verified KYC — documents",
           "complete": "Complete KYC — additional documents"
         },
         "sentCount": "{{sent}}/{{total}} sent",
         "docs": {
+          "cnpj_card": "CNPJ card (company registration)",
           "scm_outorga": "SCM license or equivalent",
           "bank_proof": "Bank details (proof)",
           "legal_rep_id": "Legal representative ID",
@@ -563,7 +565,8 @@
         },
         "notice": "You can send the documents now or later under <strong>My Profile / Roles and access</strong>. Basic buyers are auto-approved. Sellers always require manual review within 72 business hours.",
         "cta": "Explore marketplace",
-        "redirecting": "Redirecting to the login page..."
+        "redirecting": "Redirecting to the login page...",
+        "requiredHint": "Send all required documents to continue ({{sent}} of {{total}} sent)."
       }
     },
     "accountType": {
@@ -2321,51 +2324,31 @@
     "openMenu": "Open menu",
     "personas": {
       "buyer": "Buyer",
-      "seller": "Seller"
+      "seller": "Seller",
+      "admin": "Admin · Platform"
     },
     "personaInitials": {
       "buyer": "B",
-      "seller": "S"
+      "seller": "S",
+      "admin": "A"
     },
     "sections": {
       "marketplace": "Marketplace",
-      "purchases": "Purchases",
-      "support": "Support",
       "finance": "Finance",
       "catalog": "Catalog",
-      "sales": "Sales",
       "sellerFinance": "Seller Finance",
-      "performance": "Performance",
-      "settings": "Settings"
+      "onboarding": "Onboarding",
+      "account": "Account",
+      "platform": "Platform"
     },
     "items": {
-      "home": "Home",
       "searchNetwork": "Search Network",
-      "proposals": "Proposals / RFQ",
-      "contracts": "My Contracts",
-      "offers": "Offers",
-      "orders": "Orders",
-      "serviceOrders": "Service Orders",
-      "disputes": "Disputes",
-      "reports": "Reports",
-      "tickets": "Tickets",
+      "myNetworks": "My networks",
       "wallet": "Wallet",
-      "paymentMethods": "Payment Methods",
       "sellerOffers": "My Offers",
-      "sponsoredOffers": "Sponsored Offers",
-      "coverage": "Coverage / KMZ",
-      "receivedOrders": "Received Orders",
-      "receivedRfqs": "Received RFQs",
-      "sellerServiceOrders": "Service Orders",
-      "sellerDisputes": "Seller Disputes",
-      "payouts": "Finance / Payout",
-      "advances": "Advances",
-      "sellerReports": "Seller Reports",
-      "score": "Score & Ranking",
-      "sellerTickets": "Tickets / Support",
-      "crm": "CRM",
-      "team": "Team",
-      "company": "Company / KYC"
+      "profile": "My profile",
+      "kyc": "KYC",
+      "platformInvites": "Operators"
     },
     "user": {
       "menu": "User menu",
@@ -2533,5 +2516,226 @@
     "loading": "Loading your session",
     "error": "We couldn't load your data.",
     "retry": "Try again"
+  },
+  "Admin": {
+    "title": "Admin Panel",
+    "subtitle": "KYC/KYB · users · fee schedule · audit · compliance · 2FA required",
+    "stats": {
+      "activeSellers": "Active sellers",
+      "kycQueue": "KYC queue",
+      "volume30d": "Volume (30d)",
+      "openDisputes": "Open disputes"
+    },
+    "tabs": {
+      "label": "Panel sections",
+      "kyc": "KYC / Compliance",
+      "users": "Users",
+      "feeSchedule": "Fee Schedule",
+      "audit": "Audit"
+    },
+    "kyc": {
+      "slaNotice": "<strong>Review SLA: 72 business hours</strong> after documents are complete. Sellers always require manual review (Compliance + Legal + Super Admin). Basic-level BR buyers are auto-approved. Sanctions block immediately. Up to 3 document correction attempts.",
+      "summary": {
+        "total": {
+          "title": "Total requests",
+          "caption": "all companies"
+        },
+        "pending": {
+          "title": "Total pending",
+          "caption": "awaiting review"
+        },
+        "rejected": {
+          "title": "Denied",
+          "caption": "rejected accounts"
+        }
+      },
+      "loading": "Loading organizations",
+      "errors": {
+        "forbidden": "Your account cannot access the KYC queue. It requires approval permission and MFA confirmed in this session.",
+        "failed": "We could not load the organizations."
+      },
+      "retry": "Try again",
+      "empty": "No requests found.",
+      "loadMore": "Load more ({{loaded}} of {{total}})"
+    },
+    "filters": {
+      "search": "Search organization",
+      "searchPlaceholder": "Organization, tax ID or ID...",
+      "statusLabel": "Status",
+      "status": "Status: {{value}}",
+      "statuses": {
+        "pendente": "Pending",
+        "enviado": "Submitted",
+        "correcao_solicitada": "Correction requested",
+        "aprovado": "Approved",
+        "recusado": "Rejected",
+        "suspenso": "Suspended",
+        "em_revisao": "In review",
+        "revisao_especial": "Special review"
+      },
+      "typeLabel": "Type",
+      "type": "Type: {{value}}",
+      "all": "All",
+      "from": "Registered from",
+      "to": "Registered until",
+      "until": "to"
+    },
+    "organization": {
+      "types": {
+        "seller": "Seller",
+        "buyer": "Buyer"
+      },
+      "level": "Level:",
+      "levels": {
+        "pending": "pending",
+        "basic": "basic",
+        "verified": "verified",
+        "complete": "complete"
+      },
+      "status": {
+        "pendente": "Awaiting documents",
+        "enviado": "Awaiting review",
+        "correcao_solicitada": "Correction requested",
+        "aprovado": "Approved",
+        "recusado": "Rejected",
+        "suspenso": "Suspended",
+        "em_revisao": "In review",
+        "revisao_especial": "Special review"
+      },
+      "actions": {
+        "viewDocuments": "View documents",
+        "startReview": "Start review",
+        "soon": "Coming soon"
+      },
+      "alerts": {
+        "documento_vencido": "Expired doc",
+        "scm_pendente": "SCM pending",
+        "documento_ilegivel": "Illegible doc",
+        "cnpj_inapto": "Tax ID unfit",
+        "sancao": "Possible sanctions list match"
+      },
+      "submittedAt": "Submitted: {{date}}",
+      "registeredAt": "Registered: {{date}}",
+      "documents": "Docs: {{sent}}/{{required}}",
+      "pendingDocuments": "({{count}} pending)"
+    }
+  },
+  "Kyc": {
+    "screens": {
+      "continue": "Go to dashboard",
+      "resubmit": {
+        "title": "Send the requested documents",
+        "subtitle": "The review asked for additional documents. Send them to continue the review."
+      },
+      "rejected": {
+        "title": "Documents rejected",
+        "subtitle": "Review the documents and send them again for a new review."
+      },
+      "review": {
+        "title": "Documents under review",
+        "subtitle": "We received your documents. Manual review takes up to 72 business hours."
+      },
+      "approved": {
+        "title": "Account approved",
+        "subtitle": "Documents approved. Your company can now operate on the marketplace."
+      },
+      "complete": {
+        "title": "KYC complete",
+        "subtitle": "Sanctions and address verified. Your company has the highest verification level."
+      }
+    }
+  },
+  "PlatformInvite": {
+    "title": "Platform operators",
+    "subtitle": "Invite Neutra+ team members to operate the admin panel.",
+    "form": {
+      "title": "Invite operator",
+      "subtitle": "The invitee gets a link by email and sets their name, phone and password."
+    },
+    "fields": {
+      "email": {
+        "label": "Email",
+        "placeholder": "name@neutramais.com"
+      },
+      "role": {
+        "label": "Role",
+        "placeholder": "Select the role"
+      },
+      "displayName": {
+        "label": "Full name",
+        "placeholder": "What should we call you"
+      },
+      "phone": {
+        "label": "Phone",
+        "placeholder": "+55 11 99999-9999",
+        "helper": "With country code, in international format."
+      },
+      "password": {
+        "label": "Password",
+        "placeholder": "Create a password"
+      },
+      "confirmation": {
+        "label": "Confirm password",
+        "placeholder": "Repeat the password"
+      }
+    },
+    "roles": {
+      "support": "Support",
+      "finance": "Finance",
+      "compliance": "Compliance",
+      "legal": "Legal",
+      "operations": "Operations",
+      "sre": "SRE",
+      "super_admin": "Super admin"
+    },
+    "submit": "Send invite",
+    "sent": "Invite sent to {{email}}.",
+    "notice": "Only super admins with MFA confirmed in this session can invite operators. A super admin invite grants full platform access.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "requirements": {
+      "length": "At least {{count}} characters",
+      "uppercase": "One uppercase letter",
+      "number": "One number",
+      "symbol": "One symbol"
+    },
+    "accept": {
+      "title": "Create your operator account",
+      "subtitle": "You were invited to the Neutra+ platform. Fill in your details to activate access.",
+      "submit": "Create account",
+      "success": {
+        "title": "Account created!",
+        "subtitle": "Your operator access is ready. On your first login you will set up the authenticator app (MFA).",
+        "cta": "Go to login"
+      },
+      "error": {
+        "title": "Invalid invite",
+        "subtitle": "This invite has expired or was already used. Ask a super admin for a new one.",
+        "missing": "The link is incomplete. Open the invite email link again."
+      }
+    },
+    "errors": {
+      "emailRequired": "Enter the email",
+      "emailInvalid": "Invalid email",
+      "roleRequired": "Select the role",
+      "nameRequired": "Enter your name",
+      "phoneRequired": "Enter the phone",
+      "phoneInvalid": "Invalid phone. Use the format +55 11 99999-9999.",
+      "passwordRequired": "Enter the password",
+      "passwordTooShort": "The password needs at least 12 characters",
+      "passwordNeedsUppercase": "The password needs an uppercase letter",
+      "passwordNeedsNumber": "The password needs a number",
+      "passwordNeedsSymbol": "The password needs a symbol",
+      "passwordNeedsLowercase": "The password needs a lowercase letter",
+      "passwordPolicy": "The password does not meet the security policy",
+      "passwordMismatch": "Passwords do not match",
+      "passwordConfirmationRequired": "Confirm the password",
+      "fieldInvalid": "Value rejected. Check it and try again.",
+      "forbidden": "Your account cannot invite operators. You must be a super admin with MFA confirmed in this session.",
+      "conflict": "This email already has an account or a pending invite.",
+      "rateLimit": "Too many attempts. Wait a moment and try again.",
+      "invalid": "Data rejected. Check the fields and try again.",
+      "inviteFailed": "We could not send the invite. Please try again."
+    }
   }
 }

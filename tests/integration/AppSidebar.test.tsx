@@ -10,8 +10,15 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/search-network",
 }));
 
+function itemLinks() {
+  return screen
+    .getAllByRole("link")
+    .map((link) => link.textContent)
+    .filter((text) => text?.startsWith("AppSidebar.items."));
+}
+
 describe("AppSidebar", () => {
-  it("mostra só o grupo do papel da organização", () => {
+  it("buyer vê Buscar Rede, Minhas Redes, Carteira e Meu Perfil", () => {
     renderWithProviders(
       <AppSidebar user={{ name: "Maria Azevedo", personas: ["buyer"] }} />,
     );
@@ -20,9 +27,25 @@ describe("AppSidebar", () => {
     expect(
       screen.queryByText("AppSidebar.personas.seller"),
     ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("AppSidebar.items.receivedOrders"),
-    ).not.toBeInTheDocument();
+    expect(itemLinks()).toEqual([
+      "AppSidebar.items.searchNetwork",
+      "AppSidebar.items.myNetworks",
+      "AppSidebar.items.wallet",
+      "AppSidebar.items.profile",
+    ]);
+  });
+
+  it("seller vê Buscar Rede, Minhas Ofertas, Carteira e Meu Perfil", () => {
+    renderWithProviders(
+      <AppSidebar user={{ name: "Maria Azevedo", personas: ["seller"] }} />,
+    );
+
+    expect(itemLinks()).toEqual([
+      "AppSidebar.items.searchNetwork",
+      "AppSidebar.items.sellerOffers",
+      "AppSidebar.items.wallet",
+      "AppSidebar.items.profile",
+    ]);
   });
 
   it("mostra os dois grupos para quem compra e vende", () => {
@@ -47,24 +70,31 @@ describe("AppSidebar", () => {
     expect(active).toHaveAttribute("aria-current", "page");
     expect(active).toHaveAttribute("href", "/search-network");
 
-    const other = screen.getByRole("link", { name: "AppSidebar.items.home" });
+    const other = screen.getByRole("link", {
+      name: "AppSidebar.items.wallet",
+    });
     expect(other).not.toHaveAttribute("aria-current");
   });
 
-  it("exibe contadores só quando há pendências", () => {
+  it("admin vê o KYC (painel) e os Operadores", () => {
     renderWithProviders(
       <AppSidebar
-        user={{ name: "Maria Azevedo", personas: ["buyer"] }}
-        badges={{ proposals: 3, disputes: 0 }}
+        user={{ name: "Maria Azevedo", personas: ["admin"] }}
+        badges={{ kyc: 8 }}
       />,
     );
 
     expect(
-      screen.getByRole("link", { name: "AppSidebar.items.proposals 3" }),
-    ).toBeInTheDocument();
+      screen.getByRole("link", { name: "AppSidebar.items.kyc 8" }),
+    ).toHaveAttribute("href", "/admin");
     expect(
-      screen.getByRole("link", { name: "AppSidebar.items.disputes" }),
-    ).toBeInTheDocument();
+      screen.getByRole("link", { name: "AppSidebar.items.platformInvites" }),
+    ).toHaveAttribute("href", "/admin/platform-invites");
+    expect(itemLinks()).toHaveLength(2);
+    // O grupo admin começa direto nas seções, sem o título do papel.
+    expect(
+      screen.queryByText("AppSidebar.personas.admin"),
+    ).not.toBeInTheDocument();
   });
 
   it("mostra as iniciais e o nome do usuário", () => {

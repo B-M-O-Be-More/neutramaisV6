@@ -16,19 +16,24 @@ export interface KycDocumentItem {
 
 export interface KycDocumentGroup {
   /** Nível que os documentos do grupo comprovam (`kyc_level_supported`). */
-  level: Exclude<KycTargetLevel, "basic">;
+  level: KycTargetLevel;
   documents: KycDocumentItem[];
 }
 
 /**
- * Documentos por nível (Figma 1920-18413). O básico não exige documentos; o
- * verificado exige o primeiro grupo; o completo exige os dois.
+ * Documentos por nível (Figma 1920-18413). O cartão CNPJ é a verificação do
+ * nível básico e vai em qualquer envio; o verificado soma o grupo "KYC
+ * Verificado"; o completo soma também o grupo "KYC Completo".
  *
  * O Figma lista também "Declaração de beneficiários finais" e "Certidão
  * negativa de débitos federais" no completo, mas a identity-api ainda não tem
  * `document_type` para eles — entram aqui quando o backend os aceitar.
  */
 export const KYC_DOCUMENT_GROUPS: KycDocumentGroup[] = [
+  {
+    level: "basic",
+    documents: [{ type: "cnpj_card" }],
+  },
   {
     level: "verified",
     documents: [
@@ -45,11 +50,13 @@ export const KYC_DOCUMENT_GROUPS: KycDocumentGroup[] = [
   },
 ];
 
-/** Grupos exibidos para o nível escolhido. */
+/**
+ * Grupos exibidos para o nível escolhido: os do próprio nível e os dos
+ * níveis abaixo dele (o básico — cartão CNPJ — entra sempre).
+ */
 export function kycGroupsFor(level: KycTargetLevel): KycDocumentGroup[] {
-  if (level === "basic") return [];
-  if (level === "verified") {
-    return KYC_DOCUMENT_GROUPS.filter((group) => group.level === "verified");
-  }
-  return KYC_DOCUMENT_GROUPS;
+  const upTo = KYC_TARGET_LEVELS.indexOf(level);
+  return KYC_DOCUMENT_GROUPS.filter(
+    (group) => KYC_TARGET_LEVELS.indexOf(group.level) <= upTo,
+  );
 }

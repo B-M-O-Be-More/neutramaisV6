@@ -41,6 +41,14 @@ function isActiveRoute(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+// Entre os itens cuja rota casa com a atual, vale o mais específico: em
+// /admin/platform-invites, "/admin" (KYC) também casaria e não deve acender.
+function findActiveHref(pathname: string, hrefs: string[]) {
+  return hrefs
+    .filter((href) => isActiveRoute(pathname, href))
+    .sort((a, b) => b.length - a.length)[0];
+}
+
 /** Linha fina que completa o título até a borda — padrão dos cabeçalhos. */
 function HeadingRule({ color }: { color: string }) {
   return <Box flex="1" minW="1px" h="1px" bg={color} />;
@@ -96,7 +104,8 @@ function NavItem({
 }) {
   const { t } = useTranslation();
   const colors = PERSONA_COLORS[persona];
-  const badgeBg = item.badgeTone === "danger" ? "#EF4444" : colors.accent;
+  const badgeBg =
+    item.badgeTone === "danger" ? "#EF4444" : (colors.badge ?? colors.accent);
 
   return (
     <Flex
@@ -158,13 +167,14 @@ function NavItem({
 function NavSection({
   section,
   persona,
-  pathname,
+  activeHref,
   badges,
   onNavigate,
 }: {
   section: SidebarNavSection;
   persona: SidebarPersona;
-  pathname: string;
+  /** Rota do item ativo (a mais específica que casa com a URL atual). */
+  activeHref?: string;
   badges?: AppSidebarProps["badges"];
   onNavigate?: () => void;
 }) {
@@ -194,7 +204,7 @@ function NavSection({
           key={item.key}
           item={item}
           persona={persona}
-          isActive={isActiveRoute(pathname, item.href)}
+          isActive={item.href === activeHref}
           count={badges?.[item.key]}
           onNavigate={onNavigate}
         />
@@ -315,6 +325,16 @@ export function AppSidebar({ user, badges, onNavigate }: AppSidebarProps) {
   const groups = SIDEBAR_NAVIGATION.filter((group) =>
     user.personas.includes(group.persona),
   );
+  // O logo leva ao início do primeiro grupo (o admin tem o próprio painel).
+  const homeHref = groups[0]?.homeHref ?? "/dashboard";
+  const activeHref = findActiveHref(
+    pathname,
+    groups.flatMap((group) =>
+      group.sections.flatMap((section) =>
+        section.items.map((item) => item.href),
+      ),
+    ),
+  );
 
   return (
     <Flex
@@ -338,7 +358,7 @@ export function AppSidebar({ user, badges, onNavigate }: AppSidebarProps) {
         flexShrink={0}
       >
         <Flex w="140px" h="30px" align="center">
-          <NextLink href="/dashboard" onClick={onNavigate}>
+          <NextLink href={homeHref} onClick={onNavigate}>
             <Image
               src="/assets/logo-wordmark-dark.svg"
               alt={t("AppSidebar.logoAlt")}
@@ -365,13 +385,15 @@ export function AppSidebar({ user, badges, onNavigate }: AppSidebarProps) {
       >
         {groups.map((group, index) => (
           <Box key={group.persona}>
-            <PersonaHeading persona={group.persona} isFirst={index === 0} />
+            {!group.hideHeading && (
+              <PersonaHeading persona={group.persona} isFirst={index === 0} />
+            )}
             {group.sections.map((section) => (
               <NavSection
                 key={section.key}
                 section={section}
                 persona={group.persona}
-                pathname={pathname}
+                activeHref={activeHref}
                 badges={badges}
                 onNavigate={onNavigate}
               />

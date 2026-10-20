@@ -15,6 +15,12 @@ vi.mock("next/navigation", () => ({
 
 const PROFILE: MeProfile = {
   id: "11111111-1111-4111-8111-111111111111",
+  organization: {
+    id: "22222222-2222-4222-8222-222222222222",
+    status: "active",
+    kyc_level: "basic",
+    kyc_state: "basic",
+  },
   organization_id: "22222222-2222-4222-8222-222222222222",
   display_name: "Usuário Exemplo",
   email: "usuario@example.com",

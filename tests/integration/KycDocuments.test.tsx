@@ -7,8 +7,10 @@ import { fireEvent, renderWithProviders, screen, waitFor } from "../test-utils";
 
 const ORG_ID = "018f4c2a-b7d2-7a19-8c43-6e0a9f2b5c71";
 
-// Documentos obrigatórios do nível completo (verificado + completo).
+// Documentos obrigatórios do nível completo (básico + verificado + completo).
+// Os 5 primeiros são os do nível verificado.
 const REQUIRED = [
+  "cnpj_card",
   "bank_proof",
   "legal_rep_id",
   "articles_of_incorporation",
@@ -63,16 +65,20 @@ describe("KycDocuments", () => {
     ).toBeInTheDocument();
   });
 
-  it("no nível básico não pede documentos", () => {
+  it("o nível básico é só informativo: não dá para escolhê-lo", () => {
     renderWithProviders(
       <KycDocuments organizationId={ORG_ID} onFinish={vi.fn()} />,
     );
 
-    fireEvent.click(screen.getByText("Register.flow.kyc.levels.basic.title"));
+    const basic = screen
+      .getByText("Register.flow.kyc.levels.basic.title")
+      .closest("button") as HTMLButtonElement;
+    expect(basic).toBeDisabled();
 
+    fireEvent.click(basic);
     expect(
-      screen.queryByText("Register.flow.kyc.groups.verified"),
-    ).not.toBeInTheDocument();
+      screen.getByText("Register.flow.kyc.groups.verified"),
+    ).toBeInTheDocument();
   });
 
   it("registra cada arquivo em /kyc/artifacts com hash e nome do arquivo", async () => {
@@ -92,6 +98,28 @@ describe("KycDocuments", () => {
       mime_type: "application/pdf",
     });
     expect(await screen.findByText("faturamento.pdf")).toBeInTheDocument();
+  });
+
+  it("pede o cartão CNPJ e o registra como verificação do nível básico", async () => {
+    const upload = mockUpload();
+    renderWithProviders(
+      <KycDocuments organizationId={ORG_ID} onFinish={vi.fn()} />,
+    );
+
+    expect(
+      screen.getByText("Register.flow.kyc.groups.basic"),
+    ).toBeInTheDocument();
+
+    sendDocument("cnpj_card", pdf("cartao-cnpj.pdf"));
+
+    await waitFor(() => expect(upload).toHaveBeenCalledTimes(1));
+    expect(upload).toHaveBeenCalledWith(
+      ORG_ID,
+      expect.objectContaining({
+        document_type: "cnpj_card",
+        kyc_level_supported: "basic",
+      }),
+    );
   });
 
   it("recusa formatos fora da whitelist sem chamar a API", async () => {
@@ -138,6 +166,7 @@ describe("KycDocuments", () => {
       "artifact-4",
       "artifact-5",
       "artifact-6",
+      "artifact-7",
     ]);
   });
 
@@ -156,7 +185,7 @@ describe("KycDocuments", () => {
     fireEvent.click(
       screen.getByText("Register.flow.kyc.levels.verified.title"),
     );
-    for (const type of REQUIRED.slice(0, 4)) {
+    for (const type of REQUIRED.slice(0, 5)) {
       sendDocument(type, pdf(`${type}.pdf`));
       expect(await screen.findByText(`${type}.pdf`)).toBeInTheDocument();
     }
@@ -167,13 +196,72 @@ describe("KycDocuments", () => {
 
     await waitFor(() => expect(submit).toHaveBeenCalledTimes(1));
     const ids = submit.mock.calls[0][1];
-    expect(ids).toHaveLength(4);
-    expect(ids).toContain("artifact-5");
-    expect(ids).not.toContain("artifact-1");
+    expect(ids).toHaveLength(5);
+    expect(ids).toContain("artifact-6");
+    expect(ids).not.toContain("artifact-2");
   });
 
-  it("com só parte dos documentos, submete os artifact_id já registrados", async () => {
+  it("com só parte dos obrigatórios, não deixa avançar", async () => {
     mockUpload();
+    const submit = vi.spyOn(kycService, "submit");
+    const onFinish = vi.fn();
+    renderWithProviders(
+      <KycDocuments organizationId={ORG_ID} onFinish={onFinish} />,
+    );
+
+    sendDocument("bank_proof", pdf("extrato.pdf"));
+    expect(await screen.findByText("extrato.pdf")).toBeInTheDocument();
+
+    const cta = screen
+      .getByText("Register.flow.kyc.cta")
+      .closest("button") as HTMLButtonElement;
+    expect(cta).toBeDisabled();
+    expect(
+      screen.getByText("Register.flow.kyc.requiredHint"),
+    ).toBeInTheDocument();
+
+    fireEvent.click(cta);
+    expect(submit).not.toHaveBeenCalled();
+    expect(onFinish).not.toHaveBeenCalled();
+  });
+
+  it("opcionais não são exigidos para avançar", async () => {
+    mockUpload();
+    vi.spyOn(kycService, "submit").mockResolvedValue({
+      organization_id: ORG_ID,
+      kyc_state: "under_review",
+      submitted_at: "2026-08-06T14:32:10Z",
+    });
+    const onFinish = vi.fn();
+    renderWithProviders(
+      <KycDocuments organizationId={ORG_ID} onFinish={onFinish} />,
+    );
+
+    // Verificado: 4 obrigatórios; a licença SCM é opcional e fica de fora.
+    fireEvent.click(
+      screen.getByText("Register.flow.kyc.levels.verified.title"),
+    );
+    for (const type of REQUIRED.slice(0, 5)) {
+      sendDocument(type, pdf(`${type}.pdf`));
+      expect(await screen.findByText(`${type}.pdf`)).toBeInTheDocument();
+    }
+
+    fireEvent.click(screen.getByText("Register.flow.kyc.cta"));
+
+    await waitFor(() => expect(onFinish).toHaveBeenCalledTimes(1));
+  });
+
+  it("aceita o id no campo `id` (formato do openapi) e submete", async () => {
+    let next = 0;
+    vi.spyOn(kycService, "uploadArtifact").mockImplementation(
+      async (_orgId, data) => ({
+        id: `id-${++next}`,
+        document_type: data.document_type,
+        kyc_level_supported: data.kyc_level_supported,
+        content_hash: "",
+        created_at: "2026-08-06T14:32:10Z",
+      }),
+    );
     const submit = vi.spyOn(kycService, "submit").mockResolvedValue({
       organization_id: ORG_ID,
       kyc_state: "under_review",
@@ -184,25 +272,58 @@ describe("KycDocuments", () => {
       <KycDocuments organizationId={ORG_ID} onFinish={onFinish} />,
     );
 
-    sendDocument("bank_proof", pdf("extrato.pdf"));
-    expect(await screen.findByText("extrato.pdf")).toBeInTheDocument();
-
+    fireEvent.click(
+      screen.getByText("Register.flow.kyc.levels.verified.title"),
+    );
+    for (const type of REQUIRED.slice(0, 5)) {
+      sendDocument(type, pdf(`${type}.pdf`));
+      expect(await screen.findByText(`${type}.pdf`)).toBeInTheDocument();
+    }
     fireEvent.click(screen.getByText("Register.flow.kyc.cta"));
 
     await waitFor(() => expect(onFinish).toHaveBeenCalledTimes(1));
-    expect(submit).toHaveBeenCalledWith(ORG_ID, ["artifact-1"]);
+    expect(submit).toHaveBeenCalledWith(ORG_ID, [
+      "id-1",
+      "id-2",
+      "id-3",
+      "id-4",
+      "id-5",
+    ]);
   });
 
-  it("sem nenhum documento enviado, encerra sem submeter", async () => {
+  it("resposta sem id conta como falha do envio", async () => {
+    vi.spyOn(kycService, "uploadArtifact").mockResolvedValue({
+      document_type: "bank_proof",
+      kyc_level_supported: "verified",
+      content_hash: "",
+      created_at: "2026-08-06T14:32:10Z",
+    });
+    renderWithProviders(
+      <KycDocuments organizationId={ORG_ID} onFinish={vi.fn()} />,
+    );
+
+    sendDocument("bank_proof", pdf("extrato.pdf"));
+
+    expect(
+      await screen.findByText("Register.flow.kyc.errors.upload"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("extrato.pdf")).not.toBeInTheDocument();
+  });
+
+  it("sem nenhum documento enviado, o botão fica desabilitado", () => {
     const submit = vi.spyOn(kycService, "submit");
     const onFinish = vi.fn();
     renderWithProviders(
       <KycDocuments organizationId={ORG_ID} onFinish={onFinish} />,
     );
 
-    fireEvent.click(screen.getByText("Register.flow.kyc.cta"));
+    const cta = screen
+      .getByText("Register.flow.kyc.cta")
+      .closest("button") as HTMLButtonElement;
+    expect(cta).toBeDisabled();
 
-    await waitFor(() => expect(onFinish).toHaveBeenCalledTimes(1));
+    fireEvent.click(cta);
     expect(submit).not.toHaveBeenCalled();
+    expect(onFinish).not.toHaveBeenCalled();
   });
 });

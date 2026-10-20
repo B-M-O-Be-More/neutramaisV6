@@ -1,9 +1,16 @@
+/**
+ * Cenário que abre a tela — muda só o cabeçalho:
+ * - `submit`   — primeiro envio ("Conta criada!")
+ * - `resubmit` — o admin pediu mais documentos
+ * - `rejected` — a documentação foi recusada; pode reenviar
+ */
+export type KycDocumentsVariant = "submit" | "resubmit" | "rejected";
+
 export interface KycDocumentsProps {
-  /**
-   * Id da organização devolvido pelo `POST /organizations/register`. Sem ele
-   * não há como registrar documentos — a tela ainda permite seguir sem enviar.
-   */
+  /** Id da organização (`organization.id` do `/me`). */
   organizationId?: string;
-  /** Encerra o cadastro — quem decide para onde ir é o formulário. */
+  /** Padrão: `submit`. */
+  variant?: KycDocumentsVariant;
+  /** Encerra a tela — quem decide para onde ir é a página. */
   onFinish: () => void;
 }

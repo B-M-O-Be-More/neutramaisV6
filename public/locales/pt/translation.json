@@ -536,11 +536,13 @@
           }
         },
         "groups": {
+          "basic": "KYC Básico — documento da empresa",
           "verified": "KYC Verificado — documentos",
           "complete": "KYC Completo — documentos adicionais"
         },
         "sentCount": "{{sent}}/{{total}} enviados",
         "docs": {
+          "cnpj_card": "Cartão CNPJ",
           "scm_outorga": "Licença SCM ou equivalente",
           "bank_proof": "Dados bancários (comprovante)",
           "legal_rep_id": "CPF do responsável legal",
@@ -563,7 +565,8 @@
         },
         "notice": "Você pode enviar os documentos agora ou depois em <strong>Meu Perfil / Papeis e acessos</strong>.  Compradores básicos têm autoaprovação. Sellers sempre exigem revisão manual em até 72h úteis.",
         "cta": "Explorar marketplace",
-        "redirecting": "Redirecionando para a página de login..."
+        "redirecting": "Redirecionando para a página de login...",
+        "requiredHint": "Envie todos os documentos obrigatórios para continuar ({{sent}} de {{total}} enviados)."
       }
     },
     "accountType": {
@@ -2300,51 +2303,31 @@
     "openMenu": "Abrir menu",
     "personas": {
       "buyer": "Buyer · Comprador",
-      "seller": "Seller · Vendedor"
+      "seller": "Seller · Vendedor",
+      "admin": "Admin · Plataforma"
     },
     "personaInitials": {
       "buyer": "B",
-      "seller": "S"
+      "seller": "S",
+      "admin": "A"
     },
     "sections": {
       "marketplace": "Marketplace",
-      "purchases": "Compras",
-      "support": "Suporte",
       "finance": "Financeiro",
       "catalog": "Catálogo",
-      "sales": "Vendas",
       "sellerFinance": "Financeiro Seller",
-      "performance": "Performance",
-      "settings": "Configurações"
+      "onboarding": "Onboarding",
+      "account": "Conta",
+      "platform": "Plataforma"
     },
     "items": {
-      "home": "Início",
       "searchNetwork": "Buscar Rede",
-      "proposals": "Propostas / RFQ",
-      "contracts": "Meus Contratos",
-      "offers": "Ofertas",
-      "orders": "Pedidos",
-      "serviceOrders": "Ordem de Serviço",
-      "disputes": "Disputas",
-      "reports": "Relatórios",
-      "tickets": "Tickets",
+      "myNetworks": "Minhas Redes",
       "wallet": "Carteira",
-      "paymentMethods": "Métodos de Pagto.",
       "sellerOffers": "Minhas Ofertas",
-      "sponsoredOffers": "Ofertas Patrocinadas",
-      "coverage": "Cobertura / KMZ",
-      "receivedOrders": "Pedidos Recebidos",
-      "receivedRfqs": "RFQ Recebidas",
-      "sellerServiceOrders": "Ordens de Serviço",
-      "sellerDisputes": "Disputas Seller",
-      "payouts": "Financeiro / Payout",
-      "advances": "Antecipação",
-      "sellerReports": "Relatórios Seller",
-      "score": "Score e Ranking",
-      "sellerTickets": "Tickets / Suporte",
-      "crm": "CRM",
-      "team": "Equipe",
-      "company": "Empresa / KYC"
+      "profile": "Meu Perfil",
+      "kyc": "KYC",
+      "platformInvites": "Operadores"
     },
     "user": {
       "menu": "Menu do usuário",
@@ -2512,5 +2495,226 @@
     "loading": "Carregando sua sessão",
     "error": "Não foi possível carregar seus dados.",
     "retry": "Tentar novamente"
+  },
+  "Admin": {
+    "title": "Painel Administrativo",
+    "subtitle": "KYC/KYB · usuários · fee schedule · auditoria · compliance · 2FA obrigatório",
+    "stats": {
+      "activeSellers": "Sellers ativos",
+      "kycQueue": "KYC em fila",
+      "volume30d": "Volume (30d)",
+      "openDisputes": "Disputas abertas"
+    },
+    "tabs": {
+      "label": "Seções do painel",
+      "kyc": "KYC / Compliance",
+      "users": "Usuários",
+      "feeSchedule": "Fee Schedule",
+      "audit": "Auditoria"
+    },
+    "kyc": {
+      "slaNotice": "<strong>SLA de revisão: 72h úteis</strong> após documentos completos. Sellers sempre exigem revisão manual (Compliance + Jurídico + Super Admin). Buyers BR nível básico têm autoaprovação. Sanções bloqueiam imediatamente. Máximo 3 tentativas de correção documental.",
+      "summary": {
+        "total": {
+          "title": "Total de solicitações",
+          "caption": "todas as empresas"
+        },
+        "pending": {
+          "title": "Total de pendentes",
+          "caption": "aguardando revisão"
+        },
+        "rejected": {
+          "title": "Negados",
+          "caption": "contas recusadas"
+        }
+      },
+      "loading": "Carregando organizações",
+      "errors": {
+        "forbidden": "Sua conta não tem acesso à fila de KYC. É preciso permissão de aprovação e MFA confirmado na sessão.",
+        "failed": "Não foi possível carregar as organizações."
+      },
+      "retry": "Tentar de novo",
+      "empty": "Nenhuma solicitação encontrada.",
+      "loadMore": "Carregar mais ({{loaded}} de {{total}})"
+    },
+    "filters": {
+      "search": "Buscar organização",
+      "searchPlaceholder": "Organização, CNPJ ou ID...",
+      "statusLabel": "Status",
+      "status": "Status: {{value}}",
+      "statuses": {
+        "pendente": "Pendentes",
+        "enviado": "Enviados",
+        "correcao_solicitada": "Correção solicitada",
+        "aprovado": "Aprovados",
+        "recusado": "Recusados",
+        "suspenso": "Suspensos",
+        "em_revisao": "Em revisão",
+        "revisao_especial": "Revisão especial"
+      },
+      "typeLabel": "Tipo",
+      "type": "Tipo: {{value}}",
+      "all": "Todos",
+      "from": "Cadastradas a partir de",
+      "to": "Cadastradas até",
+      "until": "até"
+    },
+    "organization": {
+      "types": {
+        "seller": "Seller",
+        "buyer": "Buyer"
+      },
+      "level": "Nível:",
+      "levels": {
+        "pending": "pendente",
+        "basic": "básico",
+        "verified": "verificado",
+        "complete": "completo"
+      },
+      "status": {
+        "pendente": "Aguardando envio",
+        "enviado": "Aguardando revisão",
+        "correcao_solicitada": "Correção solicitada",
+        "aprovado": "Aprovado",
+        "recusado": "Reprovado",
+        "suspenso": "Suspenso",
+        "em_revisao": "Em revisão",
+        "revisao_especial": "Revisão especial"
+      },
+      "actions": {
+        "viewDocuments": "Ver documentos",
+        "startReview": "Iniciar Revisão",
+        "soon": "Disponível em breve"
+      },
+      "alerts": {
+        "documento_vencido": "Doc vencida",
+        "scm_pendente": "SCM pendente",
+        "documento_ilegivel": "Doc ilegível",
+        "cnpj_inapto": "CNPJ inapto",
+        "sancao": "Possível match em lista de sanções"
+      },
+      "submittedAt": "Submetido: {{date}}",
+      "registeredAt": "Cadastro: {{date}}",
+      "documents": "Docs: {{sent}}/{{required}}",
+      "pendingDocuments": "({{count}} pend.)"
+    }
+  },
+  "Kyc": {
+    "screens": {
+      "continue": "Ir para o dashboard",
+      "resubmit": {
+        "title": "Envie os documentos solicitados",
+        "subtitle": "A análise pediu documentos adicionais. Reenvie para continuar a revisão."
+      },
+      "rejected": {
+        "title": "Documentação recusada",
+        "subtitle": "Revise os documentos e envie novamente para uma nova análise."
+      },
+      "review": {
+        "title": "Documentação em análise",
+        "subtitle": "Recebemos seus documentos. A revisão manual leva até 72h úteis."
+      },
+      "approved": {
+        "title": "Conta aprovada",
+        "subtitle": "Documentação aprovada. Sua empresa está liberada para operar no marketplace."
+      },
+      "complete": {
+        "title": "KYC completo",
+        "subtitle": "Sanções e endereço verificados. Sua empresa está no nível máximo de verificação."
+      }
+    }
+  },
+  "PlatformInvite": {
+    "title": "Operadores da plataforma",
+    "subtitle": "Convide pessoas da equipe Neutra+ para operar o painel administrativo.",
+    "form": {
+      "title": "Convidar operador",
+      "subtitle": "O convidado recebe um link por e-mail e define nome, telefone e senha."
+    },
+    "fields": {
+      "email": {
+        "label": "E-mail",
+        "placeholder": "nome@neutramais.com"
+      },
+      "role": {
+        "label": "Papel",
+        "placeholder": "Selecione o papel"
+      },
+      "displayName": {
+        "label": "Nome completo",
+        "placeholder": "Como devemos te chamar"
+      },
+      "phone": {
+        "label": "Telefone",
+        "placeholder": "+55 11 99999-9999",
+        "helper": "Com DDI, no formato internacional."
+      },
+      "password": {
+        "label": "Senha",
+        "placeholder": "Crie uma senha"
+      },
+      "confirmation": {
+        "label": "Confirmar senha",
+        "placeholder": "Repita a senha"
+      }
+    },
+    "roles": {
+      "support": "Suporte",
+      "finance": "Financeiro",
+      "compliance": "Compliance",
+      "legal": "Jurídico",
+      "operations": "Operações",
+      "sre": "SRE",
+      "super_admin": "Super admin"
+    },
+    "submit": "Enviar convite",
+    "sent": "Convite enviado para {{email}}.",
+    "notice": "Só super admins com MFA confirmado na sessão podem convidar operadores. O convite de super admin dá acesso total à plataforma.",
+    "showPassword": "Mostrar senha",
+    "hidePassword": "Ocultar senha",
+    "requirements": {
+      "length": "Mínimo de {{count}} caracteres",
+      "uppercase": "Uma letra maiúscula",
+      "number": "Um número",
+      "symbol": "Um símbolo"
+    },
+    "accept": {
+      "title": "Crie sua conta de operador",
+      "subtitle": "Você foi convidado para a plataforma Neutra+. Complete seus dados para ativar o acesso.",
+      "submit": "Criar conta",
+      "success": {
+        "title": "Conta criada!",
+        "subtitle": "Seu acesso de operador está pronto. No primeiro login você vai configurar o app autenticador (MFA).",
+        "cta": "Ir para o login"
+      },
+      "error": {
+        "title": "Convite inválido",
+        "subtitle": "Este convite expirou ou já foi usado. Peça um novo convite a um super admin.",
+        "missing": "O link está incompleto. Abra novamente o link do e-mail de convite."
+      }
+    },
+    "errors": {
+      "emailRequired": "Informe o e-mail",
+      "emailInvalid": "E-mail inválido",
+      "roleRequired": "Selecione o papel",
+      "nameRequired": "Informe seu nome",
+      "phoneRequired": "Informe o telefone",
+      "phoneInvalid": "Telefone inválido. Use o formato +55 11 99999-9999.",
+      "passwordRequired": "Informe a senha",
+      "passwordTooShort": "A senha precisa de pelo menos 12 caracteres",
+      "passwordNeedsUppercase": "A senha precisa de uma letra maiúscula",
+      "passwordNeedsNumber": "A senha precisa de um número",
+      "passwordNeedsSymbol": "A senha precisa de um símbolo",
+      "passwordNeedsLowercase": "A senha precisa de uma letra minúscula",
+      "passwordPolicy": "A senha não atende à política de segurança",
+      "passwordMismatch": "As senhas não conferem",
+      "passwordConfirmationRequired": "Confirme a senha",
+      "fieldInvalid": "Valor recusado. Confira e tente de novo.",
+      "forbidden": "Sua conta não pode convidar operadores. É preciso ser super admin com MFA confirmado na sessão.",
+      "conflict": "Este e-mail já tem uma conta ou um convite pendente.",
+      "rateLimit": "Muitas tentativas. Aguarde um pouco e tente de novo.",
+      "invalid": "Dados recusados. Confira os campos e tente de novo.",
+      "inviteFailed": "Não foi possível enviar o convite. Tente de novo."
+    }
   }
 }

@@ -2,7 +2,9 @@
 // Segue o padrão do SDD §12.2: funções por operação, sem React nem tratamento
 // de erro (propaga AppError tipado). O browser fala com o BFF (`/api/*`).
 
+import type { OrganizationStatus } from "./admin.service";
 import { api } from "./api.client";
+import type { KycLevelSupported, KycState } from "./kyc.service";
 
 export interface ConfirmEmailParams {
   /** Token de confirmação recebido no link do e-mail. */
@@ -147,9 +149,22 @@ export interface LoginResponse {
   expires_in?: number;
 }
 
+/**
+ * Organização do usuário em `GET /me`, lida do banco a cada chamada (não do
+ * token): uma aprovação do admin aparece sem novo login.
+ */
+export interface MeOrganization {
+  id: string;
+  status: OrganizationStatus;
+  kyc_level: KycLevelSupported;
+  kyc_state: KycState;
+}
+
 /** Perfil do usuário autenticado — `GET /me`. */
 export interface MeProfile {
   id: string;
+  organization: MeOrganization;
+  /** @deprecated Use `organization.id` — alias mantido pela API. */
   organization_id: string;
   display_name: string;
   email: string;

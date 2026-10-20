@@ -2,9 +2,12 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useLogin } from "@/hooks/useLogin";
-import { authService, type MeProfile } from "@/services/auth.service";
+import {
+  authService,
+  type MeOrganization,
+  type MeProfile,
+} from "@/services/auth.service";
 import { NetworkError } from "@/services/errors";
-import { kycService, type KycState } from "@/services/kyc.service";
 
 const router = vi.hoisted(() => ({
   push: vi.fn(),
@@ -31,10 +34,6 @@ vi.mock("@/services/auth.service", () => ({
   },
 }));
 
-vi.mock("@/services/kyc.service", () => ({
-  kycService: { getStatus: vi.fn() },
-}));
-
 const ORG_ID = "018f4c2a-b7d2-7a19-8c43-6e0a9f2b5c71";
 
 const CREDENTIALS = {
@@ -43,11 +42,14 @@ const CREDENTIALS = {
   rememberMe: false,
 };
 
-function kycState(state: KycState) {
-  vi.mocked(kycService.getStatus).mockResolvedValueOnce({
-    kyc_state: state,
-    kyc_level: "basic",
-  });
+function meWith(
+  organization: Omit<MeOrganization, "id">,
+  roles: string[] = ["seller_owner"],
+) {
+  vi.mocked(authService.me).mockResolvedValueOnce({
+    roles,
+    organization: { id: ORG_ID, ...organization },
+  } as MeProfile);
 }
 
 describe("useLogin · destino depois do login", () => {
@@ -56,40 +58,72 @@ describe("useLogin · destino depois do login", () => {
       mfa_required: false,
     });
     vi.mocked(authService.mfaVerify).mockReset().mockResolvedValue(null);
-    vi.mocked(authService.me)
-      .mockReset()
-      .mockResolvedValue({ organization_id: ORG_ID } as MeProfile);
-    vi.mocked(kycService.getStatus).mockReset();
+    vi.mocked(authService.me).mockReset();
     router.push.mockReset();
   });
 
-  it.each<KycState>(["pending", "basic", "pending_documents"])(
-    "leva para o KYC quando a organização ainda deve documentos (%s)",
-    async (state) => {
-      kycState(state);
+  // Cenários do Seller lidos de `organization` no /me.
+  it.each<[string, Omit<MeOrganization, "id">]>([
+    [
+      "ainda não enviou documentos",
+      { status: "pending", kyc_state: "pending", kyc_level: "pending" },
+    ],
+    [
+      "em análise",
+      { status: "pending", kyc_state: "basic", kyc_level: "basic" },
+    ],
+    [
+      "admin pediu mais documentos",
+      { status: "pending", kyc_state: "pending_documents", kyc_level: "basic" },
+    ],
+    [
+      "recusada",
+      { status: "pending", kyc_state: "rejected", kyc_level: "basic" },
+    ],
+  ])("leva para o KYC quando %s", async (_, organization) => {
+    meWith(organization);
+    const { result } = renderHook(() => useLogin());
+
+    await act(() => result.current.submitCredentials(CREDENTIALS));
+
+    expect(router.push).toHaveBeenCalledWith("/kyc");
+  });
+
+  it.each<[string, Omit<MeOrganization, "id">]>([
+    [
+      "aprovada",
+      { status: "active", kyc_state: "verified", kyc_level: "verified" },
+    ],
+    [
+      "com KYC completo",
+      { status: "active", kyc_state: "complete", kyc_level: "complete" },
+    ],
+  ])("vai para o dashboard quando a organização está %s", async (_, org) => {
+    meWith(org);
+    const { result } = renderHook(() => useLogin());
+
+    await act(() => result.current.submitCredentials(CREDENTIALS));
+
+    expect(router.push).toHaveBeenCalledWith("/dashboard");
+  });
+
+  it.each(["admin_neutra", "super_admin"])(
+    "leva o %s ao painel administrativo, mesmo com KYC pendente",
+    async (role) => {
+      meWith(
+        { status: "pending", kyc_state: "pending", kyc_level: "pending" },
+        [role],
+      );
       const { result } = renderHook(() => useLogin());
 
       await act(() => result.current.submitCredentials(CREDENTIALS));
 
-      expect(kycService.getStatus).toHaveBeenCalledWith(ORG_ID);
-      expect(router.push).toHaveBeenCalledWith("/kyc");
+      expect(router.push).toHaveBeenCalledWith("/admin");
     },
   );
 
-  it.each<KycState>(["under_review", "verified", "complete"])(
-    "vai para o dashboard quando não há documento a enviar (%s)",
-    async (state) => {
-      kycState(state);
-      const { result } = renderHook(() => useLogin());
-
-      await act(() => result.current.submitCredentials(CREDENTIALS));
-
-      expect(router.push).toHaveBeenCalledWith("/dashboard");
-    },
-  );
-
-  it("vai para o dashboard se a consulta do KYC falhar", async () => {
-    vi.mocked(kycService.getStatus).mockRejectedValueOnce(
+  it("vai para o dashboard se o /me falhar", async () => {
+    vi.mocked(authService.me).mockRejectedValueOnce(
       new NetworkError("offline"),
     );
     const { result } = renderHook(() => useLogin());
@@ -105,7 +139,7 @@ describe("useLogin · destino depois do login", () => {
       mfa_required: true,
       mfa_challenge_token: "challenge",
     });
-    kycState("pending");
+    meWith({ status: "pending", kyc_state: "pending", kyc_level: "pending" });
     const { result } = renderHook(() => useLogin());
 
     await act(() => result.current.submitCredentials(CREDENTIALS));
