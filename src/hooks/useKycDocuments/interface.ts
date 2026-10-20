@@ -6,14 +6,14 @@ import type {
 /**
  * Estado de um documento na etapa de KYC do cadastro:
  * - `idle`      — nada enviado ainda
- * - `uploading` — hash + `POST /kyc/artifacts` em voo
+ * - `uploading` — autorização, upload ou confirmação em voo
  * - `sent`      — artefato registrado; `artifactId` preenchido
  */
 export type KycDocumentStatus = "idle" | "uploading" | "sent";
 
 export interface KycDocumentState {
   status: KycDocumentStatus;
-  /** `artifact_id` devolvido pelo `/kyc/artifacts`. */
+  /** Id do artefato confirmado pelo servidor. */
   artifactId?: string;
   fileName?: string;
   /** Chave de tradução do último erro deste documento, ou undefined. */
@@ -29,7 +29,7 @@ export interface UseKycDocumentsResult {
   uploading: boolean;
   /** `/kyc/submit` em voo. */
   submitting: boolean;
-  /** Valida, calcula o hash e registra o arquivo como artefato. */
+  /** Valida, envia os bytes e confirma o artefato. */
   upload: (
     documentType: KycDocumentType,
     level: KycLevelSupported,
