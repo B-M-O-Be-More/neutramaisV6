@@ -517,14 +517,13 @@
         "heading": "Próximos pasos",
         "created": {
           "title": "¡Cuenta creada!",
-          "subtitle": "Autoaprobación en el nivel básico. Envía documentos para desbloquear compras."
+          "subtitle": "Envía los documentos del nivel deseado. Toda solicitud pasa por revisión manual en hasta 72h hábiles."
         },
         "levelQuestion": "¿Qué nivel deseas alcanzar ahora?",
         "levels": {
           "basic": {
             "title": "Básico",
-            "description": "Ya activo — visualización de la plataforma",
-            "current": "ACTUAL"
+            "description": "Activa compradores\n· visualización"
           },
           "verified": {
             "title": "Verificado",
@@ -533,10 +532,11 @@
           "complete": {
             "title": "Completo",
             "description": "Retirar wallet · volúmenes altos"
-          }
+          },
+          "current": "ACTUAL"
         },
         "groups": {
-          "basic": "KYC Básico — documento de la empresa",
+          "basic": "KYC Básico — documentos de la empresa",
           "verified": "KYC Verificado — documentos",
           "complete": "KYC Completo — documentos adicionales"
         },
@@ -551,7 +551,9 @@
           "revenue_proof": "Comprobante de facturación (12 meses)",
           "representative_selfie": "Selfie del representante legal con documento"
         },
-        "optional": "Opcional",
+        "oneOf": {
+          "incorporation": "Basta uno: contrato social o licencia SCM"
+        },
         "sending": "Enviando...",
         "actions": {
           "upload": "Enviar",
@@ -559,11 +561,13 @@
         },
         "errors": {
           "mimeType": "Formato no aceptado. Envía PDF, JPG o PNG.",
+          "fileSize": "Archivo de más de 10 MB. Reduce el tamaño y envíalo de nuevo.",
           "upload": "No pudimos enviar el documento. Inténtalo de nuevo.",
           "submit": "No pudimos enviar la documentación para análisis. Inténtalo de nuevo.",
           "missingOrganization": "No encontramos el registro de la empresa en este navegador. Envía los documentos después, en Mi Perfil."
         },
-        "notice": "Puedes enviar los documentos ahora o después en <strong>Mi Perfil / Roles y accesos</strong>. Los compradores básicos tienen autoaprobación. Los sellers siempre exigen revisión manual en hasta 72h hábiles.",
+        "notice": "Puedes enviar los documentos ahora o después en <strong>Mi Perfil / Roles y accesos</strong>. Toda solicitud pasa por revisión manual en hasta 72h hábiles. Los sellers solo se activan a partir del nivel Verificado.",
+        "fullSetNotice": "Envía el conjunto completo del nivel, incluso los documentos ya enviados antes: la revisión considera solo lo que envíes ahora.",
         "cta": "Explorar marketplace",
         "redirecting": "Redirigiendo a la página de inicio de sesión...",
         "requiredHint": "Envía todos los documentos obligatorios para continuar ({{sent}} de {{total}} enviados)."
@@ -2522,7 +2526,7 @@
       "audit": "Auditoría"
     },
     "kyc": {
-      "slaNotice": "<strong>SLA de revisión: 72h hábiles</strong> tras los documentos completos. Los sellers siempre exigen revisión manual (Compliance + Jurídico + Super Admin). Los buyers BR de nivel básico tienen autoaprobación. Las sanciones bloquean de inmediato. Máximo 3 intentos de corrección documental.",
+      "slaNotice": "<strong>SLA de revisión: 72h hábiles</strong> tras los documentos completos. Los sellers siempre exigen revisión manual (Compliance + Jurídico + Super Admin). Las sanciones bloquean de inmediato. Máximo 3 intentos de corrección documental.",
       "summary": {
         "total": {
           "title": "Total de solicitudes",
@@ -2552,14 +2556,14 @@
       "statusLabel": "Estado",
       "status": "Estado: {{value}}",
       "statuses": {
-        "pendente": "Pendientes",
-        "enviado": "Enviados",
-        "correcao_solicitada": "Corrección solicitada",
-        "aprovado": "Aprobados",
-        "recusado": "Rechazados",
-        "suspenso": "Suspendidos",
-        "em_revisao": "En revisión",
-        "revisao_especial": "Revisión especial"
+        "pending": "Pendientes",
+        "submitted": "Enviados",
+        "correction_requested": "Corrección solicitada",
+        "approved": "Aprobados",
+        "rejected": "Rechazados",
+        "suspended": "Suspendidos",
+        "under_review": "En revisión",
+        "special_review": "Revisión especial"
       },
       "typeLabel": "Tipo",
       "type": "Tipo: {{value}}",
@@ -2581,14 +2585,14 @@
         "complete": "completo"
       },
       "status": {
-        "pendente": "Esperando envío",
-        "enviado": "Esperando revisión",
-        "correcao_solicitada": "Corrección solicitada",
-        "aprovado": "Aprobado",
-        "recusado": "Rechazado",
-        "suspenso": "Suspendido",
-        "em_revisao": "En revisión",
-        "revisao_especial": "Revisión especial"
+        "pending": "Esperando envío",
+        "submitted": "Esperando revisión",
+        "correction_requested": "Corrección solicitada",
+        "approved": "Aprobado",
+        "rejected": "Rechazado",
+        "suspended": "Suspendido",
+        "under_review": "En revisión",
+        "special_review": "Revisión especial"
       },
       "actions": {
         "viewDocuments": "Ver documentos",
@@ -2596,32 +2600,256 @@
         "soon": "Disponible pronto"
       },
       "alerts": {
-        "documento_vencido": "Doc vencido",
-        "scm_pendente": "SCM pendiente",
-        "documento_ilegivel": "Doc ilegible",
-        "cnpj_inapto": "CNPJ inapto",
-        "sancao": "Posible coincidencia en lista de sanciones"
+        "expired_document": "Doc vencido",
+        "pending_scm_license": "SCM pendiente",
+        "unreadable_document": "Doc ilegible",
+        "inactive_tax_registration": "CNPJ inapto",
+        "sanctions": "Posible coincidencia en lista de sanciones"
       },
       "submittedAt": "Enviado: {{date}}",
       "registeredAt": "Registro: {{date}}",
       "documents": "Docs: {{sent}}/{{required}}",
       "pendingDocuments": "({{count}} pend.)"
+    },
+    "review": {
+      "back": "Volver a la cola",
+      "loading": "Cargando solicitud",
+      "retry": "Intentar de nuevo",
+      "status": {
+        "submitted": "Esperando revisión",
+        "in_review": "En revisión",
+        "correction_requested": "Corrección solicitada",
+        "special_review": "Revisión especial",
+        "approved": "Aprobado",
+        "rejected": "Rechazado"
+      },
+      "header": {
+        "level": "Nivel solicitado: {{level}}",
+        "corrections": "Correcciones: {{count}}/3",
+        "reviewerYou": "Asignada a ti",
+        "reviewerOther": "Asignada a {{id}}"
+      },
+      "sections": {
+        "documents": "Documentos",
+        "checks": "Verificaciones automáticas",
+        "decision": "Decisión de la cuenta",
+        "history": "Historial"
+      },
+      "decisionHint": "Decide todos los documentos antes. La decisión se aplica a la cuenta de la organización.",
+      "notices": {
+        "submitted": "La revisión aún no empezó. Al iniciarla, queda asignada a ti.",
+        "assignedToOther": "Esta revisión está asignada a otro revisor. Puedes consultarla, pero no decidir.",
+        "unconfirmedDecision": "La última decisión enviada desde aquí no fue confirmada. Reenvíala para saber si se registró — la misma decisión no se duplica.",
+        "specialReview": "Se alcanzó el límite de 3 correcciones: la solicitud pasó a revisión especial y no acepta nuevas decisiones aquí.",
+        "applied": "Decisión \"{{decision}}\" registrada y aplicada a la cuenta.",
+        "applying": "Decisión registrada. La aplicación a la cuenta aún está en curso.",
+        "stale": "La organización cambió después de la decisión, que no pudo aplicarse. Actualiza la revisión para decidir de nuevo con los datos actuales.",
+        "applyFailed": "Decisión registrada, pero no aplicada a la cuenta: {{error}}.",
+        "retryElsewhere": "El nuevo intento debe hacerlo quien decidió, en el navegador desde el que se envió la decisión."
+      },
+      "actions": {
+        "view": "Ver",
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "reopen": "Reabrir",
+        "cancel": "Cancelar",
+        "back": "Volver",
+        "confirmReject": "Rechazar documento",
+        "submitDecision": "Registrar decisión",
+        "confirmDecision": "Confirmar decisión",
+        "resendDecision": "Reenviar decisión",
+        "retryApply": "Intentar aplicar de nuevo",
+        "refreshReview": "Actualizar revisión",
+        "reload": "Actualizar",
+        "dismiss": "Cerrar aviso"
+      },
+      "document": {
+        "status": {
+          "pending": "Pendiente",
+          "approved": "Aprobado",
+          "rejected": "Rechazado"
+        },
+        "version": "Versión {{version}}",
+        "uploadedAt": "Enviado: {{date}}",
+        "notSubmitted": "No enviado",
+        "reviewerNote": "Nota interna: {{note}}",
+        "reviewedAt": "Decidido el {{date}}",
+        "empty": "No hay documentos en esta solicitud."
+      },
+      "documentTypes": {
+        "cnpj_card": "Tarjeta CNPJ",
+        "scm_outorga": "Licencia SCM o equivalente",
+        "articles_of_incorporation": "Contrato social / Estatutos",
+        "legal_rep_id": "Documento del representante legal",
+        "bank_proof": "Comprobante bancario",
+        "address_proof": "Comprobante de domicilio de la sede",
+        "revenue_proof": "Comprobante de facturación (12 meses)",
+        "representative_selfie": "Selfie del representante legal con documento",
+        "international_tax_doc": "Documento fiscal internacional"
+      },
+      "documentReasons": {
+        "unreadable_or_corrupted": "Ilegible o dañado",
+        "expired_or_invalid": "Vencido o inválido",
+        "data_mismatch": "Datos divergentes",
+        "missing_document": "Documento ausente",
+        "other": "Otro"
+      },
+      "accountReasons": {
+        "inactive_tax_registration": "Situación fiscal inactiva",
+        "fraud_inconsistency": "Inconsistencia o sospecha de fraude",
+        "invalid_scm_license": "Licencia SCM inválida",
+        "aml_suspicion": "Sospecha de lavado de dinero (PLD)",
+        "other": "Otro"
+      },
+      "decisions": {
+        "approve": {
+          "label": "Aprobar cuenta",
+          "description": "Otorga el nivel solicitado a la organización."
+        },
+        "request_correction": {
+          "label": "Pedir corrección",
+          "description": "Devuelve para que la organización reenvíe los documentos rechazados."
+        },
+        "reject": {
+          "label": "Rechazar cuenta",
+          "description": "Cierra la solicitud sin otorgar el nivel."
+        }
+      },
+      "blocked": {
+        "pendingDocuments": "Decide todos los documentos primero.",
+        "rejectedDocuments": "No disponible: hay documentos rechazados.",
+        "missingDocuments": "No disponible: hay documentos no enviados.",
+        "checksNotPassed": "No disponible: las verificaciones automáticas no pasaron.",
+        "noRejectedDocument": "Rechaza al menos un documento para pedir corrección."
+      },
+      "form": {
+        "decision": "Decisión",
+        "reason": "Motivo del rechazo",
+        "accountReason": "Motivo del rechazo de la cuenta",
+        "reasonPlaceholder": "Selecciona el motivo",
+        "reasonDetails": "Detalles",
+        "reasonDetailsHelper": "Obligatorio cuando el motivo es \"Otro\". Hasta 1000 caracteres.",
+        "accountReasonInternal": "El motivo es interno: no se muestra a la organización.",
+        "userInstructions": "Instrucciones para la organización",
+        "userInstructionsHelper": "Qué debe corregir la organización. Hasta 2000 caracteres.",
+        "reviewerNote": "Nota interna",
+        "reviewerNoteHelper": "Visible solo para el equipo. Hasta 1000 caracteres.",
+        "confirmTitle": "Confirmar decisión",
+        "confirmText": "¿Confirmar \"{{decision}}\"? La decisión es definitiva y se aplicará a la cuenta de la organización.",
+        "errors": {
+          "decisionRequired": "Elige una decisión.",
+          "reasonRequired": "Selecciona el motivo.",
+          "detailsRequired": "Describe el motivo.",
+          "instructionsRequired": "Escribe las instrucciones para la organización.",
+          "tooLong": "Texto demasiado largo."
+        }
+      },
+      "checks": {
+        "types": {
+          "tax_registration": "Situación fiscal",
+          "sanctions": "Listas de sanciones"
+        },
+        "status": {
+          "passed": "Aprobada",
+          "failed": "Reprobada",
+          "not_verified": "No verificada",
+          "error": "Error"
+        },
+        "expired": "Vencida",
+        "checkedAt": "Verificada el {{date}}",
+        "strict": "Política estricta"
+      },
+      "history": {
+        "events": {
+          "entered_queue": "Entró en la cola",
+          "document_version_added": "Nueva versión de documento",
+          "review_started": "Revisión iniciada",
+          "document_approved": "Documento aprobado",
+          "document_rejected": "Documento rechazado",
+          "document_reopened": "Documento reabierto",
+          "account_decided": "Cuenta decidida",
+          "stale_decision_refreshed": "Revisión actualizada tras un cambio en la organización"
+        },
+        "system": "Sistema",
+        "you": "Tú",
+        "reviewer": "Revisor {{id}}",
+        "empty": "Sin eventos.",
+        "loadMore": "Cargar más ({{loaded}} de {{total}})"
+      },
+      "viewer": {
+        "loading": "Cargando archivo",
+        "expires": "El enlace del archivo expira en pocos minutos.",
+        "openInNewTab": "Abrir en una pestaña nueva"
+      },
+      "errors": {
+        "failed": "No se pudo completar la acción. Inténtalo de nuevo.",
+        "forbidden": "Tu cuenta no tiene acceso a la revisión de KYC.",
+        "invalid_token": "Tu sesión expiró. Inicia sesión de nuevo para continuar.",
+        "mfa_required": "Confirma el MFA en la sesión para revisar KYC.",
+        "insufficient_permission": "Tu cuenta no tiene el permiso necesario para esta acción.",
+        "auth_unavailable": "La autenticación de Compliance no está disponible. Inténtalo en unos instantes.",
+        "not_found": "Solicitud o documento no encontrado.",
+        "validation_error": "Datos inválidos. Revisa los campos e inténtalo de nuevo.",
+        "version_conflict": "La solicitud cambió desde la última lectura. Los datos se actualizaron — revísalos y repite la acción.",
+        "invalid_request_state": "La solicitud ya no está en la etapa que permite esta acción. Los datos se actualizaron.",
+        "review_assigned_to_other": "Esta revisión está asignada a otro revisor.",
+        "document_version_conflict": "El documento recibió una nueva versión. Los datos se actualizaron.",
+        "document_already_decided": "El documento ya fue decidido. Reábrelo para decidir de nuevo.",
+        "document_not_decided": "El documento aún no fue decidido.",
+        "document_not_submitted": "No es posible aprobar un documento sin archivo.",
+        "reason_incompatible_with_submission": "Motivo incompatible: \"Documento ausente\" solo aplica a un requisito sin archivo.",
+        "document_has_no_file": "Este documento no tiene archivo.",
+        "document_file_missing": "El archivo del documento no se encontró en el almacenamiento.",
+        "document_storage_reference_invalid": "La referencia del archivo es inválida.",
+        "idempotency_conflict": "Esta decisión ya se envió con otros datos. Recarga la página.",
+        "requested_level_not_supported": "El nivel solicitado no admite decisión aquí.",
+        "documents_not_reviewed": "Decide todos los documentos antes de la cuenta.",
+        "rejected_documents": "Hay documentos rechazados — no es posible aprobar.",
+        "documents_not_submitted": "Hay documentos no enviados — no es posible aprobar.",
+        "automatic_checks_not_passed": "Las verificaciones automáticas no permiten aprobar.",
+        "rejected_document_required": "Para pedir corrección, rechaza al menos un documento.",
+        "identity_request_rejected": "Identity rechazó la operación.",
+        "identity_unavailable": "Identity no está disponible. Inténtalo en unos instantes.",
+        "identity_not_configured": "La integración con Identity no está configurada.",
+        "identity_response_invalid": "Identity respondió en un formato inesperado.",
+        "kyc_decision_snapshot_stale": "la organización cambió después de la decisión",
+        "submission_identity_conflict": "El envío de la organización cambió en Identity. Intenta abrirla de nuevo.",
+        "submission_requirements_missing": "La organización aún no envió los documentos exigidos.",
+        "artifact_identity_conflict": "Los documentos de la organización cambiaron en Identity. Intenta abrirla de nuevo.",
+        "stale_document_version": "Un documento recibió una nueva versión durante la sincronización. Intenta abrirla de nuevo.",
+        "request_identity_changed": "La identidad de la solicitud cambió en Identity.",
+        "decision_not_invalidated": "La última decisión no está desactualizada — no hay nada que actualizar.",
+        "special_review_required": "La solicitud está en revisión especial.",
+        "review_already_refreshed": "La revisión ya fue actualizada.",
+        "audit_unavailable": "La auditoría no está disponible. No se cambió nada — inténtalo en unos instantes.",
+        "storage_unavailable": "El almacenamiento de archivos no está disponible. Inténtalo en unos instantes.",
+        "database_unavailable": "Compliance no está disponible. Inténtalo en unos instantes."
+      }
     }
   },
   "Kyc": {
     "screens": {
       "continue": "Ir al dashboard",
+      "upgrade": {
+        "title": "Sube de nivel",
+        "subtitle": "Tu nivel actual ya fue aprobado. Envía los documentos del nivel deseado para una nueva revisión."
+      },
       "resubmit": {
-        "title": "Envía los documentos solicitados",
-        "subtitle": "La revisión pidió documentos adicionales. Reenvíalos para continuar."
+        "title": "Envía los documentos corregidos",
+        "subtitle": "Sigue las instrucciones que recibiste de la revisión y envía de nuevo el conjunto del nivel."
       },
       "rejected": {
-        "title": "Documentación rechazada",
-        "subtitle": "Revisa los documentos y envíalos de nuevo para un nuevo análisis."
+        "title": "Solicitud rechazada",
+        "subtitle": "La solicitud de KYC de tu empresa fue rechazada. Contacta al soporte para saber cómo seguir."
+      },
+      "suspended": {
+        "title": "KYC suspendido",
+        "subtitle": "La verificación de tu empresa está suspendida. Contacta al soporte para saber cómo seguir."
       },
       "review": {
         "title": "Documentación en análisis",
-        "subtitle": "Recibimos tus documentos. La revisión manual tarda hasta 72h hábiles."
+        "subtitle": "Recibimos tus documentos. La revisión manual tarda hasta 72h hábiles.",
+        "correction": "¿Recibiste una solicitud de corrección? Envía los documentos de nuevo"
       },
       "approved": {
         "title": "Cuenta aprobada",

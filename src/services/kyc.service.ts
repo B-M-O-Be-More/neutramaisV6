@@ -36,34 +36,32 @@ export const KYC_MIME_TYPES = [
 
 export type KycMimeType = (typeof KYC_MIME_TYPES)[number];
 
+/** Tamanho máximo de cada arquivo no `/kyc/artifacts` (10 MiB). */
+export const KYC_MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+// Upload de até 10 MiB: o timeout padrão do cliente (30s) é curto demais.
+const UPLOAD_TIMEOUT_MS = 120_000;
+
 /**
- * Payload de `POST /organizations/{org_id}/kyc/artifacts`.
- *
- * O endpoint recebe só o metadado: o binário deveria estar no S3 e
- * `s3_reference` apontar para ele. Enquanto não existe o upload para o S3, o
- * front manda o nome do arquivo nesse campo (limite de 512 caracteres).
+ * Campos de `POST /organizations/{org_id}/kyc/artifacts`, enviados como
+ * `multipart/form-data`. O backend lê e verifica os bytes do arquivo.
  */
 export interface UploadKycArtifactDto {
   document_type: KycDocumentType;
+  /** Metadado do documento; não concede nível à conta. */
   kyc_level_supported: KycLevelSupported;
-  s3_reference: string;
-  /** SHA-256 hex (64 chars) do conteúdo — ver functions/fileHash. */
-  content_hash: string;
-  mime_type: KycMimeType;
+  file: File;
 }
 
-/**
- * Resposta (201) de `POST /organizations/{org_id}/kyc/artifacts`. O id vem
- * como `artifact_id` no contrato combinado e como `id` no openapi da
- * identity-api — o front aceita os dois.
- */
+/** Resposta (201) de `POST /organizations/{org_id}/kyc/artifacts`. */
 export interface KycArtifact {
-  artifact_id?: string;
-  id?: string;
+  /** Id do artefato confirmado — vai em `artifact_ids` do `/kyc/submit`. */
+  id: string;
+  organization_id: string;
   document_type: KycDocumentType;
   kyc_level_supported: KycLevelSupported;
-  content_hash: string;
-  created_at: string;
+  retain_until: string | null;
+  content_hash_masked: string;
 }
 
 /** Corpo de `POST /organizations/{org_id}/kyc/submit`: ids dos artefatos. */
@@ -71,27 +69,44 @@ export interface SubmitKycDto {
   artifact_ids: string[];
 }
 
-/** Resposta (200) de `POST /organizations/{org_id}/kyc/submit`. */
-export interface KycSubmitResult {
-  organization_id: string;
-  kyc_state: KycState;
-  submitted_at: string;
-}
-
-/** Resposta de `GET /organizations/{org_id}/kyc/status`. */
+/**
+ * Resposta de `GET /organizations/{org_id}/kyc/status` e do `/kyc/submit`.
+ * `kyc_level` é o nível já concedido; depois do envio, `kyc_state` fica
+ * `pending_documents` até a decisão ser aplicada.
+ */
 export interface KycStatus {
+  organization_id: string;
   kyc_state: KycState;
   kyc_level: KycLevelSupported;
 }
 
+export type KycSubmitResult = KycStatus;
+
 export const kycService = {
-  /** Registra UM documento e devolve o `artifact_id`. Exige `kyc:submit`. */
-  uploadArtifact: (orgId: string, data: UploadKycArtifactDto) =>
-    api.post<KycArtifact>(`/organizations/${orgId}/kyc/artifacts`, data),
+  /** Envia UM arquivo e devolve o artefato confirmado. Exige `kyc:submit`. */
+  uploadArtifact: (
+    orgId: string,
+    { document_type, kyc_level_supported, file }: UploadKycArtifactDto,
+  ) => {
+    // O backend aceita exatamente estes três campos.
+    const form = new FormData();
+    form.append("document_type", document_type);
+    form.append("kyc_level_supported", kyc_level_supported);
+    form.append("file", file);
+    return api.post<KycArtifact>(
+      `/organizations/${orgId}/kyc/artifacts`,
+      form,
+      {
+        timeoutMs: UPLOAD_TIMEOUT_MS,
+      },
+    );
+  },
 
   /**
-   * Envia para análise os artefatos já registrados, referenciados pelos
-   * `artifact_id` devolvidos em `uploadArtifact`. Exige `kyc:submit`.
+   * Envia para análise a seleção de artefatos confirmados. O backend deduz o
+   * nível pedido pelos tipos completos da seleção — documentos antigos não
+   * entram sozinhos. Repetir a mesma seleção não duplica o envio. Exige
+   * `kyc:submit`.
    */
   submit: (orgId: string, artifactIds: string[]) =>
     api.post<KycSubmitResult>(`/organizations/${orgId}/kyc/submit`, {

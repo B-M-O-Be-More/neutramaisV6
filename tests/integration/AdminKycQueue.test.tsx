@@ -24,25 +24,25 @@ function item(overrides: Partial<KycQueueItem>): KycQueueItem {
     country_code: "BR",
     tax_id: "12345678000195",
     tax_id_kind: "CNPJ",
-    status: "enviado",
-    kyc_state: "under_review",
+    status: "submitted",
+    kyc_state: "pending_documents",
     kyc_level: "basic",
     requested_level: "verified",
     registered_at: "2026-10-02T13:05:41Z",
     submitted_at: "2026-10-14T18:20:03Z",
     documents: { sent: 5, required: 6, pending: 1, missing_types: [] },
     sla: {
-      state: "em_andamento",
+      state: "in_progress",
       limit_business_hours: 72,
       started_at: "2026-10-14T18:20:03Z",
       deadline_at: "2026-10-19T18:20:03Z",
       remaining_business_hours: 49.5,
     },
     alerts: [
-      { code: "scm_pendente", status: "ativo" },
-      { code: "sancao", status: "nao_verificado" },
+      { code: "pending_scm_license", status: "active" },
+      { code: "sanctions", status: "not_verified" },
     ],
-    flags: { em_revisao: false, revisao_especial: false },
+    flags: { under_review: false, special_review: false },
     ...overrides,
   };
 }
@@ -54,7 +54,7 @@ const NEXUS = item({
   organization_name: "Nexus Internet S.A.",
   organization_type: "buyer",
   alerts: [],
-  flags: { em_revisao: false, revisao_especial: true },
+  flags: { under_review: false, special_review: true },
 });
 
 function queue(items: KycQueueItem[], total = items.length): KycQueue {
@@ -68,12 +68,12 @@ function queue(items: KycQueueItem[], total = items.length): KycQueue {
       pending: 3,
       rejected: 1,
       by_status: {
-        pendente: 1,
-        enviado: 2,
-        correcao_solicitada: 0,
-        aprovado: 1,
-        recusado: 1,
-        suspenso: 0,
+        pending: 1,
+        submitted: 2,
+        correction_requested: 0,
+        approved: 1,
+        rejected: 1,
+        suspended: 0,
       },
     },
     generated_at: "2026-10-16T14:32:10Z",
@@ -128,8 +128,8 @@ describe("AdminKycQueue", () => {
     ).toBeInTheDocument();
     // Sem traduções carregadas no teste, o alerta cai no `defaultValue`: o
     // próprio código.
-    expect(screen.getByText("scm_pendente")).toBeInTheDocument();
-    expect(screen.queryByText("sancao")).not.toBeInTheDocument();
+    expect(screen.getByText("pending_scm_license")).toBeInTheDocument();
+    expect(screen.queryByText("sanctions")).not.toBeInTheDocument();
   });
 
   it("dá prioridade à revisão especial na pílula de status", async () => {
@@ -137,7 +137,7 @@ describe("AdminKycQueue", () => {
     renderWithProviders(<Harness />);
 
     expect(
-      await screen.findByText("Admin.organization.status.revisao_especial"),
+      await screen.findByText("Admin.organization.status.special_review"),
     ).toBeInTheDocument();
   });
 
@@ -149,7 +149,7 @@ describe("AdminKycQueue", () => {
     await screen.findByText("Acme Telecom");
 
     fireEvent.change(screen.getByLabelText("Admin.filters.statusLabel"), {
-      target: { value: "revisao_especial" },
+      target: { value: "special_review" },
     });
     fireEvent.change(screen.getByLabelText("Admin.filters.typeLabel"), {
       target: { value: "seller" },
@@ -161,7 +161,7 @@ describe("AdminKycQueue", () => {
     await waitFor(() =>
       expect(get).toHaveBeenLastCalledWith(
         {
-          status: "revisao_especial",
+          status: "special_review",
           type: "seller",
           date_from: "2026-10-01",
           limit: 50,

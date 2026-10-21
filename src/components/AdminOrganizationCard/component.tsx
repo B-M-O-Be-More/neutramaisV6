@@ -1,6 +1,7 @@
 "use client";
 
 import { Box, Button, chakra, Flex, Icon, Text } from "@chakra-ui/react";
+import NextLink from "next/link";
 import { useTranslation } from "react-i18next";
 import type { IconType } from "react-icons";
 import {
@@ -47,19 +48,19 @@ const STATUS_STYLES: Record<
   KycQueueStatusFilter,
   { icon: IconType; fg: string; bg: string; border: string }
 > = {
-  pendente: { icon: LuClock, ...GRAY },
-  enviado: { icon: LuClock, ...AMBER },
-  em_revisao: { icon: LuFileSearch, ...BLUE },
-  revisao_especial: { icon: LuTriangleAlert, ...RED },
-  correcao_solicitada: { icon: LuFileWarning, ...AMBER },
-  aprovado: { icon: LuCircleCheck, ...GREEN },
-  recusado: { icon: LuCircleX, ...RED },
-  suspenso: { icon: LuBan, ...RED },
+  pending: { icon: LuClock, ...GRAY },
+  submitted: { icon: LuClock, ...AMBER },
+  under_review: { icon: LuFileSearch, ...BLUE },
+  special_review: { icon: LuTriangleAlert, ...RED },
+  correction_requested: { icon: LuFileWarning, ...AMBER },
+  approved: { icon: LuCircleCheck, ...GREEN },
+  rejected: { icon: LuCircleX, ...RED },
+  suspended: { icon: LuBan, ...RED },
 };
 
 function displayStatus(request: KycQueueItem): KycQueueStatusFilter {
-  if (request.flags?.revisao_especial) return "revisao_especial";
-  if (request.flags?.em_revisao) return "em_revisao";
+  if (request.flags?.special_review) return "special_review";
+  if (request.flags?.under_review) return "under_review";
   return request.status;
 }
 
@@ -75,7 +76,7 @@ export function AdminOrganizationCard({
   const { t, i18n } = useTranslation();
   const type = TYPE_COLORS[request.organization_type] ?? TYPE_COLORS.buyer;
   const statusKey = displayStatus(request);
-  const status = STATUS_STYLES[statusKey] ?? STATUS_STYLES.pendente;
+  const status = STATUS_STYLES[statusKey] ?? STATUS_STYLES.pending;
 
   const formatDate = (iso: string) => {
     const date = new Date(iso);
@@ -94,13 +95,16 @@ export function AdminOrganizationCard({
         date: formatDate(request.registered_at),
       });
 
-  // Só os alertas ativos aparecem (ex.: "nao_verificado" fica de fora).
+  // Só os alertas ativos aparecem (ex.: "not_verified" fica de fora).
   const activeAlerts = (request.alerts ?? []).filter(
-    (alert) => alert.status === "ativo",
+    (alert) => alert.status === "active",
   );
   const level = request.requested_level ?? request.kyc_level;
   const { documents } = request;
   const detailsId = `admin-kyc-${request.organization_id}`;
+  const reviewHref = `/admin/kyc/${request.organization_id}`;
+  // Só uma solicitação enviada e ainda sem revisor pode ser iniciada.
+  const canStartReview = statusKey === "submitted";
 
   return (
     <Box
@@ -279,12 +283,11 @@ export function AdminOrganizationCard({
           borderTopWidth="1px"
           borderColor="#F0F2F7"
         >
-          {/* As ações dependem dos endpoints de documentos e revisão do admin
-              (/admin/kyc/{organization_id}/...), ainda não ligados. */}
+          {/* A revisão abre pelo `organization_id` — o `request_id` da fila é
+              só um código de exibição. */}
           <Button
-            type="button"
+            asChild
             variant="outline"
-            disabled
             h="38px"
             px="12px"
             gap="6px"
@@ -294,28 +297,31 @@ export function AdminOrganizationCard({
             color="#5A6478"
             fontSize="13px"
             fontWeight={500}
-            title={t("Admin.organization.actions.soon")}
           >
-            <Icon as={LuEye} boxSize="13px" />
-            {t("Admin.organization.actions.viewDocuments")}
+            <NextLink href={reviewHref}>
+              <Icon as={LuEye} boxSize="13px" />
+              {t("Admin.organization.actions.viewDocuments")}
+            </NextLink>
           </Button>
-          <Button
-            type="button"
-            disabled
-            h="38px"
-            px="12px"
-            gap="6px"
-            rounded="10px"
-            bg="#1F5AFF"
-            color="white"
-            fontSize="13px"
-            fontWeight={700}
-            _hover={{ bg: "#1A4FE0" }}
-            title={t("Admin.organization.actions.soon")}
-          >
-            <Icon as={LuCirclePlay} boxSize="13px" />
-            {t("Admin.organization.actions.startReview")}
-          </Button>
+          {canStartReview && (
+            <Button
+              asChild
+              h="38px"
+              px="12px"
+              gap="6px"
+              rounded="10px"
+              bg="#1F5AFF"
+              color="white"
+              fontSize="13px"
+              fontWeight={700}
+              _hover={{ bg: "#1A4FE0" }}
+            >
+              <NextLink href={`${reviewHref}?start=1`}>
+                <Icon as={LuCirclePlay} boxSize="13px" />
+                {t("Admin.organization.actions.startReview")}
+              </NextLink>
+            </Button>
+          )}
         </Flex>
       )}
     </Box>

@@ -16,7 +16,10 @@ export interface ForwardOptions {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   /** Caminho relativo à base da identity-api, ex.: "/organizations/register". */
   path: string;
-  /** Body já parseado a ser reenviado como JSON. Omitir em GET/DELETE. */
+  /**
+   * Body já parseado a ser reenviado como JSON. Um `FormData` vai como
+   * multipart (o fetch gera o boundary). Omitir em GET/DELETE.
+   */
   body?: unknown;
   /** Bearer explícito. Se omitido, usa o access_token do cookie (quando houver). */
   authToken?: string;
@@ -98,12 +101,13 @@ export async function callIdentity({
   }
 
   const hasBody = body !== undefined && method !== "GET" && method !== "DELETE";
+  const isFormData = body instanceof FormData;
   const bearer = anonymous ? undefined : await resolveBearer(authToken);
 
   const upstreamHeaders: Record<string, string> = {
     Accept: "application/json",
     "X-Request-ID": crypto.randomUUID(),
-    ...(hasBody ? { "Content-Type": "application/json" } : {}),
+    ...(hasBody && !isFormData ? { "Content-Type": "application/json" } : {}),
     ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
     ...headers,
   };
@@ -112,7 +116,11 @@ export async function callIdentity({
     const upstream = await fetch(`${IDENTITY_API_URL}${path}`, {
       method,
       headers: upstreamHeaders,
-      body: hasBody ? JSON.stringify(body) : undefined,
+      body: hasBody
+        ? isFormData
+          ? (body as FormData)
+          : JSON.stringify(body)
+        : undefined,
       cache: "no-store",
     });
     return {

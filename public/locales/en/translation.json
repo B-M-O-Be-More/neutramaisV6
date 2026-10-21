@@ -517,14 +517,13 @@
         "heading": "Next steps",
         "created": {
           "title": "Account created!",
-          "subtitle": "Auto-approved at the basic level. Send documents to unlock purchases."
+          "subtitle": "Send the documents for the level you want. Every request goes through manual review within 72 business hours."
         },
         "levelQuestion": "Which level do you want to reach now?",
         "levels": {
           "basic": {
             "title": "Basic",
-            "description": "Already active — platform view",
-            "current": "CURRENT"
+            "description": "Activates buyers\n· platform view"
           },
           "verified": {
             "title": "Verified",
@@ -533,10 +532,11 @@
           "complete": {
             "title": "Complete",
             "description": "Wallet withdrawals · high volumes"
-          }
+          },
+          "current": "CURRENT"
         },
         "groups": {
-          "basic": "Basic KYC — company document",
+          "basic": "Basic KYC — company documents",
           "verified": "Verified KYC — documents",
           "complete": "Complete KYC — additional documents"
         },
@@ -551,7 +551,9 @@
           "revenue_proof": "Revenue statement (12 months)",
           "representative_selfie": "Legal representative selfie with ID"
         },
-        "optional": "Optional",
+        "oneOf": {
+          "incorporation": "Only one needed: articles of incorporation or SCM license"
+        },
         "sending": "Sending...",
         "actions": {
           "upload": "Send",
@@ -559,11 +561,13 @@
         },
         "errors": {
           "mimeType": "Format not accepted. Send a PDF, JPG or PNG.",
+          "fileSize": "File over 10 MB. Reduce its size and send it again.",
           "upload": "We could not send the document. Please try again.",
           "submit": "We could not submit the documents for review. Please try again.",
           "missingOrganization": "We could not find the company registration in this browser. Send the documents later under My Profile."
         },
-        "notice": "You can send the documents now or later under <strong>My Profile / Roles and access</strong>. Basic buyers are auto-approved. Sellers always require manual review within 72 business hours.",
+        "notice": "You can send the documents now or later under <strong>My Profile / Roles and access</strong>. Every request goes through manual review within 72 business hours. Sellers are only activated from the Verified level.",
+        "fullSetNotice": "Send the level's full set, including documents you sent before: the review only considers what you send now.",
         "cta": "Explore marketplace",
         "redirecting": "Redirecting to the login page...",
         "requiredHint": "Send all required documents to continue ({{sent}} of {{total}} sent)."
@@ -2534,7 +2538,7 @@
       "audit": "Audit"
     },
     "kyc": {
-      "slaNotice": "<strong>Review SLA: 72 business hours</strong> after documents are complete. Sellers always require manual review (Compliance + Legal + Super Admin). Basic-level BR buyers are auto-approved. Sanctions block immediately. Up to 3 document correction attempts.",
+      "slaNotice": "<strong>Review SLA: 72 business hours</strong> after documents are complete. Sellers always require manual review (Compliance + Legal + Super Admin). Sanctions block immediately. Up to 3 document correction attempts.",
       "summary": {
         "total": {
           "title": "Total requests",
@@ -2564,14 +2568,14 @@
       "statusLabel": "Status",
       "status": "Status: {{value}}",
       "statuses": {
-        "pendente": "Pending",
-        "enviado": "Submitted",
-        "correcao_solicitada": "Correction requested",
-        "aprovado": "Approved",
-        "recusado": "Rejected",
-        "suspenso": "Suspended",
-        "em_revisao": "In review",
-        "revisao_especial": "Special review"
+        "pending": "Pending",
+        "submitted": "Submitted",
+        "correction_requested": "Correction requested",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "suspended": "Suspended",
+        "under_review": "In review",
+        "special_review": "Special review"
       },
       "typeLabel": "Type",
       "type": "Type: {{value}}",
@@ -2593,14 +2597,14 @@
         "complete": "complete"
       },
       "status": {
-        "pendente": "Awaiting documents",
-        "enviado": "Awaiting review",
-        "correcao_solicitada": "Correction requested",
-        "aprovado": "Approved",
-        "recusado": "Rejected",
-        "suspenso": "Suspended",
-        "em_revisao": "In review",
-        "revisao_especial": "Special review"
+        "pending": "Awaiting documents",
+        "submitted": "Awaiting review",
+        "correction_requested": "Correction requested",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "suspended": "Suspended",
+        "under_review": "In review",
+        "special_review": "Special review"
       },
       "actions": {
         "viewDocuments": "View documents",
@@ -2608,32 +2612,256 @@
         "soon": "Coming soon"
       },
       "alerts": {
-        "documento_vencido": "Expired doc",
-        "scm_pendente": "SCM pending",
-        "documento_ilegivel": "Illegible doc",
-        "cnpj_inapto": "Tax ID unfit",
-        "sancao": "Possible sanctions list match"
+        "expired_document": "Expired doc",
+        "pending_scm_license": "SCM pending",
+        "unreadable_document": "Illegible doc",
+        "inactive_tax_registration": "Tax ID unfit",
+        "sanctions": "Possible sanctions list match"
       },
       "submittedAt": "Submitted: {{date}}",
       "registeredAt": "Registered: {{date}}",
       "documents": "Docs: {{sent}}/{{required}}",
       "pendingDocuments": "({{count}} pending)"
+    },
+    "review": {
+      "back": "Back to the queue",
+      "loading": "Loading request",
+      "retry": "Try again",
+      "status": {
+        "submitted": "Awaiting review",
+        "in_review": "In review",
+        "correction_requested": "Correction requested",
+        "special_review": "Special review",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "header": {
+        "level": "Requested level: {{level}}",
+        "corrections": "Corrections: {{count}}/3",
+        "reviewerYou": "Assigned to you",
+        "reviewerOther": "Assigned to {{id}}"
+      },
+      "sections": {
+        "documents": "Documents",
+        "checks": "Automatic checks",
+        "decision": "Account decision",
+        "history": "History"
+      },
+      "decisionHint": "Decide every document first. The decision is applied to the organization's account.",
+      "notices": {
+        "submitted": "The review has not started. Starting it assigns it to you.",
+        "assignedToOther": "This review is assigned to another reviewer. You can view it but not decide.",
+        "unconfirmedDecision": "The last decision sent from here was not confirmed. Resend it to find out whether it was recorded — the same decision is never duplicated.",
+        "specialReview": "The 3-correction limit was reached: the request went to special review and accepts no new decisions here.",
+        "applied": "Decision \"{{decision}}\" recorded and applied to the account.",
+        "applying": "Decision recorded. Applying it to the account is still in progress.",
+        "stale": "The organization changed after the decision, so it could not be applied. Refresh the review to decide again with the current data.",
+        "applyFailed": "Decision recorded but not applied to the account: {{error}}.",
+        "retryElsewhere": "The retry must be made by whoever decided, in the browser the decision was sent from."
+      },
+      "actions": {
+        "view": "View",
+        "approve": "Approve",
+        "reject": "Reject",
+        "reopen": "Reopen",
+        "cancel": "Cancel",
+        "back": "Back",
+        "confirmReject": "Reject document",
+        "submitDecision": "Record decision",
+        "confirmDecision": "Confirm decision",
+        "resendDecision": "Resend decision",
+        "retryApply": "Try applying again",
+        "refreshReview": "Refresh review",
+        "reload": "Refresh",
+        "dismiss": "Dismiss"
+      },
+      "document": {
+        "status": {
+          "pending": "Pending",
+          "approved": "Approved",
+          "rejected": "Rejected"
+        },
+        "version": "Version {{version}}",
+        "uploadedAt": "Uploaded: {{date}}",
+        "notSubmitted": "Not submitted",
+        "reviewerNote": "Internal note: {{note}}",
+        "reviewedAt": "Decided on {{date}}",
+        "empty": "No documents in this request."
+      },
+      "documentTypes": {
+        "cnpj_card": "CNPJ card",
+        "scm_outorga": "SCM license or equivalent",
+        "articles_of_incorporation": "Articles of incorporation",
+        "legal_rep_id": "Legal representative ID",
+        "bank_proof": "Bank statement",
+        "address_proof": "Proof of headquarters address",
+        "revenue_proof": "Proof of revenue (12 months)",
+        "representative_selfie": "Legal representative selfie with ID",
+        "international_tax_doc": "International tax document"
+      },
+      "documentReasons": {
+        "unreadable_or_corrupted": "Unreadable or corrupted",
+        "expired_or_invalid": "Expired or invalid",
+        "data_mismatch": "Data mismatch",
+        "missing_document": "Missing document",
+        "other": "Other"
+      },
+      "accountReasons": {
+        "inactive_tax_registration": "Inactive tax registration",
+        "fraud_inconsistency": "Inconsistency or suspected fraud",
+        "invalid_scm_license": "Invalid SCM license",
+        "aml_suspicion": "Suspected money laundering (AML)",
+        "other": "Other"
+      },
+      "decisions": {
+        "approve": {
+          "label": "Approve account",
+          "description": "Grants the requested level to the organization."
+        },
+        "request_correction": {
+          "label": "Request correction",
+          "description": "Sends it back for the organization to resubmit the rejected documents."
+        },
+        "reject": {
+          "label": "Reject account",
+          "description": "Closes the request without granting the level."
+        }
+      },
+      "blocked": {
+        "pendingDocuments": "Decide every document first.",
+        "rejectedDocuments": "Unavailable: there are rejected documents.",
+        "missingDocuments": "Unavailable: there are documents not submitted.",
+        "checksNotPassed": "Unavailable: the automatic checks did not pass.",
+        "noRejectedDocument": "Reject at least one document to request a correction."
+      },
+      "form": {
+        "decision": "Decision",
+        "reason": "Rejection reason",
+        "accountReason": "Account rejection reason",
+        "reasonPlaceholder": "Select a reason",
+        "reasonDetails": "Details",
+        "reasonDetailsHelper": "Required when the reason is \"Other\". Up to 1000 characters.",
+        "accountReasonInternal": "The reason is internal: it is not shown to the organization.",
+        "userInstructions": "Instructions for the organization",
+        "userInstructionsHelper": "What the organization needs to fix. Up to 2000 characters.",
+        "reviewerNote": "Internal note",
+        "reviewerNoteHelper": "Visible to the team only. Up to 1000 characters.",
+        "confirmTitle": "Confirm decision",
+        "confirmText": "Confirm \"{{decision}}\"? The decision is final and will be applied to the organization's account.",
+        "errors": {
+          "decisionRequired": "Choose a decision.",
+          "reasonRequired": "Select a reason.",
+          "detailsRequired": "Describe the reason.",
+          "instructionsRequired": "Write the instructions for the organization.",
+          "tooLong": "Text is too long."
+        }
+      },
+      "checks": {
+        "types": {
+          "tax_registration": "Tax registration",
+          "sanctions": "Sanctions lists"
+        },
+        "status": {
+          "passed": "Passed",
+          "failed": "Failed",
+          "not_verified": "Not verified",
+          "error": "Error"
+        },
+        "expired": "Expired",
+        "checkedAt": "Checked on {{date}}",
+        "strict": "Strict policy"
+      },
+      "history": {
+        "events": {
+          "entered_queue": "Entered the queue",
+          "document_version_added": "New document version",
+          "review_started": "Review started",
+          "document_approved": "Document approved",
+          "document_rejected": "Document rejected",
+          "document_reopened": "Document reopened",
+          "account_decided": "Account decided",
+          "stale_decision_refreshed": "Review refreshed after the organization changed"
+        },
+        "system": "System",
+        "you": "You",
+        "reviewer": "Reviewer {{id}}",
+        "empty": "No events.",
+        "loadMore": "Load more ({{loaded}} of {{total}})"
+      },
+      "viewer": {
+        "loading": "Loading file",
+        "expires": "The file link expires in a few minutes.",
+        "openInNewTab": "Open in a new tab"
+      },
+      "errors": {
+        "failed": "The action could not be completed. Try again.",
+        "forbidden": "Your account cannot access KYC review.",
+        "invalid_token": "Your session has expired. Sign in again to continue.",
+        "mfa_required": "Confirm MFA in your session to review KYC.",
+        "insufficient_permission": "Your account lacks the permission for this action.",
+        "auth_unavailable": "Compliance authentication is unavailable. Try again shortly.",
+        "not_found": "Request or document not found.",
+        "validation_error": "Invalid data. Check the fields and try again.",
+        "version_conflict": "The request changed since it was last loaded. The data was refreshed — check it and repeat the action.",
+        "invalid_request_state": "The request is no longer at a stage that allows this action. The data was refreshed.",
+        "review_assigned_to_other": "This review is assigned to another reviewer.",
+        "document_version_conflict": "The document received a new version. The data was refreshed.",
+        "document_already_decided": "The document was already decided. Reopen it to decide again.",
+        "document_not_decided": "The document has not been decided yet.",
+        "document_not_submitted": "A document without a file cannot be approved.",
+        "reason_incompatible_with_submission": "Incompatible reason: \"Missing document\" only applies to a requirement without a file.",
+        "document_has_no_file": "This document has no file.",
+        "document_file_missing": "The document file was not found in storage.",
+        "document_storage_reference_invalid": "The file reference is invalid.",
+        "idempotency_conflict": "This decision was already sent with different data. Reload the page.",
+        "requested_level_not_supported": "The requested level cannot be decided here.",
+        "documents_not_reviewed": "Decide every document before the account.",
+        "rejected_documents": "There are rejected documents — approval is not possible.",
+        "documents_not_submitted": "There are documents not submitted — approval is not possible.",
+        "automatic_checks_not_passed": "The automatic checks do not allow approval.",
+        "rejected_document_required": "Reject at least one document to request a correction.",
+        "identity_request_rejected": "Identity rejected the operation.",
+        "identity_unavailable": "Identity is unavailable. Try again shortly.",
+        "identity_not_configured": "The Identity integration is not configured.",
+        "identity_response_invalid": "Identity returned an unexpected response.",
+        "kyc_decision_snapshot_stale": "the organization changed after the decision",
+        "submission_identity_conflict": "The organization's submission changed in Identity. Try opening it again.",
+        "submission_requirements_missing": "The organization has not submitted the required documents yet.",
+        "artifact_identity_conflict": "The organization's documents changed in Identity. Try opening it again.",
+        "stale_document_version": "A document received a new version during sync. Try opening it again.",
+        "request_identity_changed": "The request identity changed in Identity.",
+        "decision_not_invalidated": "The latest decision is not stale — there is nothing to refresh.",
+        "special_review_required": "The request is in special review.",
+        "review_already_refreshed": "The review was already refreshed.",
+        "audit_unavailable": "Audit is unavailable. Nothing was changed — try again shortly.",
+        "storage_unavailable": "File storage is unavailable. Try again shortly.",
+        "database_unavailable": "Compliance is unavailable. Try again shortly."
+      }
     }
   },
   "Kyc": {
     "screens": {
       "continue": "Go to dashboard",
+      "upgrade": {
+        "title": "Level up",
+        "subtitle": "Your current level is approved. Send the documents for the level you want for a new review."
+      },
       "resubmit": {
-        "title": "Send the requested documents",
-        "subtitle": "The review asked for additional documents. Send them to continue the review."
+        "title": "Send the corrected documents",
+        "subtitle": "Follow the instructions you received from the review and send the level's set again."
       },
       "rejected": {
-        "title": "Documents rejected",
-        "subtitle": "Review the documents and send them again for a new review."
+        "title": "Request rejected",
+        "subtitle": "Your company's KYC request was rejected. Contact support to find out how to proceed."
+      },
+      "suspended": {
+        "title": "KYC suspended",
+        "subtitle": "Your company's verification is suspended. Contact support to find out how to proceed."
       },
       "review": {
         "title": "Documents under review",
-        "subtitle": "We received your documents. Manual review takes up to 72 business hours."
+        "subtitle": "We received your documents. Manual review takes up to 72 business hours.",
+        "correction": "Received a correction request? Send the documents again"
       },
       "approved": {
         "title": "Account approved",

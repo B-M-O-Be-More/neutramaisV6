@@ -79,6 +79,20 @@ describe("identityProxy — Authorization em /kyc/artifacts", () => {
 
     expect(headersOfLastCall(fetchMock)).not.toHaveProperty("Authorization");
   });
+
+  it("repassa FormData como multipart, sem forçar Content-Type JSON", async () => {
+    const form = new FormData();
+    form.append("document_type", "cnpj_card");
+    form.append("kyc_level_supported", "basic");
+    form.append("file", new File(["%PDF-1.4"], "cnpj.pdf"));
+
+    await callIdentity({ method: "POST", path: ARTIFACTS_PATH, body: form });
+
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    // Sem Content-Type: o fetch define multipart com o boundary.
+    expect(init.headers).not.toHaveProperty("Content-Type");
+    expect(init.body).toBe(form);
+  });
 });
 
 describe("identityProxy — chamadas anônimas", () => {

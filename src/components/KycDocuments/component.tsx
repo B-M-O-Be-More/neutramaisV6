@@ -17,7 +17,6 @@ import {
   LuCheck,
   LuCircleAlert,
   LuCircleCheckBig,
-  LuCircleX,
   LuFileWarning,
   LuShieldCheck,
   LuUpload,
@@ -28,12 +27,13 @@ import { toaster } from "@/components/ui/toaster";
 import {
   KYC_TARGET_LEVELS,
   kycGroupsFor,
+  kycSelectableLevels,
   type KycDocumentGroup,
   type KycDocumentItem,
   type KycTargetLevel,
 } from "@/data/kycDocuments";
 import { useKycDocuments } from "@/hooks/useKycDocuments";
-import { KYC_MIME_TYPES } from "@/services/kyc.service";
+import { KYC_MIME_TYPES, type KycDocumentType } from "@/services/kyc.service";
 
 import { KycDocumentsProps, KycDocumentsVariant } from "./interface";
 
@@ -58,38 +58,51 @@ const HEADERS: Record<
     fg: "#10B981",
     textKey: "Register.flow.kyc.created",
   },
+  upgrade: {
+    icon: LuShieldCheck,
+    bg: "#EEF3FF",
+    fg: "#1F5AFF",
+    textKey: "Kyc.screens.upgrade",
+  },
   resubmit: {
     icon: LuFileWarning,
     bg: "#FFFBEB",
     fg: "#D97706",
     textKey: "Kyc.screens.resubmit",
   },
-  rejected: {
-    icon: LuCircleX,
-    bg: "#FEF2F2",
-    fg: "#EF4444",
-    textKey: "Kyc.screens.rejected",
-  },
 };
 
 /**
+ * Requisitos de uma lista de documentos: cada documento é um requisito, menos
+ * as alternativas (`oneOf`), que contam juntas — basta uma delas.
+ */
+function requirementsOf(documents: KycDocumentItem[]) {
+  const requirements = new Map<string, KycDocumentType[]>();
+  for (const doc of documents) {
+    const key = doc.oneOf ?? doc.type;
+    requirements.set(key, [...(requirements.get(key) ?? []), doc.type]);
+  }
+  return [...requirements.values()];
+}
+
+/**
  * Tela de KYC pós-cadastro (Figma 1920-18413): confirma a criação da conta e
- * oferece o envio de documentos para subir de nível de KYC.
+ * oferece o envio de documentos para pedir um nível de KYC.
  *
  * Usada na página autenticada `/kyc`, para onde o login leva quem ainda deve
  * documentos: `/kyc/artifacts` e `/kyc/submit` exigem sessão, por isso a tela
  * não fica no cadastro (que segue terminando no KycNextSteps).
  *
- * - Básico: já ativo, sem documentos.
- * - Verificado: o grupo "KYC Verificado".
- * - Completo: os grupos "KYC Verificado" e "KYC Completo".
+ * Todo nível passa por análise: o básico pede o cartão CNPJ e o contrato social
+ * ou a outorga SCM; o verificado e o completo somam os próprios grupos. Só os
+ * níveis acima do já concedido podem ser escolhidos.
  *
- * Cada arquivo é registrado na hora em `/kyc/artifacts` (ver useKycDocuments).
- * No CTA, os `artifact_id` registrados vão todos para `/kyc/submit`; sem
- * nenhum documento enviado, a tela só é encerrada.
+ * Cada arquivo é enviado na hora em `/kyc/artifacts` (ver useKycDocuments).
+ * No CTA, vão para `/kyc/submit` só os documentos do nível escolhido.
  */
 export function KycDocuments({
   organizationId,
+  currentLevel = "pending",
   variant = "submit",
   onFinish,
 }: KycDocumentsProps) {
@@ -97,8 +110,15 @@ export function KycDocuments({
   const header = HEADERS[variant];
   const kyc = useKycDocuments(organizationId);
 
-  const [level, setLevel] = React.useState<KycTargetLevel>("complete");
+  const selectable = kycSelectableLevels(currentLevel);
+  const [level, setLevel] = React.useState<KycTargetLevel>(
+    selectable[selectable.length - 1] ?? "complete",
+  );
   const groups = kycGroupsFor(level);
+  const isSent = (type: KycDocumentType) =>
+    kyc.documents[type]?.status === "sent";
+  const countSent = (requirements: KycDocumentType[][]) =>
+    requirements.filter((types) => types.some(isSent)).length;
 
   // Um input só, reaproveitado por todas as linhas: guarda qual documento pediu
   // o arquivo.
@@ -113,22 +133,18 @@ export function KycDocuments({
     inputRef.current?.click();
   };
 
-  // Só avança com todos os obrigatórios do nível escolhido enviados (os
-  // opcionais não travam). O nível básico não pede documentos e não é uma
-  // escolha aqui.
-  const requiredDocs = groups.flatMap((group) =>
-    group.documents.filter((doc) => !doc.optional),
-  );
-  const sentRequired = requiredDocs.filter(
-    (doc) => kyc.documents[doc.type]?.status === "sent",
-  ).length;
+  // Só avança com todos os requisitos do nível escolhido enviados.
+  const groupDocs = groups.flatMap((group) => group.documents);
+  const requirements = requirementsOf(groupDocs);
+  const sentRequired = countSent(requirements);
   const canFinish =
-    requiredDocs.length > 0 && sentRequired === requiredDocs.length;
+    requirements.length > 0 && sentRequired === requirements.length;
 
-  // Tudo o que foi registrado (opcionais inclusos) vai para análise.
+  // Vão para análise só os documentos do nível escolhido (alternativas
+  // enviadas inclusas).
   const finish = async () => {
     if (!canFinish) return;
-    const ok = await kyc.submit();
+    const ok = await kyc.submit(groupDocs.map((doc) => doc.type));
     if (!ok) {
       toaster.create({
         type: "error",
@@ -142,16 +158,16 @@ export function KycDocuments({
   const renderLevelCard = (option: KycTargetLevel) => {
     const selected = level === option;
     const colors = LEVEL_COLORS[option];
-    // O básico é o nível atual (informativo): escolhê-lo dispensaria o envio.
-    const selectable = option !== "basic";
+    // Níveis já concedidos (ou abaixo deles) não podem ser pedidos de novo.
+    const canSelect = selectable.includes(option);
 
     return (
       <chakra.button
         key={option}
         type="button"
         onClick={() => setLevel(option)}
-        disabled={!selectable}
-        aria-pressed={selectable ? selected : undefined}
+        disabled={!canSelect}
+        aria-pressed={canSelect ? selected : undefined}
         display="flex"
         flexDirection="column"
         justifyContent="center"
@@ -163,10 +179,10 @@ export function KycDocuments({
         borderColor={selected ? colors.fg : "border.default"}
         bg={selected ? colors.bg : "bg.surface"}
         textAlign="left"
-        cursor={selectable ? "pointer" : "default"}
+        cursor={canSelect ? "pointer" : "default"}
         transition="border-color 0.2s, background 0.2s"
         _hover={
-          selectable && !selected ? { borderColor: "gray.300" } : undefined
+          canSelect && !selected ? { borderColor: "gray.300" } : undefined
         }
         // Desabilitado só para não ser escolhido: mantém a aparência normal.
         _disabled={{ opacity: 1 }}
@@ -184,7 +200,7 @@ export function KycDocuments({
         >
           {t(`Register.flow.kyc.levels.${option}.description`)}
         </Text>
-        {option === "basic" && (
+        {option === currentLevel && (
           <Text
             as="span"
             mt="6px"
@@ -197,7 +213,7 @@ export function KycDocuments({
             fontWeight={700}
             lineHeight="13.5px"
           >
-            {t("Register.flow.kyc.levels.basic.current")}
+            {t("Register.flow.kyc.levels.current")}
           </Text>
         )}
       </chakra.button>
@@ -258,9 +274,9 @@ export function KycDocuments({
               {state.fileName}
             </Text>
           ) : (
-            item.optional && (
+            item.oneOf && (
               <Text fontSize="10px" lineHeight="15px" color="#A0ABB8" pt="5px">
-                {t("Register.flow.kyc.optional")}
+                {t(`Register.flow.kyc.oneOf.${item.oneOf}`)}
               </Text>
             )
           )}
@@ -299,9 +315,8 @@ export function KycDocuments({
 
   const renderGroup = (group: KycDocumentGroup) => {
     const colors = LEVEL_COLORS[group.level];
-    const sentCount = group.documents.filter(
-      (doc) => kyc.documents[doc.type]?.status === "sent",
-    ).length;
+    const groupRequirements = requirementsOf(group.documents);
+    const sentCount = countSent(groupRequirements);
 
     return (
       <Box
@@ -343,7 +358,7 @@ export function KycDocuments({
           >
             {t("Register.flow.kyc.sentCount", {
               sent: sentCount,
-              total: group.documents.length,
+              total: groupRequirements.length,
             })}
           </Text>
         </Flex>
@@ -426,12 +441,21 @@ export function KycDocuments({
           mt="2px"
           flexShrink={0}
         />
-        <Text fontSize="12px" lineHeight="18px" color="#92400E">
-          <Trans
-            i18nKey="Register.flow.kyc.notice"
-            components={{ strong: <Text as="span" fontWeight={700} /> }}
-          />
-        </Text>
+        <Stack gap="6px">
+          {/* O /kyc/submit só considera a seleção enviada: subir de nível ou
+              corrigir pede o conjunto inteiro, não só o que falta. */}
+          {(currentLevel !== "pending" || variant === "resubmit") && (
+            <Text fontSize="12px" lineHeight="18px" color="#92400E">
+              {t("Register.flow.kyc.fullSetNotice")}
+            </Text>
+          )}
+          <Text fontSize="12px" lineHeight="18px" color="#92400E">
+            <Trans
+              i18nKey="Register.flow.kyc.notice"
+              components={{ strong: <Text as="span" fontWeight={700} /> }}
+            />
+          </Text>
+        </Stack>
       </Flex>
 
       <Stack gap="8px">
@@ -467,7 +491,7 @@ export function KycDocuments({
           >
             {t("Register.flow.kyc.requiredHint", {
               sent: sentRequired,
-              total: requiredDocs.length,
+              total: requirements.length,
             })}
           </Text>
         )}
