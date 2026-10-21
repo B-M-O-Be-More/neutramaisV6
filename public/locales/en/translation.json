@@ -2633,6 +2633,7 @@
         "correction_requested": "Correction requested",
         "special_review": "Special review",
         "approved": "Approved",
+        "approvedNotApplied": "Approved · not applied",
         "rejected": "Rejected"
       },
       "header": {
@@ -2657,7 +2658,11 @@
         "applying": "Decision recorded. Applying it to the account is still in progress.",
         "stale": "The organization changed after the decision, so it could not be applied. Refresh the review to decide again with the current data.",
         "applyFailed": "Decision recorded but not applied to the account: {{error}}.",
-        "retryElsewhere": "The retry must be made by whoever decided, in the browser the decision was sent from."
+        "applyFailedUnknown": "Decision recorded but not applied to the account.",
+        "retryElsewhere": "The retry must be made by whoever decided, in the browser the decision was sent from.",
+        "sanctionsPending": "The sanctions check is not cleared. Approving the {{level}} level requires it to pass. Run the check again to update the result.",
+        "sanctionsMatch": "The sanctions check found a possible match. Approval stays blocked until compliance handles the case.",
+        "sanctionsNotSynced": "The sanctions check passed in Identity at {{date}}, but the review has not received the result yet. Try again in a moment."
       },
       "actions": {
         "view": "View",
@@ -2673,7 +2678,8 @@
         "retryApply": "Try applying again",
         "refreshReview": "Refresh review",
         "reload": "Refresh",
-        "dismiss": "Dismiss"
+        "dismiss": "Dismiss",
+        "runSanctions": "Run sanctions check"
       },
       "document": {
         "status": {
@@ -2732,6 +2738,7 @@
         "rejectedDocuments": "Unavailable: there are rejected documents.",
         "missingDocuments": "Unavailable: there are documents not submitted.",
         "checksNotPassed": "Unavailable: the automatic checks did not pass.",
+        "sanctionsNotCleared": "Unavailable: the sanctions check is not cleared.",
         "noRejectedDocument": "Reject at least one document to request a correction."
       },
       "form": {

@@ -28,6 +28,8 @@ import {
   LuFileWarning,
   LuRefreshCw,
   LuRotateCcw,
+  LuShieldAlert,
+  LuShieldCheck,
   LuTriangleAlert,
   LuUsers,
 } from "react-icons/lu";
@@ -109,9 +111,29 @@ const card = {
   rounded: "14px",
 } as const;
 
+// Níveis que o Identity só aplica com sanções liberadas (SANCTIONS_NOT_CLEARED).
+const LEVELS_REQUIRING_SANCTIONS = ["verified", "complete"];
+
+/**
+ * A aprovação depende de sanções liberadas e ainda não estão: o nível pedido
+ * exige a checagem e ela não está `passed` dentro da validade. Vale mesmo com
+ * a política `advisory` — a compliance-api aceitaria, mas o Identity recusa
+ * aplicar a decisão.
+ */
+function sanctionsPending(request: KycReviewRequest): boolean {
+  if (!LEVELS_REQUIRING_SANCTIONS.includes(request.requested_level)) {
+    return false;
+  }
+  const check = request.automatic_checks.find(
+    (item) => item.check_type === "sanctions",
+  );
+  return !check || check.status !== "passed" || check.expired;
+}
+
 /**
  * Por que cada decisão da conta não está disponível agora, espelhando as
- * regras da compliance-api (as mesmas recusas viriam como 422).
+ * regras da compliance-api (as mesmas recusas viriam como 422) e a exigência
+ * de sanções do Identity.
  */
 function blockedDecisions(
   request: KycReviewRequest,
@@ -143,9 +165,11 @@ function blockedDecisions(
       ? { approve: "Admin.review.blocked.rejectedDocuments" }
       : missing
         ? { approve: "Admin.review.blocked.missingDocuments" }
-        : checksBlock
-          ? { approve: "Admin.review.blocked.checksNotPassed" }
-          : {}),
+        : sanctionsPending(request)
+          ? { approve: "Admin.review.blocked.sanctionsNotCleared" }
+          : checksBlock
+            ? { approve: "Admin.review.blocked.checksNotPassed" }
+            : {}),
     ...(!hasRejected
       ? { request_correction: "Admin.review.blocked.noRejectedDocument" }
       : {}),
@@ -236,6 +260,7 @@ export function AdminKycReview({
     isReviewer,
     decision,
     canRetryDecision,
+    sanctionsRun,
     viewer,
   } = review;
 
@@ -297,16 +322,56 @@ export function AdminKycReview({
   }
 
   const { organization } = request;
-  const status = STATUS_STYLES[request.status] ?? STATUS_STYLES.submitted;
   const type = TYPE_COLORS[organization.organization_type] ?? TYPE_COLORS.buyer;
   const isBusy = !!busy;
 
   // A decisão só descreve a situação atual se o status ainda for o dela
-  // (depois de um refresh-review a solicitação volta para `submitted`).
+  // (depois de um refresh-review a solicitação volta para `submitted`). Sem
+  // ela (leitura falhou ou ainda não chegou), vale o `activation_status` do
+  // detalhe.
   const currentDecision =
     decision && decision.status === request.status ? decision : null;
-  const activation = currentDecision?.activation_status ?? null;
+  const activation =
+    currentDecision?.activation_status ?? request.activation_status ?? null;
   const applicationError = currentDecision?.application_error ?? null;
+
+  // `approved` só confirma o registro no Compliance; a conta muda quando a
+  // aplicação no Identity volta `applied`.
+  const awaitingActivation =
+    request.status === "approved" && activation !== "applied";
+  const status = awaitingActivation
+    ? { icon: LuClock, ...AMBER }
+    : (STATUS_STYLES[request.status] ?? STATUS_STYLES.submitted);
+  const statusLabel = awaitingActivation
+    ? t("Admin.review.status.approvedNotApplied")
+    : t(`Admin.review.status.${request.status}`);
+
+  const levelLabel = t(`Admin.organization.levels.${request.requested_level}`, {
+    defaultValue: request.requested_level,
+  });
+
+  // Pendência de sanções: aparece enquanto ainda pode virar aprovação aplicada.
+  const showSanctions =
+    sanctionsPending(request) &&
+    request.status !== "rejected" &&
+    request.status !== "special_review" &&
+    activation !== "applied";
+  const sanctionsNotice =
+    sanctionsRun?.is_clean === false
+      ? { tone: RED, text: t("Admin.review.notices.sanctionsMatch") }
+      : sanctionsRun?.is_clean
+        ? {
+            tone: AMBER,
+            text: t("Admin.review.notices.sanctionsNotSynced", {
+              date: formatDateTime(sanctionsRun.checked_at, i18n.language),
+            }),
+          }
+        : {
+            tone: AMBER,
+            text: t("Admin.review.notices.sanctionsPending", {
+              level: levelLabel,
+            }),
+          };
 
   const submitDecision = (values: KycAccountDecisionValues) =>
     review.decideAccount({
@@ -386,11 +451,7 @@ export function AdminKycReview({
             })}
           </Text>
           <Text color="#A0ABB8" fontSize="11.5px" lineHeight="17px">
-            {t("Admin.review.header.level", {
-              level: t(`Admin.organization.levels.${request.requested_level}`, {
-                defaultValue: request.requested_level,
-              }),
-            })}
+            {t("Admin.review.header.level", { level: levelLabel })}
             {" · "}
             {t("Admin.review.header.corrections", {
               count: request.correction_attempt_count ?? 0,
@@ -413,7 +474,7 @@ export function AdminKycReview({
         >
           <Icon as={status.icon} boxSize="12px" />
           <Text fontSize="12px" fontWeight={600}>
-            {t(`Admin.review.status.${request.status}`)}
+            {statusLabel}
           </Text>
         </Flex>
       </Flex>
@@ -493,6 +554,31 @@ export function AdminKycReview({
         </Notice>
       )}
 
+      {/* Sanções: o Identity só aplica verified/complete com elas liberadas. */}
+      {showSanctions && (
+        <Notice
+          tone={sanctionsNotice.tone}
+          icon={LuShieldAlert}
+          action={
+            <Button
+              {...noticeButton}
+              variant="outline"
+              bg="white"
+              borderColor={sanctionsNotice.tone.border}
+              color={sanctionsNotice.tone.text}
+              loading={busy === "sanctions"}
+              disabled={isBusy}
+              onClick={() => void review.runSanctions()}
+            >
+              <Icon as={LuShieldCheck} boxSize="13px" />
+              {t("Admin.review.actions.runSanctions")}
+            </Button>
+          }
+        >
+          {sanctionsNotice.text}
+        </Notice>
+      )}
+
       {/* Aplicação da decisão na conta (Identity). */}
       {activation === "applied" && (
         <Notice tone={GREEN} icon={LuCircleCheck}>
@@ -569,11 +655,13 @@ export function AdminKycReview({
             ) : undefined
           }
         >
-          {t("Admin.review.notices.applyFailed", {
-            error: t(`Admin.review.errors.${applicationError}`, {
-              defaultValue: applicationError ?? "",
-            }),
-          })}{" "}
+          {applicationError
+            ? t("Admin.review.notices.applyFailed", {
+                error: t(`Admin.review.errors.${applicationError}`, {
+                  defaultValue: applicationError,
+                }),
+              })
+            : t("Admin.review.notices.applyFailedUnknown")}{" "}
           {!canRetryDecision && t("Admin.review.notices.retryElsewhere")}
         </Notice>
       )}

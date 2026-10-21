@@ -1,3 +1,4 @@
+import type { SanctionsScreeningResult } from "@/services/admin.service";
 import type {
   KycAccountDecision,
   KycAccountDecisionBody,
@@ -9,7 +10,12 @@ import type {
   KycReviewRequest,
 } from "@/services/adminKycReview.service";
 
-export type { KycAccountDecisionResult, KycReviewDocument, KycReviewRequest };
+export type {
+  KycAccountDecisionResult,
+  KycReviewDocument,
+  KycReviewRequest,
+  SanctionsScreeningResult,
+};
 
 export interface UseAdminKycReviewOptions {
   /** `organization_id` da linha escolhida na fila. */
@@ -58,8 +64,8 @@ export interface DocumentViewerState {
 }
 
 /**
- * Ação em andamento: `open`, `start`, `refresh`, `decision`, `history` ou
- * `document:{id}`. null quando nada está em voo.
+ * Ação em andamento: `open`, `start`, `refresh`, `decision`, `history`,
+ * `sanctions` ou `document:{id}`. null quando nada está em voo.
  */
 export type AdminKycReviewBusy = string | null;
 
@@ -78,6 +84,8 @@ export interface UseAdminKycReviewReturn {
   decision: KycAccountDecisionResult | null;
   /** Há uma decisão não aplicada que pode ser reenviada com a mesma chave. */
   canRetryDecision: boolean;
+  /** Última checagem de sanções rodada nesta tela (Identity). */
+  sanctionsRun: SanctionsScreeningResult | null;
   viewer: DocumentViewerState | null;
 
   /** Relê o detalhe (ou reabre, se a primeira abertura falhou). */
@@ -93,6 +101,11 @@ export interface UseAdminKycReviewReturn {
   retryDecision: () => Promise<boolean>;
   /** Depois de `kyc_decision_snapshot_stale`: volta para `submitted`. */
   refreshReview: () => Promise<boolean>;
+  /**
+   * Roda a checagem de sanções no Identity e sincroniza a solicitação, para as
+   * checagens automáticas refletirem o resultado.
+   */
+  runSanctions: () => Promise<boolean>;
   openDocument: (documentId: string) => void;
   closeDocument: () => void;
   loadMoreHistory: () => void;

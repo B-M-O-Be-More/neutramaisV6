@@ -2612,6 +2612,7 @@
         "correction_requested": "Correção solicitada",
         "special_review": "Revisão especial",
         "approved": "Aprovado",
+        "approvedNotApplied": "Aprovado · não aplicado",
         "rejected": "Reprovado"
       },
       "header": {
@@ -2636,7 +2637,11 @@
         "applying": "Decisão registrada. A aplicação na conta ainda está em andamento.",
         "stale": "A organização mudou depois da decisão, que não pôde ser aplicada. Atualize a revisão para decidir de novo com os dados atuais.",
         "applyFailed": "Decisão registrada, mas não aplicada na conta: {{error}}.",
-        "retryElsewhere": "A nova tentativa precisa ser feita por quem decidiu, no navegador em que a decisão foi enviada."
+        "applyFailedUnknown": "Decisão registrada, mas não aplicada na conta.",
+        "retryElsewhere": "A nova tentativa precisa ser feita por quem decidiu, no navegador em que a decisão foi enviada.",
+        "sanctionsPending": "A checagem de sanções não está liberada. Para aprovar o nível {{level}}, ela precisa passar. Rode a checagem de novo para atualizar o resultado.",
+        "sanctionsMatch": "A checagem de sanções encontrou um possível match. A aprovação fica bloqueada até o compliance tratar o caso.",
+        "sanctionsNotSynced": "A checagem de sanções passou no Identity em {{date}}, mas a revisão ainda não recebeu o resultado. Tente de novo em instantes."
       },
       "actions": {
         "view": "Visualizar",
@@ -2652,7 +2657,8 @@
         "retryApply": "Tentar aplicar de novo",
         "refreshReview": "Atualizar revisão",
         "reload": "Atualizar",
-        "dismiss": "Fechar aviso"
+        "dismiss": "Fechar aviso",
+        "runSanctions": "Rodar checagem de sanções"
       },
       "document": {
         "status": {
@@ -2711,6 +2717,7 @@
         "rejectedDocuments": "Indisponível: há documentos recusados.",
         "missingDocuments": "Indisponível: há documentos não enviados.",
         "checksNotPassed": "Indisponível: as checagens automáticas não passaram.",
+        "sanctionsNotCleared": "Indisponível: a checagem de sanções não está liberada.",
         "noRejectedDocument": "Recuse ao menos um documento para pedir correção."
       },
       "form": {

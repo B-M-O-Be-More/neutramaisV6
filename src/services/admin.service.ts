@@ -129,6 +129,17 @@ export interface KycQueueParams {
   offset?: number;
 }
 
+/**
+ * Resultado de `POST /admin/sanctions/run`. Só diz se a organização ficou
+ * limpa — o detalhe por lista fica em `/admin/sanctions/matches` (RN-557).
+ */
+export interface SanctionsScreeningResult {
+  organization_id: string;
+  screening_run_id: string;
+  is_clean: boolean;
+  checked_at: string;
+}
+
 export const adminService = {
   /**
    * Fila de KYC, da solicitação mais antiga para a mais nova, com indicadores
@@ -142,5 +153,15 @@ export const adminService = {
     api.get<KycQueue>("/admin/kyc/queue", {
       params: { ...params },
       signal: options.signal,
+    }),
+
+  /**
+   * Roda de novo a checagem de sanções de uma organização, na hora (não é
+   * assíncrono). Exige `sanctions:run`. A compliance-api só vê o novo
+   * resultado depois de sincronizar a solicitação.
+   */
+  runSanctions: (organizationId: string) =>
+    api.post<SanctionsScreeningResult>("/admin/sanctions/run", {
+      organization_id: organizationId,
     }),
 };

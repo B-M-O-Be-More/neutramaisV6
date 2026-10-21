@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AdminKycReview from "@/components/AdminKycReview";
+import { adminService } from "@/services/admin.service";
 import {
   adminKycReviewService,
   type KycAccountDecisionResult,
@@ -40,6 +41,30 @@ function document(overrides: Partial<KycReviewDocument>): KycReviewDocument {
 
 const CNPJ = document({});
 
+type Check = KycReviewRequest["automatic_checks"][number];
+
+function sanctions(overrides: Partial<Check> = {}): Check {
+  return {
+    check_type: "sanctions",
+    status: "passed",
+    alert: false,
+    expired: false,
+    checked_at: "2026-10-16T13:00:00Z",
+    valid_until: "2026-11-16T13:00:00Z",
+    source: "identity",
+    evidence_ref: null,
+    policy: "advisory",
+    ...overrides,
+  };
+}
+
+const SANCTIONS_NOT_VERIFIED = sanctions({
+  status: "not_verified",
+  checked_at: null,
+  valid_until: null,
+  source: null,
+});
+
 function detail(overrides: Partial<KycReviewRequest> = {}): KycReviewRequest {
   return {
     request_id: REQUEST,
@@ -58,19 +83,7 @@ function detail(overrides: Partial<KycReviewRequest> = {}): KycReviewRequest {
       tax_id_country: "BR",
     },
     documents: [CNPJ],
-    automatic_checks: [
-      {
-        check_type: "sanctions",
-        status: "not_verified",
-        alert: false,
-        expired: false,
-        checked_at: null,
-        valid_until: null,
-        source: null,
-        evidence_ref: null,
-        policy: "advisory",
-      },
-    ],
+    automatic_checks: [sanctions()],
     history: { items: [], total: 0, limit: 50, offset: 0 },
     correction_attempt_count: 0,
     latest_decision_id: null,
@@ -153,14 +166,12 @@ describe("AdminKycReview", () => {
 
   it("cada decisão de documento leva o version da última resposta", async () => {
     vi.spyOn(service, "openRequest").mockResolvedValue(detail());
-    const decide = vi
-      .spyOn(service, "decideDocument")
-      .mockResolvedValue(
-        detail({
-          version: 5,
-          documents: [{ ...CNPJ, review_status: "approved" }],
-        }),
-      );
+    const decide = vi.spyOn(service, "decideDocument").mockResolvedValue(
+      detail({
+        version: 5,
+        documents: [{ ...CNPJ, review_status: "approved" }],
+      }),
+    );
     const reopen = vi
       .spyOn(service, "reopenDocument")
       .mockResolvedValue(detail({ version: 6 }));
@@ -184,14 +195,12 @@ describe("AdminKycReview", () => {
 
   it("recusa um documento com motivo e nota", async () => {
     vi.spyOn(service, "openRequest").mockResolvedValue(detail());
-    const decide = vi
-      .spyOn(service, "decideDocument")
-      .mockResolvedValue(
-        detail({
-          version: 5,
-          documents: [{ ...CNPJ, review_status: "rejected" }],
-        }),
-      );
+    const decide = vi.spyOn(service, "decideDocument").mockResolvedValue(
+      detail({
+        version: 5,
+        documents: [{ ...CNPJ, review_status: "rejected" }],
+      }),
+    );
 
     renderWithProviders(<AdminKycReview organizationId={ORGANIZATION} />);
 
@@ -305,6 +314,122 @@ describe("AdminKycReview", () => {
         name: /Admin.review.decisions.request_correction.label/,
       }),
     ).toBeEnabled();
+  });
+
+  it("bloqueia aprovar verified sem sanções liberadas e roda a checagem pela tela", async () => {
+    const approvedDocs = {
+      documents: [{ ...CNPJ, review_status: "approved" as const }],
+    };
+    const open = vi
+      .spyOn(service, "openRequest")
+      .mockResolvedValueOnce(
+        detail({ ...approvedDocs, automatic_checks: [SANCTIONS_NOT_VERIFIED] }),
+      )
+      .mockResolvedValueOnce(detail({ ...approvedDocs, version: 5 }));
+    const run = vi.spyOn(adminService, "runSanctions").mockResolvedValue({
+      organization_id: ORGANIZATION,
+      screening_run_id: "0192a0b1-d4e5-7f60-8a9b-0c1d2e3f4a5c",
+      is_clean: true,
+      checked_at: "2026-10-21T13:45:11Z",
+    });
+
+    renderWithProviders(<AdminKycReview organizationId={ORGANIZATION} />);
+
+    expect(
+      await screen.findByRole("radio", {
+        name: /Admin.review.decisions.approve.label/,
+      }),
+    ).toBeDisabled();
+    expect(
+      screen.getByText("Admin.review.notices.sanctionsPending"),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Admin.review.actions.runSanctions"));
+
+    await waitFor(() => expect(run).toHaveBeenCalledWith(ORGANIZATION));
+    await waitFor(() => expect(open).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("radio", {
+          name: /Admin.review.decisions.approve.label/,
+        }),
+      ).toBeEnabled(),
+    );
+    expect(
+      screen.queryByText("Admin.review.notices.sanctionsPending"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("avisa o possível match quando a checagem de sanções não sai limpa", async () => {
+    vi.spyOn(service, "openRequest").mockResolvedValue(
+      detail({ automatic_checks: [SANCTIONS_NOT_VERIFIED] }),
+    );
+    vi.spyOn(adminService, "runSanctions").mockResolvedValue({
+      organization_id: ORGANIZATION,
+      screening_run_id: "0192a0b1-d4e5-7f60-8a9b-0c1d2e3f4a5c",
+      is_clean: false,
+      checked_at: "2026-10-21T13:45:11Z",
+    });
+
+    renderWithProviders(<AdminKycReview organizationId={ORGANIZATION} />);
+
+    fireEvent.click(
+      await screen.findByText("Admin.review.actions.runSanctions"),
+    );
+
+    expect(
+      await screen.findByText("Admin.review.notices.sanctionsMatch"),
+    ).toBeInTheDocument();
+  });
+
+  it("o nível básico não depende de sanções", async () => {
+    vi.spyOn(service, "openRequest").mockResolvedValue(
+      detail({
+        requested_level: "basic",
+        documents: [{ ...CNPJ, review_status: "approved" }],
+        automatic_checks: [SANCTIONS_NOT_VERIFIED],
+      }),
+    );
+
+    renderWithProviders(<AdminKycReview organizationId={ORGANIZATION} />);
+
+    expect(
+      await screen.findByRole("radio", {
+        name: /Admin.review.decisions.approve.label/,
+      }),
+    ).toBeEnabled();
+    expect(
+      screen.queryByText("Admin.review.notices.sanctionsPending"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("sem a leitura da decisão, usa o activation_status do detalhe e não mostra aprovado como aplicado", async () => {
+    vi.spyOn(service, "openRequest").mockResolvedValue(
+      detail({
+        status: "approved",
+        version: 7,
+        documents: [{ ...CNPJ, review_status: "approved" }],
+        latest_decision_id: DECISION,
+        activation_status: "failed",
+      }),
+    );
+    vi.spyOn(service, "getDecision").mockRejectedValue(
+      apiErrorFromResponse(503, [
+        { field: "_server", code: "database_unavailable", detail: "" },
+      ]),
+    );
+
+    renderWithProviders(<AdminKycReview organizationId={ORGANIZATION} />);
+
+    expect(
+      await screen.findByText(/Admin.review.notices.applyFailedUnknown/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Admin.review.status.approvedNotApplied"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Admin.review.status.approved"),
+    ).not.toBeInTheDocument();
   });
 
   it("com snapshot desatualizado, oferece o refresh-review", async () => {

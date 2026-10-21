@@ -3,6 +3,10 @@
 import React from "react";
 
 import {
+  adminService,
+  type SanctionsScreeningResult,
+} from "@/services/admin.service";
+import {
   adminKycReviewService,
   type KycAccountDecisionBody,
   type KycAccountDecisionResult,
@@ -189,6 +193,8 @@ export function useAdminKycReview({
     null,
   );
   const [viewer, setViewer] = React.useState<DocumentViewerState | null>(null);
+  const [sanctionsRun, setSanctionsRun] =
+    React.useState<SanctionsScreeningResult | null>(null);
 
   // Sempre a última versão conhecida — as ações não podem usar um `version`
   // capturado num render anterior.
@@ -421,6 +427,23 @@ export function useAdminKycReview({
     return ok;
   }, [run]);
 
+  // A checagem roda no Identity; a compliance-api só traz o resultado para
+  // `automatic_checks` ao sincronizar a solicitação (`openRequest`).
+  const runSanctions = React.useCallback(async () => {
+    setBusy("sanctions");
+    setActionError(null);
+    try {
+      setSanctionsRun(await adminService.runSanctions(organizationId));
+      setRequest(await adminKycReviewService.openRequest(organizationId));
+      return true;
+    } catch (error) {
+      setActionError(toReviewError(error));
+      return false;
+    } finally {
+      setBusy(null);
+    }
+  }, [organizationId]);
+
   const openDocument = React.useCallback((documentId: string) => {
     const current = requestRef.current;
     const document = current?.documents.find((item) => item.id === documentId);
@@ -519,6 +542,7 @@ export function useAdminKycReview({
     isReviewer,
     decision,
     canRetryDecision,
+    sanctionsRun,
     viewer,
     reload,
     startReview,
@@ -527,6 +551,7 @@ export function useAdminKycReview({
     decideAccount,
     retryDecision,
     refreshReview,
+    runSanctions,
     openDocument,
     closeDocument,
     loadMoreHistory,

@@ -2621,6 +2621,7 @@
         "correction_requested": "Corrección solicitada",
         "special_review": "Revisión especial",
         "approved": "Aprobado",
+        "approvedNotApplied": "Aprobado · no aplicado",
         "rejected": "Rechazado"
       },
       "header": {
@@ -2645,7 +2646,11 @@
         "applying": "Decisión registrada. La aplicación a la cuenta aún está en curso.",
         "stale": "La organización cambió después de la decisión, que no pudo aplicarse. Actualiza la revisión para decidir de nuevo con los datos actuales.",
         "applyFailed": "Decisión registrada, pero no aplicada a la cuenta: {{error}}.",
-        "retryElsewhere": "El nuevo intento debe hacerlo quien decidió, en el navegador desde el que se envió la decisión."
+        "applyFailedUnknown": "Decisión registrada, pero no aplicada a la cuenta.",
+        "retryElsewhere": "El nuevo intento debe hacerlo quien decidió, en el navegador desde el que se envió la decisión.",
+        "sanctionsPending": "La verificación de sanciones no está liberada. Para aprobar el nivel {{level}}, debe pasar. Ejecuta la verificación de nuevo para actualizar el resultado.",
+        "sanctionsMatch": "La verificación de sanciones encontró una posible coincidencia. La aprobación queda bloqueada hasta que compliance trate el caso.",
+        "sanctionsNotSynced": "La verificación de sanciones pasó en Identity el {{date}}, pero la revisión aún no recibió el resultado. Inténtalo de nuevo en unos instantes."
       },
       "actions": {
         "view": "Ver",
@@ -2661,7 +2666,8 @@
         "retryApply": "Intentar aplicar de nuevo",
         "refreshReview": "Actualizar revisión",
         "reload": "Actualizar",
-        "dismiss": "Cerrar aviso"
+        "dismiss": "Cerrar aviso",
+        "runSanctions": "Ejecutar verificación de sanciones"
       },
       "document": {
         "status": {
@@ -2720,6 +2726,7 @@
         "rejectedDocuments": "No disponible: hay documentos rechazados.",
         "missingDocuments": "No disponible: hay documentos no enviados.",
         "checksNotPassed": "No disponible: las verificaciones automáticas no pasaron.",
+        "sanctionsNotCleared": "No disponible: la verificación de sanciones no está liberada.",
         "noRejectedDocument": "Rechaza al menos un documento para pedir corrección."
       },
       "form": {
