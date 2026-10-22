@@ -1,2 +1,2 @@
-// Sem props: o token vem da query do link (`?token=...`).
+// Sem props: o token vem do fragmento do link (`#token=...`).
 export type AcceptPlatformInviteProps = Record<string, never>;

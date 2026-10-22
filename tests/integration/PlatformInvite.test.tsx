@@ -155,6 +155,30 @@ describe("Aceite do convite (público)", () => {
     ).toBeInTheDocument();
   });
 
+  it("lê o token do fragmento do link do e-mail e o tira da URL", async () => {
+    search.value = "";
+    window.history.replaceState(
+      null,
+      "",
+      "/platform-invites/accept#token=frag-Token_9/change-password",
+    );
+    const accept = vi
+      .spyOn(platformInvitesService, "accept")
+      .mockResolvedValue({});
+    renderWithProviders(<AcceptPlatformInvite />);
+
+    expect(window.location.hash).toBe("");
+    expect(window.location.pathname).toBe("/platform-invites/accept");
+
+    fillAccept();
+
+    await waitFor(() =>
+      expect(accept).toHaveBeenCalledWith(
+        expect.objectContaining({ token: "frag-Token_9" }),
+      ),
+    );
+  });
+
   it("sem token no link, não mostra o formulário", () => {
     search.value = "";
     renderWithProviders(<AcceptPlatformInvite />);

@@ -9,13 +9,16 @@ import FormAcceptPlatformInvite from "@/components/Forms/FormAcceptPlatformInvit
 import { useAcceptPlatformInvite } from "@/hooks/useAcceptPlatformInvite";
 
 /**
- * Tela aberta pelo link do convite de operador (`?token=...`): coleta nome,
+ * Tela aberta pelo link do convite de operador (`#token=...`): coleta nome,
  * telefone e senha e cria a conta via `POST /platform-invites/accept`.
  */
 export function AcceptPlatformInvite() {
   const { t } = useTranslation();
   const { status, isSubmitting, formError, fieldError, submit } =
     useAcceptPlatformInvite();
+
+  // O token só é lido no browser; até lá não há o que mostrar.
+  if (status === "checking") return null;
 
   if (status === "form") {
     return (

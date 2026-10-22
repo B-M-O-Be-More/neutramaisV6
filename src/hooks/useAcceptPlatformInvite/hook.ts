@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import React from "react";
 
+import { readInviteToken } from "@/functions/inviteToken";
 import { toE164 } from "@/functions/toE164";
 import { ACCEPT_PASSWORD_MESSAGES } from "@/schemas/platformInvite";
 import { violationMessage } from "@/schemas/password";
@@ -27,9 +28,13 @@ const FIELD_MAP: Record<string, AcceptPlatformInviteFieldError["field"]> = {
   password: "password",
 };
 
+// Nada a observar: o useSyncExternalStore só separa servidor de browser.
+const subscribeNothing = () => () => {};
+
 /**
  * Cria a conta do operador convidado (`POST /platform-invites/accept`). O
- * token vem na query do link do e-mail e É a credencial — não há sessão.
+ * token vem no fragmento do link do e-mail (`#token=...`) e É a credencial —
+ * não há sessão. A query (`?token=...`) fica como alternativa.
  *
  * Erros são tratados aqui (SDD §12.4): senha fora da política e 422 de um
  * campo voltam para o formulário; qualquer outra falha colapsa no estado
@@ -37,16 +42,44 @@ const FIELD_MAP: Record<string, AcceptPlatformInviteFieldError["field"]> = {
  */
 export function useAcceptPlatformInvite(): UseAcceptPlatformInviteReturn {
   const params = useSearchParams();
-  const token = params.get("token") ?? "";
+  const queryToken = params.get("token") ?? "";
 
-  const [status, setStatus] = React.useState<AcceptPlatformInviteStatus>(
-    token ? "form" : "missing",
+  // O fragmento só existe no browser: no servidor (e na hidratação) a tela
+  // fica em `checking`. O token é lido uma vez, ao montar.
+  const isBrowser = React.useSyncExternalStore(
+    subscribeNothing,
+    () => true,
+    () => false,
+  );
+  const [hashToken] = React.useState(() =>
+    typeof window === "undefined"
+      ? null
+      : readInviteToken(window.location.hash),
+  );
+  const token = hashToken ?? queryToken;
+
+  const [result, setResult] = React.useState<"form" | "success" | "error">(
+    "form",
   );
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | undefined>();
   const [fieldError, setFieldError] = React.useState<
     AcceptPlatformInviteFieldError | undefined
   >();
+
+  // Tira o token da barra de endereço, para ele não ficar no histórico nem
+  // ser copiado junto com a URL.
+  React.useEffect(() => {
+    if (!hashToken) return;
+    const { pathname, search } = window.location;
+    window.history.replaceState(window.history.state, "", pathname + search);
+  }, [hashToken]);
+
+  const status: AcceptPlatformInviteStatus = !isBrowser
+    ? "checking"
+    : token
+      ? result
+      : "missing";
 
   const submit = React.useCallback(
     async ({ displayName, phone, password }: AcceptPlatformInviteInput) => {
@@ -63,7 +96,7 @@ export function useAcceptPlatformInvite(): UseAcceptPlatformInviteReturn {
           phone: toE164(phone),
           password,
         });
-        setStatus("success");
+        setResult("success");
       } catch (error) {
         // A política de senha do upstream vem em `metadata.detail.violations`.
         const violations = upstreamPasswordViolations(error);
@@ -96,7 +129,7 @@ export function useAcceptPlatformInvite(): UseAcceptPlatformInviteReturn {
           return;
         }
 
-        setStatus("error");
+        setResult("error");
       } finally {
         setIsSubmitting(false);
       }

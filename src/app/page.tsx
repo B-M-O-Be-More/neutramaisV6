@@ -2,6 +2,7 @@
 
 import { Box, Stack } from "@chakra-ui/react";
 
+import InviteLinkRedirect from "@/components/InviteLinkRedirect";
 import MarketplaceCategories from "@/components/MarketplaceCategories";
 import { MarketplaceCategoryCounts } from "@/components/MarketplaceCategories/interface";
 import MarketplaceCtaBanner from "@/components/MarketplaceCtaBanner";
@@ -37,9 +38,12 @@ const PLACEHOLDER_CATEGORY_COUNTS: MarketplaceCategoryCounts = {
 // métricas da plataforma, as categorias, os preços públicos (promoções e
 // vitrine de ofertas), o "como funciona"
 // o banner de cadastro e o rodapé.
+// O link do convite de operador também cai aqui (`#token=...`) e é levado
+// para a tela de aceite pelo InviteLinkRedirect.
 export default function Home() {
   return (
     <Box minH="100dvh" bg="white">
+      <InviteLinkRedirect />
       <MarketplaceHeader />
 
       <Stack

@@ -1,11 +1,13 @@
 /**
  * Estados da tela de aceite do convite:
- * - `form`    — formulário de criação da conta
- * - `success` — conta criada, pode entrar
- * - `error`   — convite inválido, expirado ou já usado
- * - `missing` — link sem `token` na query (nada a fazer)
+ * - `checking` — lendo o token do link (só existe no browser)
+ * - `form`     — formulário de criação da conta
+ * - `success`  — conta criada, pode entrar
+ * - `error`    — convite inválido, expirado ou já usado
+ * - `missing`  — link sem `token` (nada a fazer)
  */
 export type AcceptPlatformInviteStatus =
+  | "checking"
   | "form"
   | "success"
   | "error"
