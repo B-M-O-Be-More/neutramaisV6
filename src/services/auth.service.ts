@@ -121,6 +121,29 @@ export interface MfaEnrollConfirmBody {
   rememberMe?: boolean;
 }
 
+/**
+ * Resposta de `POST /auth/mfa/enrollment/start` — cadastro de MFA do
+ * onboarding (convite de organização). Diferente do `/mfa/enroll` do primeiro
+ * login: não há credencial nova, a confirmação usa o mesmo
+ * `mfa_enrollment_token`.
+ */
+export interface MfaOnboardingSetup {
+  otpauth_uri: string;
+  manual_key: string;
+  recovery_codes: string[];
+  /** Prazo (s) que resta ao `mfa_enrollment_token`. */
+  expires_in: number;
+}
+
+/** Payload de `POST /auth/mfa/enrollment/confirm` (pelo BFF). */
+export interface MfaOnboardingConfirmBody {
+  /** Vai como Bearer para o upstream — nunca no corpo. */
+  enrollment_token: string;
+  totp_code: string;
+  /** Sinal só do front (persistência do cookie), igual ao login. */
+  rememberMe?: boolean;
+}
+
 /** Payload de `POST /auth/password-reset/execute`. */
 export interface PasswordResetExecuteBody {
   /** Token recebido no link do e-mail — é a credencial da operação. */
@@ -279,6 +302,23 @@ export const authService = {
    */
   mfaEnrollConfirm: (body: MfaEnrollConfirmBody) =>
     api.post<null>("/auth/mfa/enroll/confirm", body),
+
+  /**
+   * Inicia o cadastro de MFA do onboarding (aceite de convite de organização).
+   * POST /api/v1/auth/mfa/enrollment/start, com o `mfa_enrollment_token` como
+   * Bearer (o BFF monta o header). Repetir substitui o segredo pendente.
+   */
+  mfaEnrollmentStart: (enrollmentToken: string) =>
+    api.post<MfaOnboardingSetup>("/auth/mfa/enrollment/start", {
+      enrollment_token: enrollmentToken,
+    }),
+
+  /**
+   * Conclui o cadastro do onboarding com o primeiro TOTP.
+   * POST /api/v1/auth/mfa/enrollment/confirm. Só aqui a sessão nasce (cookies).
+   */
+  mfaEnrollmentConfirm: (body: MfaOnboardingConfirmBody) =>
+    api.post<null>("/auth/mfa/enrollment/confirm", body),
 
   /**
    * Renova o par de tokens. POST /api/v1/auth/refresh

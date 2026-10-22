@@ -2931,21 +2931,42 @@
     "requirements": {
       "length": "At least {{count}} characters",
       "uppercase": "One uppercase letter",
+      "lowercase": "One lowercase letter",
       "number": "One number",
-      "symbol": "One symbol"
+      "symbol": "One symbol, such as ! @ # $ % & *"
     },
     "accept": {
-      "title": "Create your operator account",
-      "subtitle": "You were invited to the Neutra+ platform. Fill in your details to activate access.",
+      "title": "Create your account",
+      "subtitle": "You were invited to Neutra+. Fill in your details to activate access.",
       "submit": "Create account",
+      "entering": "Opening your account",
       "success": {
         "title": "Account created!",
-        "subtitle": "Your operator access is ready. On your first login you will set up the authenticator app (MFA).",
+        "subtitle": "Your access is ready. On your first login you will set up the authenticator app (MFA).",
         "cta": "Go to login"
+      },
+      "mfaLink": {
+        "title": "Account created!",
+        "subtitle": "You still need to set up the authenticator app (MFA). We sent a link to your email. You can also log in with your new password to set it up now.",
+        "cta": "Go to login"
+      },
+      "mfaPending": {
+        "title": "Account created!",
+        "subtitle": "You still need to set up the authenticator app (MFA). Log in with your new password to set it up.",
+        "cta": "Go to login"
+      },
+      "existing": {
+        "title": "You already have an account",
+        "subtitle": "This email is already registered on Neutra+. Log in with your account to accept the invite.",
+        "cta": "Log in and accept the invite"
+      },
+      "redeemConflict": {
+        "title": "We could not accept the invite",
+        "subtitle": "Your account already belongs to another organization, and each user can belong to only one. Talk to whoever sent the invite."
       },
       "error": {
         "title": "Invalid invite",
-        "subtitle": "This invite has expired or was already used. Ask a super admin for a new one.",
+        "subtitle": "This invite has expired, was already used or is no longer valid. Ask whoever sent it for a new one.",
         "missing": "The link is incomplete. Open the invite email link again."
       }
     },
@@ -2954,6 +2975,9 @@
       "emailInvalid": "Invalid email",
       "roleRequired": "Select the role",
       "nameRequired": "Enter your name",
+      "nameTooLong": "Use up to 100 characters",
+      "passwordTooLong": "The password can have up to 128 characters",
+      "unavailable": "Service unavailable right now. Try again in a moment.",
       "phoneRequired": "Enter the phone",
       "phoneInvalid": "Invalid phone. Use the format +55 11 99999-9999.",
       "passwordRequired": "Enter the password",

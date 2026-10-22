@@ -17,34 +17,21 @@ export const PLATFORM_ROLES = [
 
 export type PlatformRole = (typeof PLATFORM_ROLES)[number];
 
-/** Corpo de `POST /admin/platform-invites`. */
+/**
+ * Corpo de `POST /admin/platform-invites`. O campo é `role`, igual ao do
+ * convite de organização: o antigo `target_role` é recusado (422).
+ */
 export interface PlatformInviteDto {
   email: string;
-  target_role: PlatformRole;
-}
-
-/** Corpo de `POST /platform-invites/accept`. */
-export interface AcceptPlatformInviteDto {
-  /** Token recebido no link do e-mail — é a credencial da operação. */
-  token: string;
-  display_name: string;
-  /** E.164, ex.: "+5511999999999". */
-  phone: string;
-  password: string;
+  role: PlatformRole;
 }
 
 export const platformInvitesService = {
   /**
-   * Convida um novo operador da plataforma por e-mail.
+   * Convida um novo operador da plataforma por e-mail. O backend envia o link
+   * (`/accept/#token=...`); o aceite é o do invitesService.
    * Exige `super_admin` com MFA confirmado na sessão.
    */
   invite: (data: PlatformInviteDto) =>
     api.post<unknown>("/admin/platform-invites", data),
-
-  /**
-   * Cria a conta do operador a partir do convite recebido por e-mail. Pública:
-   * o `token` do link é a credencial.
-   */
-  accept: (data: AcceptPlatformInviteDto) =>
-    api.post<unknown>("/platform-invites/accept", data),
 };

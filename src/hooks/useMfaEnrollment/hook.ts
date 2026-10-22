@@ -12,6 +12,7 @@ import {
 } from "@/services/errors";
 
 import type {
+  MfaEnrollmentContract,
   MfaEnrollmentFailure,
   MfaEnrollmentPhase,
   MfaEnrollmentSecrets,
@@ -68,9 +69,12 @@ function outcomeFor(error: unknown): Outcome {
 }
 
 /**
- * Cadastro de MFA obrigatório no primeiro login de Admin e Seller (NEU-479):
- * credencial de início (do login) + senha → segredos do autenticador +
- * credencial de confirmação → primeiro TOTP → sessão.
+ * Cadastro de MFA obrigatório, em dois contratos (ver MfaEnrollmentContract):
+ * - primeiro login de Admin e Seller (NEU-479): credencial de início (do
+ *   login) + senha → segredos do autenticador + credencial de confirmação →
+ *   primeiro TOTP → sessão;
+ * - onboarding do convite de organização (NEU-563): credencial do aceite →
+ *   segredos → primeiro TOTP com a mesma credencial → sessão.
  *
  * Credenciais, senha e segredos vivem SÓ em memória (refs/estado deste hook):
  * nunca em URL, storage, logs ou analytics. Qualquer saída — sucesso,
@@ -110,6 +114,7 @@ export function useMfaEnrollment({
   const passwordRef = React.useRef<string | null>(null);
   const confirmTokenRef = React.useRef<string | null>(null);
   const rememberMeRef = React.useRef(false);
+  const contractRef = React.useRef<MfaEnrollmentContract>("firstLogin");
 
   // Trava síncrona contra envios duplicados: o `isSubmitting` só reflete no
   // próximo render, tarde demais para um duplo clique ou Enter repetido.
@@ -127,6 +132,7 @@ export function useMfaEnrollment({
     passwordRef.current = null;
     confirmTokenRef.current = null;
     rememberMeRef.current = false;
+    contractRef.current = "firstLogin";
     inFlightRef.current = false;
     setSecrets(null);
     setRecoveryCodesSaved(false);
@@ -185,30 +191,33 @@ export function useMfaEnrollment({
     return () => window.clearInterval(id);
   }, [expiresAt, retryAt, fail]);
 
-  /** Abre o cadastro com a credencial de início devolvida pelo login. */
+  /** Abre o cadastro com a credencial recebida do login ou do aceite. */
   const begin = React.useCallback(
     ({
+      contract = "firstLogin",
       enrollmentToken,
       password,
       expiresIn,
       rememberMe,
     }: MfaEnrollmentStart) => {
       clear();
+      contractRef.current = contract;
       startTokenRef.current = enrollmentToken;
-      passwordRef.current = password;
+      passwordRef.current = password ?? null;
       rememberMeRef.current = rememberMe;
       setExpiresAt(deadlineIn(expiresIn));
     },
     [clear, deadlineIn],
   );
 
-  /** Troca a credencial de início + senha pelos segredos do autenticador. */
+  /** Troca a credencial de início pelos segredos do autenticador. */
   const startSetup = React.useCallback(async () => {
     if (inFlightRef.current) return;
 
+    const onboarding = contractRef.current === "onboarding";
     const enrollmentToken = startTokenRef.current;
     const password = passwordRef.current;
-    if (!enrollmentToken || !password) {
+    if (!enrollmentToken || (!onboarding && !password)) {
       fail("timeout");
       return;
     }
@@ -224,10 +233,17 @@ export function useMfaEnrollment({
     setFormError(undefined);
 
     try {
-      const data = await authService.mfaEnrollStart({
-        enrollment_token: enrollmentToken,
-        password,
-      });
+      // No onboarding a mesma credencial confirma o cadastro; no primeiro
+      // login o /mfa/enroll devolve uma nova.
+      const data = onboarding
+        ? {
+            ...(await authService.mfaEnrollmentStart(enrollmentToken)),
+            enrollment_token: enrollmentToken,
+          }
+        : await authService.mfaEnrollStart({
+            enrollment_token: enrollmentToken,
+            password: password ?? "",
+          });
 
       confirmTokenRef.current = data.enrollment_token;
       setSecrets({
@@ -273,11 +289,14 @@ export function useMfaEnrollment({
       setFormError(undefined);
 
       try {
-        await authService.mfaEnrollConfirm({
+        const body = {
           enrollment_token: enrollmentToken,
           totp_code: totpCode,
           rememberMe: rememberMeRef.current,
-        });
+        };
+        await (contractRef.current === "onboarding"
+          ? authService.mfaEnrollmentConfirm(body)
+          : authService.mfaEnrollConfirm(body));
       } catch (error) {
         // Código errado: mesma credencial, mesma tela. O prazo NÃO é renovado.
         if (upstreamErrorCode(error) === "INVALID_MFA_CODE") {

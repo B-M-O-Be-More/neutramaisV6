@@ -1,15 +1,16 @@
 import { Suspense } from "react";
 
-import AcceptPlatformInvite from "@/components/AcceptPlatformInvite";
+import AcceptInvite from "@/components/AcceptInvite";
 import AuthLayout from "@/components/AuthLayout";
 
-// Página pública aberta pelo link do convite de operador (`?token=...`).
-// useSearchParams exige um limite de Suspense no App Router.
+// Endereço antigo do aceite de convite de operador. Os links novos usam
+// `/accept/#token=...`; este segue funcionando (fragmento ou `?token=`) com o
+// mesmo aceite unificado.
 export default function AcceptPlatformInvitePage() {
   return (
     <AuthLayout>
       <Suspense>
-        <AcceptPlatformInvite />
+        <AcceptInvite />
       </Suspense>
     </AuthLayout>
   );

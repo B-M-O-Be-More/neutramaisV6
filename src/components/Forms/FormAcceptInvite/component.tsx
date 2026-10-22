@@ -16,13 +16,13 @@ import {
 } from "react-icons/lu";
 
 import Input from "@/components/FormControl/Input";
-import { acceptPlatformInviteSchema } from "@/schemas/platformInvite";
+import {
+  ACCEPT_PASSWORD_PATTERNS,
+  acceptInviteSchema,
+} from "@/schemas/platformInvite";
 import { MIN_PASSWORD_LENGTH, PASSWORD_PATTERNS } from "@/schemas/password";
 
-import {
-  AcceptPlatformInviteValues,
-  FormAcceptPlatformInviteProps,
-} from "./interface";
+import { AcceptInviteValues, FormAcceptInviteProps } from "./interface";
 
 // Requisitos de senha com o predicado que os verifica em tempo real.
 const REQUIREMENTS = [
@@ -31,23 +31,31 @@ const REQUIREMENTS = [
     key: "uppercase",
     test: (v: string) => PASSWORD_PATTERNS.uppercase.test(v),
   },
+  {
+    key: "lowercase",
+    test: (v: string) => ACCEPT_PASSWORD_PATTERNS.lowercase.test(v),
+  },
   { key: "number", test: (v: string) => PASSWORD_PATTERNS.digit.test(v) },
-  { key: "symbol", test: (v: string) => PASSWORD_PATTERNS.symbol.test(v) },
+  {
+    key: "symbol",
+    test: (v: string) => ACCEPT_PASSWORD_PATTERNS.symbol.test(v),
+  },
 ] as const;
 
 /**
- * Criação da conta do operador convidado: nome, telefone e senha. O e-mail e o
- * papel já vêm do convite (o token do link).
+ * Criação da conta de quem recebeu um convite (organização ou plataforma):
+ * nome, telefone e senha. E-mail, papel e organização já vêm do convite (o
+ * token do link). A confirmação da senha é conferida só aqui.
  *
  * TODO(design): construído no padrão visual das telas de auth — falta o node
  * do Figma desta tela.
  */
-export function FormAcceptPlatformInvite({
+export function FormAcceptInvite({
   onSubmit,
   isSubmitting = false,
   formError,
   fieldError,
-}: FormAcceptPlatformInviteProps) {
+}: FormAcceptInviteProps) {
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -56,8 +64,8 @@ export function FormAcceptPlatformInvite({
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<AcceptPlatformInviteValues>({
-    resolver: yupResolver(acceptPlatformInviteSchema),
+  } = useForm<AcceptInviteValues>({
+    resolver: yupResolver(acceptInviteSchema),
     mode: "onBlur",
     defaultValues: {
       displayName: "",

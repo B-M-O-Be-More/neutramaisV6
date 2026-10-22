@@ -5,12 +5,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { toaster } from "@/components/ui/toaster";
-import {
-  KYC_SETTLED_SCREENS,
-  meOrganization,
-  resolveKycScreen,
-} from "@/functions/kycScreen";
-import { isAdminRole } from "@/functions/rolesToPersonas";
+import { resolvePostLoginRoute } from "@/functions/postLoginRoute";
 import { useMfaEnrollment } from "@/hooks/useMfaEnrollment";
 import { authService } from "@/services/auth.service";
 import {
@@ -21,7 +16,12 @@ import {
   upstreamErrorCode,
 } from "@/services/errors";
 
-import type { CredentialsInput, LoginStep, MfaInput } from "./interface";
+import type {
+  CredentialsInput,
+  LoginStep,
+  MfaInput,
+  UseLoginOptions,
+} from "./interface";
 
 /**
  * A partir da 3ª tentativa falha o upstream passa a exigir `h-captcha-response`
@@ -29,39 +29,6 @@ import type { CredentialsInput, LoginStep, MfaInput } from "./interface";
  * o widget antes de gastar uma tentativa que voltaria recusada.
  */
 export const CAPTCHA_AFTER_FAILED_ATTEMPTS = 3;
-
-// Destino pós-login: início da área autenticada.
-const POST_LOGIN_ROUTE = "/dashboard";
-const KYC_ROUTE = "/kyc";
-const ADMIN_ROUTE = "/admin";
-
-/**
- * Destino depois do login. O login só devolve tokens, e o token fica
- * desatualizado até ser renovado — por isso a decisão vem do `GET /me`, que lê
- * a organização do banco.
- *
- * O admin da plataforma (`admin_neutra` ou `super_admin`) vai para o painel
- * administrativo, sem passar pelo KYC.
- * Organização aprovada (KYC verificado ou completo) vai para o dashboard; os
- * demais cenários (enviar, em análise, reenviar, recusada) caem na tela de KYC.
- * Qualquer falha na consulta leva ao dashboard: o login já deu certo e não deve
- * travar aqui.
- */
-async function resolvePostLoginRoute(): Promise<string> {
-  try {
-    const profile = await authService.me();
-    if (isAdminRole(profile.roles ?? [])) return ADMIN_ROUTE;
-
-    const organization = meOrganization(profile);
-    if (!organization) return POST_LOGIN_ROUTE;
-
-    return KYC_SETTLED_SCREENS.includes(resolveKycScreen(organization))
-      ? POST_LOGIN_ROUTE
-      : KYC_ROUTE;
-  } catch {
-    return POST_LOGIN_ROUTE;
-  }
-}
 
 /**
  * Orquestra o login (US-01) conforme o artefato da identity-api: credenciais →
@@ -71,8 +38,11 @@ async function resolvePostLoginRoute(): Promise<string> {
  * Os tokens nunca chegam aqui: o BFF grava access_token/refresh_token em cookies
  * httpOnly (ADR-002) e devolve só o estado de MFA. Erros são tratados neste hook
  * (SDD §12.4), não nos componentes.
+ *
+ * Com `onAuthenticated`, quem usa o login decide o que fazer com a sessão (ex.:
+ * resgatar um convite) em vez de navegar para a área autenticada.
  */
-export function useLogin() {
+export function useLogin({ onAuthenticated }: UseLoginOptions = {}) {
   const router = useRouter();
   const { t } = useTranslation();
 
@@ -103,8 +73,12 @@ export function useLogin() {
     setStep("credentials");
   }, []);
   const completeLogin = React.useCallback(async () => {
+    if (onAuthenticated) {
+      await onAuthenticated();
+      return;
+    }
     router.push(await resolvePostLoginRoute());
-  }, [router]);
+  }, [onAuthenticated, router]);
   const enrollment = useMfaEnrollment({
     onRestart: restartFromEnrollment,
     onComplete: completeLogin,

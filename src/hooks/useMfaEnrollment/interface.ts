@@ -28,12 +28,27 @@ export type MfaEnrollmentSetupPhase = "qrCode" | "recoveryCodes" | "totp";
  */
 export type MfaEnrollmentFailure = "error" | "rateLimit" | "timeout";
 
-/** O que o login entrega ao abrir o cadastro. */
+/**
+ * Contrato do cadastro. Os tokens e corpos de um não servem no outro:
+ * - `firstLogin` (NEU-479): `/mfa/enroll` com o token do login + senha, que
+ *   devolve uma credencial NOVA para o `/mfa/enroll/confirm`;
+ * - `onboarding` (NEU-563, aceite de convite de organização):
+ *   `/mfa/enrollment/start` e `/mfa/enrollment/confirm`, os dois com o mesmo
+ *   `mfa_enrollment_token` como Bearer e sem senha.
+ */
+export type MfaEnrollmentContract = "firstLogin" | "onboarding";
+
+/** O que o login (ou o aceite do convite) entrega ao abrir o cadastro. */
 export interface MfaEnrollmentStart {
-  /** `mfa_enrollment_token` do login — credencial opaca e de uso único. */
+  /** Padrão: `firstLogin`. */
+  contract?: MfaEnrollmentContract;
+  /** `mfa_enrollment_token` recebido — credencial opaca. */
   enrollmentToken: string;
-  /** Senha atual; só serve à troca do /mfa/enroll e é descartada em seguida. */
-  password: string;
+  /**
+   * Senha atual; só serve à troca do /mfa/enroll e é descartada em seguida.
+   * Obrigatória no `firstLogin`; ignorada no `onboarding`.
+   */
+  password?: string;
   /** Prazo (s) da credencial de início. */
   expiresIn: number;
   /** "Manter conectado" escolhido no login — aplicado à sessão final. */
@@ -49,8 +64,9 @@ export interface MfaEnrollmentSecrets {
 
 export interface UseMfaEnrollmentOptions {
   /**
-   * Encerra o cadastro e volta às credenciais. `message` (já traduzida) explica
-   * o motivo; ausente quando o próprio usuário saiu.
+   * Encerra o cadastro e volta às credenciais (no onboarding, à tela de
+   * login). `message` (já traduzida) explica o motivo; ausente quando o
+   * próprio usuário saiu.
    */
   onRestart: (message?: string) => void;
   /** Sessão criada pelo BFF — segue para a área autenticada. */
