@@ -105,8 +105,8 @@ function PlatformInvitesContent() {
   );
 }
 
-// Convite de operadores da plataforma (super_admin + MFA). O convidado conclui
-// o cadastro pelo link do e-mail, em /platform-invites/accept.
+// Convite de operadores da plataforma (super_admin + MFA). O backend envia o
+// e-mail; o convidado conclui o cadastro pelo link, em /accept/#token=...
 export default function PlatformInvitesPage() {
   return (
     <AuthenticatedLayout>
