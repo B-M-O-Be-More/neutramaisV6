@@ -2919,21 +2919,42 @@
     "requirements": {
       "length": "Mínimo de {{count}} caracteres",
       "uppercase": "Una letra mayúscula",
+      "lowercase": "Una letra minúscula",
       "number": "Un número",
-      "symbol": "Un símbolo"
+      "symbol": "Un símbolo, como ! @ # $ % & *"
     },
     "accept": {
-      "title": "Crea tu cuenta de operador",
-      "subtitle": "Fuiste invitado a la plataforma Neutra+. Completa tus datos para activar el acceso.",
+      "title": "Crea tu cuenta",
+      "subtitle": "Fuiste invitado a Neutra+. Completa tus datos para activar el acceso.",
       "submit": "Crear cuenta",
+      "entering": "Abriendo tu cuenta",
       "success": {
         "title": "¡Cuenta creada!",
-        "subtitle": "Tu acceso de operador está listo. En el primer inicio de sesión configurarás la app autenticadora (MFA).",
+        "subtitle": "Tu acceso está listo. En el primer inicio de sesión configurarás la app autenticadora (MFA).",
         "cta": "Ir al inicio de sesión"
+      },
+      "mfaLink": {
+        "title": "¡Cuenta creada!",
+        "subtitle": "Falta configurar la app autenticadora (MFA). Enviamos un enlace a tu e-mail. También puedes iniciar sesión con la nueva contraseña para configurarla ahora.",
+        "cta": "Ir al inicio de sesión"
+      },
+      "mfaPending": {
+        "title": "¡Cuenta creada!",
+        "subtitle": "Falta configurar la app autenticadora (MFA). Inicia sesión con la nueva contraseña para configurarla.",
+        "cta": "Ir al inicio de sesión"
+      },
+      "existing": {
+        "title": "Ya tienes una cuenta",
+        "subtitle": "Este e-mail ya está registrado en Neutra+. Inicia sesión con tu cuenta para aceptar la invitación.",
+        "cta": "Iniciar sesión y aceptar la invitación"
+      },
+      "redeemConflict": {
+        "title": "No pudimos aceptar la invitación",
+        "subtitle": "Tu cuenta ya pertenece a otra organización, y cada usuario puede estar en una sola. Habla con quien envió la invitación."
       },
       "error": {
         "title": "Invitación inválida",
-        "subtitle": "Esta invitación expiró o ya fue usada. Pide una nueva a un super admin.",
+        "subtitle": "Esta invitación expiró, ya fue usada o ya no es válida. Pide una nueva a quien la envió.",
         "missing": "El enlace está incompleto. Abre de nuevo el enlace del e-mail de invitación."
       }
     },
@@ -2942,6 +2963,9 @@
       "emailInvalid": "E-mail inválido",
       "roleRequired": "Selecciona el rol",
       "nameRequired": "Informa tu nombre",
+      "nameTooLong": "Usa hasta 100 caracteres",
+      "passwordTooLong": "La contraseña puede tener hasta 128 caracteres",
+      "unavailable": "Servicio no disponible en este momento. Inténtalo de nuevo en unos instantes.",
       "phoneRequired": "Informa el teléfono",
       "phoneInvalid": "Teléfono inválido. Usa el formato +55 11 99999-9999.",
       "passwordRequired": "Informa la contraseña",

@@ -36,7 +36,7 @@ export function useInvitePlatformOperator(): UseInvitePlatformOperatorReturn {
       try {
         await platformInvitesService.invite({
           email: normalizedEmail,
-          target_role: targetRole,
+          role: targetRole,
         });
         setSentTo(normalizedEmail);
         return true;

@@ -6,6 +6,14 @@
  */
 export type LoginStep = "credentials" | "mfa" | "mfaEnrollment";
 
+export interface UseLoginOptions {
+  /**
+   * Chamado quando a sessão nasce (login, desafio ou cadastro de MFA), no
+   * lugar da navegação padrão para a área autenticada.
+   */
+  onAuthenticated?: () => Promise<void> | void;
+}
+
 /** Valores das credenciais, já validados pelo loginSchema. */
 export interface CredentialsInput {
   email: string;
