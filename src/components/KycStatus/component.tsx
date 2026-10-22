@@ -6,6 +6,8 @@ import type { IconType } from "react-icons";
 import {
   LuArrowRight,
   LuBadgeCheck,
+  LuBan,
+  LuCircleX,
   LuClock,
   LuShieldCheck,
 } from "react-icons/lu";
@@ -19,13 +21,20 @@ const VARIANTS: Record<
   review: { icon: LuClock, bg: "#FFFBEB", fg: "#D97706" },
   approved: { icon: LuBadgeCheck, bg: "#EDFBF5", fg: "#10B981" },
   complete: { icon: LuShieldCheck, bg: "#EDFBF5", fg: "#10B981" },
+  rejected: { icon: LuCircleX, bg: "#FEF2F2", fg: "#EF4444" },
+  suspended: { icon: LuBan, bg: "#FEF2F2", fg: "#EF4444" },
 };
 
 /**
- * Situação do KYC quando não há documento a enviar: em análise, aprovado ou
- * completo. Segue o cabeçalho da tela de documentos (KycDocuments).
+ * Situação do KYC quando não há documento a enviar: em análise, aprovado,
+ * completo, recusado ou suspenso. Segue o cabeçalho da tela de documentos
+ * (KycDocuments).
  */
-export function KycStatus({ variant, onContinue }: KycStatusProps) {
+export function KycStatus({
+  variant,
+  onContinue,
+  onCorrection,
+}: KycStatusProps) {
   const { t } = useTranslation();
   const style = VARIANTS[variant];
 
@@ -81,6 +90,21 @@ export function KycStatus({ variant, onContinue }: KycStatusProps) {
         {t("Kyc.screens.continue")}
         <Icon as={LuArrowRight} boxSize="15px" />
       </Button>
+
+      {variant === "review" && onCorrection && (
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onCorrection}
+          h="auto"
+          py="6px"
+          color="brand.500"
+          fontSize="13px"
+          fontWeight={600}
+        >
+          {t("Kyc.screens.review.correction")}
+        </Button>
+      )}
     </Stack>
   );
 }

@@ -16,17 +16,16 @@ export type OrganizationStatus =
 export type AdminOrganizationType = "buyer" | "seller";
 
 /**
- * Status de uma solicitação na fila de KYC. Os valores saem em português no
- * contrato publicado (a regra da plataforma pede inglês) — tratados como
- * contrato atual até a correção no backend.
+ * Status de uma solicitação na fila de KYC. O contrato HTTP é em inglês: os
+ * valores vão traduzidos só na tela, nunca em `?status=`.
  */
 export const KYC_QUEUE_STATUSES = [
-  "pendente",
-  "enviado",
-  "correcao_solicitada",
-  "aprovado",
-  "recusado",
-  "suspenso",
+  "pending",
+  "submitted",
+  "correction_requested",
+  "approved",
+  "rejected",
+  "suspended",
 ] as const;
 
 export type KycQueueStatus = (typeof KYC_QUEUE_STATUSES)[number];
@@ -34,29 +33,35 @@ export type KycQueueStatus = (typeof KYC_QUEUE_STATUSES)[number];
 /** Filtros extras aceitos em `?status=`, além dos status da solicitação. */
 export const KYC_QUEUE_STATUS_FILTERS = [
   ...KYC_QUEUE_STATUSES,
-  "em_revisao",
-  "revisao_especial",
+  "under_review",
+  "special_review",
 ] as const;
 
 export type KycQueueStatusFilter = (typeof KYC_QUEUE_STATUS_FILTERS)[number];
 
 export type KycQueueSlaState =
-  | "nao_iniciado"
-  | "em_andamento"
-  | "estourado"
-  | "encerrado";
+  | "not_started"
+  | "in_progress"
+  | "overdue"
+  | "closed";
 
 export type KycQueueAlertCode =
-  | "documento_vencido"
-  | "scm_pendente"
-  | "documento_ilegivel"
-  | "cnpj_inapto"
-  | "sancao";
+  | "expired_document"
+  | "pending_scm_license"
+  | "unreadable_document"
+  | "inactive_tax_registration"
+  | "sanctions";
+
+export type KycQueueAlertStatus =
+  | "active"
+  | "inactive"
+  | "not_verified"
+  | "not_applicable";
 
 export interface KycQueueAlert {
   code: KycQueueAlertCode;
-  /** Ex.: `ativo`, `nao_verificado`. Só `ativo` é exibido. */
-  status: string;
+  /** Só `active` é exibido. */
+  status: KycQueueAlertStatus;
 }
 
 /** Item de `GET /admin/kyc/queue`. */
@@ -90,8 +95,8 @@ export interface KycQueueItem {
   };
   alerts: KycQueueAlert[];
   flags: {
-    em_revisao: boolean;
-    revisao_especial: boolean;
+    under_review: boolean;
+    special_review: boolean;
   };
 }
 
@@ -124,6 +129,17 @@ export interface KycQueueParams {
   offset?: number;
 }
 
+/**
+ * Resultado de `POST /admin/sanctions/run`. Só diz se a organização ficou
+ * limpa — o detalhe por lista fica em `/admin/sanctions/matches` (RN-557).
+ */
+export interface SanctionsScreeningResult {
+  organization_id: string;
+  screening_run_id: string;
+  is_clean: boolean;
+  checked_at: string;
+}
+
 export const adminService = {
   /**
    * Fila de KYC, da solicitação mais antiga para a mais nova, com indicadores
@@ -137,5 +153,15 @@ export const adminService = {
     api.get<KycQueue>("/admin/kyc/queue", {
       params: { ...params },
       signal: options.signal,
+    }),
+
+  /**
+   * Roda de novo a checagem de sanções de uma organização, na hora (não é
+   * assíncrono). Exige `sanctions:run`. A compliance-api só vê o novo
+   * resultado depois de sincronizar a solicitação.
+   */
+  runSanctions: (organizationId: string) =>
+    api.post<SanctionsScreeningResult>("/admin/sanctions/run", {
+      organization_id: organizationId,
     }),
 };

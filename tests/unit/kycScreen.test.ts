@@ -10,34 +10,44 @@ import type { MeOrganization, MeProfile } from "@/services/auth.service";
 type Scenario = Pick<MeOrganization, "status" | "kyc_state">;
 
 describe("resolveKycScreen", () => {
-  // Cenários do Seller (status + kyc_state do /me).
+  // Cenários de buyer e seller (status + kyc_state do /me).
   it.each<[string, Scenario, KycScreen]>([
     [
       "1) sem documentos",
       { status: "pending", kyc_state: "pending" },
       "submit",
     ],
-    ["2) em análise", { status: "pending", kyc_state: "basic" }, "review"],
+    // `pending_documents` é o estado logo depois do /kyc/submit — e continua
+    // assim quando a análise pede correção.
     [
-      "3) admin pediu mais documentos",
+      "2) enviado, em análise",
       { status: "pending", kyc_state: "pending_documents" },
-      "resubmit",
+      "review",
     ],
-    ["4) aprovada", { status: "active", kyc_state: "verified" }, "approved"],
     [
-      "5) KYC completo",
+      "3) básico aprovado (seller segue pending)",
+      { status: "pending", kyc_state: "basic" },
+      "upgrade",
+    ],
+    [
+      "4) básico aprovado (buyer ativo)",
+      { status: "active", kyc_state: "basic" },
+      "upgrade",
+    ],
+    ["5) verificado", { status: "active", kyc_state: "verified" }, "approved"],
+    [
+      "6) KYC completo",
       { status: "active", kyc_state: "complete" },
       "complete",
     ],
-    ["6) recusada", { status: "pending", kyc_state: "rejected" }, "rejected"],
+    ["7) recusada", { status: "pending", kyc_state: "rejected" }, "rejected"],
+    [
+      "8) suspensa",
+      { status: "suspended", kyc_state: "suspended" },
+      "suspended",
+    ],
   ])("%s → %s", (_, organization, expected) => {
     expect(resolveKycScreen(organization)).toBe(expected);
-  });
-
-  it("buyer básico autoaprovado (active) pode enviar documentos", () => {
-    expect(resolveKycScreen({ status: "active", kyc_state: "basic" })).toBe(
-      "submit",
-    );
   });
 });
 

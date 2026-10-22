@@ -6,9 +6,10 @@ import { forwardToIdentity } from "@/server/identityProxy";
 // BFF: POST /api/organizations/{orgId}/kyc/artifacts
 //   → identity-api POST /organizations/{org_id}/kyc/artifacts
 //
-// Declara o metadado de UM documento (o binário vive no S3). O cadastro não
-// passa por aqui: lá os documentos vão todos juntos no /kyc/submit. Esta rota
-// segue disponível para declarar artefatos avulsos fora daquele fluxo.
+// Envia UM documento e devolve o id do artefato confirmado. O formato normal é
+// `multipart/form-data` com `document_type`, `kyc_level_supported` e `file`
+// (o backend verifica os bytes e guarda uma cópia imutável). O JSON antigo,
+// que referencia um objeto já existente no storage privado, segue repassado.
 //
 // Rota autenticada: exige `kyc:submit` sobre a própria organização — ver
 // `resolveFlowAuthToken`.
@@ -17,7 +18,11 @@ export async function POST(
   { params }: { params: Promise<{ orgId: string }> },
 ) {
   const { orgId } = await params;
-  const body = await request.json();
+  const multipart = request.headers
+    .get("content-type")
+    ?.toLowerCase()
+    .startsWith("multipart/form-data");
+  const body = multipart ? await request.formData() : await request.json();
 
   return forwardToIdentity({
     method: "POST",
