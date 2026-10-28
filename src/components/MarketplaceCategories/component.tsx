@@ -48,7 +48,7 @@ export function MarketplaceCategories({
   return (
     // O `pt` reproduz o respiro maior que o design dá antes desta seção — as
     // faixas anteriores usam só o gap padrão do container da página.
-    <Stack gap="20px" pt={{ base: "20px", md: "44px" }}>
+    <Stack gap="20px" >
       <Flex
         align={{ base: "flex-start", md: "flex-end" }}
         justify="space-between"

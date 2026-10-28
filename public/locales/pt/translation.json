@@ -2116,6 +2116,8 @@
     },
     "hero": {
       "logoAlt": "Neutra+",
+      "headlineOpportunity": "Nova oportunidade detectada próxima à sua região!",
+      "catalog": "Ver Catálogo",
       "badge": "Plataforma 100% B2B · Multi-tenant · KYC/KYB verificado",
       "headline": "O marketplace dos",
       "headlineHighlight": "provedores de telecom.",
@@ -2144,7 +2146,84 @@
       "averageResponseTime": {
         "label": "Tempo médio de resposta",
         "caption": "aceite do pedido"
+      },
+       "assessment": {
+        "label": "Avaliação",
+        "caption": "Score"
       }
+    },
+    "networkCoverage": {
+      "badge": "Cobertura nacional via KMZ",
+      "titlePrefix": "Seu endereço está na rede de",
+      "providerCount": "2.418",
+      "titleSuffix": "provedores.",
+      "description": "Consulte viabilidade técnica por endereço antes de comprar. A evidência de cobertura é gerada automaticamente.",
+      "metrics": {
+        "states": "estados",
+        "cities": "cidades",
+        "availability": "viabilidade"
+      },
+      "primaryCta": "Criar conta e consultar",
+      "secondaryCta": "Redes próximas",
+      "legend": {
+        "hub": "Hub",
+        "active": "Cobertura ativa"
+      },
+      "location": {
+        "title": "São Paulo · 512 provedores",
+        "caption": "maior densidade de cobertura"
+      }
+    },
+    "creditBanner": {
+      "badge": "CRÉDITO NEUTRA+",
+      "title": "Limite pré-aprovado para o seu provedor crescer.",
+      "description": "Compre agora e pague em até 12x no faturamento, sem burocracia bancária.",
+      "cta": "Solicitar meu limite",
+      "availableLimit": "Limite disponível",
+      "limitValue": "R$ 250.000",
+      "escrowAlt": "Escrow Neutra+: o valor é liberado ao seller após o aceite e a entrega confirmada."
+    },
+    "videoShowcase": {
+      "title": "Entenda como a Neutra+ funciona.",
+      "description": "Vídeos institucionais curtos sobre escrow, KYC, SLA e contratação digital para a sua empresa.",
+      "freeForBusiness": "GRÁTIS PARA EMPRESAS",
+      "cta": "Explorar o marketplace",
+      "videos": {
+        "escrow": {
+          "title": "Como funciona o pagamento em escrow",
+          "caption": "Rede ociosa não precisa significar rede sem lucro"
+        },
+        "fiber": {
+          "title": "Contrate fibra dedicada em 5 minutos",
+          "caption": "Conectividade empresarial sem complicação"
+        },
+        "kyc": {
+          "title": "Sellers verificados por KYC",
+          "caption": "Negocie com fornecedores verificados"
+        }
+      }
+    },
+    "benefitBanners": {
+      "sectionLabel": "Destaques e benefícios do marketplace",
+      "saleBadge": "ATÉ 60% OFF",
+      "saleTitle": "Melhores ofertas de grandes marcas",
+      "saleCta": "Ver mais",
+      "saleImageAlt": "Roteadores e equipamentos de rede de grandes marcas",
+      "creditBadge": "CRÉDITO NEUTRA+",
+      "creditTitle": "Use seus créditos para pagar",
+      "creditCta": "Veja como!",
+      "availableLimit": "Limite disponível",
+      "creditAmount": "R$ 24.744",
+      "proHeadline": "Benefícios que se pagam sozinhos",
+      "proCta": "Em Breve na Neutra+...",
+      "escrowTitle": "Pagamento em escrow",
+      "escrowDescription": "Liberado só após o aceite técnico.",
+      "verifiedTitle": "Sellers verificados",
+      "verifiedDescription": "KYC/KYB e score público.",
+      "contractTitle": "Contrato ICP-Brasil",
+      "contractDescription": "Assinatura digital via Autentique.",
+      "snapshotTitle": "Price snapshot",
+      "snapshotDescription": "Preço travado após a confirmação."
     },
     "categories": {
       "title": "Explore por categoria",
@@ -2258,13 +2337,60 @@
       "sellerCta": "Cadastrar como Vendedor",
       "note": "Exclusivo para empresas (PJ)"
     },
+    "catalog": {
+      "buyer": {
+        "badge": "Para quem compra",
+        "title": "Compre rede, hardware ou pacotes em minutos.",
+        "description": "Compare provedores com cobertura verificada, pague em escrow e feche contrato eletrônico com assinatura ICP-Brasil.",
+        "primaryCta": "Cadastrar como Buyer",
+        "secondaryCta": "Ver catálogo"
+      },
+      "seller": {
+        "badge": "Para quem vende",
+        "title": "Venda para milhares de provedores.",
+        "benefits": {
+          "noFee": "Anuncie sem custo de adesão",
+          "split": "Receba via split e antecipe recebíveis",
+          "score": "Score público que gera confiança"
+        },
+        "cta": "Cadastrar como Seller"
+      }
+    },
     "footer": {
-      "copyright": "© {{year}} Neutra+ — Plataforma B2B exclusiva para empresas (PJ). Não atendemos PF nem MEI.",
+      "brandDescription": "O primeiro marketplace exclusivo para provedores.",
+      "columns": {
+        "payments": "Escolha como pagar",
+        "help": "Deixe-nos ajudar você",
+        "about": "Conheça-nos",
+        "support": "Ajuda"
+      },
+      "contactSupport": "Falar com suporte",
+      "paymentHeading": "FORMAS DE PAGAMENTO ACEITAS",
+      "paymentMethods": {
+        "pix": "Pix",
+        "creditCard": "Cartão de crédito",
+        "boleto": "Boleto",
+        "ted": "TED",
+        "credit": "Crédito Neutra+",
+        "billing": "Faturamento"
+      },
+      "securityNotice": "Ambiente seguro · Escrow · ICP-Brasil",
+      "navLabel": "Navegação do rodapé",
+      "copyright": "© {{year}} Neutra+ — CNPJ 51.632.725/0001-33. Plataforma B2B exclusiva para empresas (PJ).",
       "links": {
         "terms": "Termos de Uso",
         "privacy": "Privacidade",
         "compliance": "Compliance",
-        "support": "Suporte"
+        "support": "Suporte",
+        "paymentMethods": "Meios de pagamento",
+        "credit": "Crédito Neutra+",
+        "account": "Sua conta",
+        "security": "Políticas de segurança",
+        "faq": "FAQ",
+        "help": "Ajuda",
+        "neutra": "Neutra+",
+        "bmo": "BMO",
+        "community": "Comunidade"
       }
     },
     "offers": {

@@ -2125,6 +2125,8 @@
     },
     "hero": {
       "logoAlt": "Neutra+",
+      "headlineOpportunity": "¡Nueva oportunidad detectada cerca de tu región!",
+      "catalog": "Ver Catálogo",
       "badge": "Plataforma 100% B2B · Multi-tenant · KYC/KYB verificado",
       "headline": "El marketplace de los",
       "headlineHighlight": "proveedores de telecom.",
@@ -2153,7 +2155,84 @@
       "averageResponseTime": {
         "label": "Tiempo medio de respuesta",
         "caption": "aceptación del pedido"
+      },
+       "assessment": {
+        "label": "Evaluación",
+        "caption": "Puntaje"
       }
+    },
+    "networkCoverage": {
+      "badge": "Cobertura nacional vía KMZ",
+      "titlePrefix": "Tu dirección está en la red de",
+      "providerCount": "2.418",
+      "titleSuffix": "proveedores.",
+      "description": "Consulta la viabilidad técnica por dirección antes de comprar. La evidencia de cobertura se genera automáticamente.",
+      "metrics": {
+        "states": "estados",
+        "cities": "ciudades",
+        "availability": "viabilidad"
+      },
+      "primaryCta": "Crear cuenta y consultar",
+      "secondaryCta": "Redes cercanas",
+      "legend": {
+        "hub": "Hub",
+        "active": "Cobertura activa"
+      },
+      "location": {
+        "title": "São Paulo · 512 proveedores",
+        "caption": "mayor densidad de cobertura"
+      }
+    },
+    "creditBanner": {
+      "badge": "CRÉDITO NEUTRA+",
+      "title": "Crédito preaprobado para que tu proveedor crezca.",
+      "description": "Compra ahora y paga hasta en 12 cuotas en tu factura, sin burocracia bancaria.",
+      "cta": "Solicitar mi límite",
+      "availableLimit": "Límite disponible",
+      "limitValue": "R$ 250.000",
+      "escrowAlt": "Escrow Neutra+: el importe se libera al vendedor después de aceptar y confirmar la entrega."
+    },
+    "videoShowcase": {
+      "title": "Descubre cómo funciona Neutra+.",
+      "description": "Videos institucionales breves sobre escrow, KYC, SLA y contratación digital para tu empresa.",
+      "freeForBusiness": "GRATIS PARA EMPRESAS",
+      "cta": "Explorar el marketplace",
+      "videos": {
+        "escrow": {
+          "title": "Cómo funciona el pago en escrow",
+          "caption": "Una red inactiva no tiene que significar una red sin ganancias"
+        },
+        "fiber": {
+          "title": "Contrata fibra dedicada en 5 minutos",
+          "caption": "Conectividad empresarial, sin complicaciones"
+        },
+        "kyc": {
+          "title": "Vendedores verificados por KYC",
+          "caption": "Negocia con proveedores verificados"
+        }
+      }
+    },
+    "benefitBanners": {
+      "sectionLabel": "Destacados y beneficios del marketplace",
+      "saleBadge": "HASTA 60% DE DESCUENTO",
+      "saleTitle": "Las mejores ofertas de grandes marcas",
+      "saleCta": "Ver más",
+      "saleImageAlt": "Routers y equipos de red de grandes marcas",
+      "creditBadge": "CRÉDITO NEUTRA+",
+      "creditTitle": "Usa tus créditos para pagar",
+      "creditCta": "¡Descubre cómo!",
+      "availableLimit": "Límite disponible",
+      "creditAmount": "R$ 24.744",
+      "proHeadline": "Beneficios que se pagan solos",
+      "proCta": "Próximamente en Neutra+...",
+      "escrowTitle": "Pago en escrow",
+      "escrowDescription": "Se libera solo tras la aceptación técnica.",
+      "verifiedTitle": "Vendedores verificados",
+      "verifiedDescription": "KYC/KYB y score público.",
+      "contractTitle": "Contrato ICP-Brasil",
+      "contractDescription": "Firma digital vía Autentique.",
+      "snapshotTitle": "Price snapshot",
+      "snapshotDescription": "Precio fijado tras la confirmación."
     },
     "categories": {
       "title": "Explora por categoría",
@@ -2267,13 +2346,60 @@
       "sellerCta": "Registrarse como Vendedor",
       "note": "Exclusivo para empresas"
     },
+    "catalog": {
+      "buyer": {
+        "badge": "Para quien compra",
+        "title": "Compra red, hardware o paquetes en minutos.",
+        "description": "Compara proveedores con cobertura verificada, paga en escrow y firma el contrato electrónico con firma ICP-Brasil.",
+        "primaryCta": "Registrarse como Buyer",
+        "secondaryCta": "Ver catálogo"
+      },
+      "seller": {
+        "badge": "Para quien vende",
+        "title": "Vende a miles de proveedores.",
+        "benefits": {
+          "noFee": "Publica sin costo de adhesión",
+          "split": "Recibe vía split y adelanta cuentas por cobrar",
+          "score": "Score público que genera confianza"
+        },
+        "cta": "Registrarse como Seller"
+      }
+    },
     "footer": {
-      "copyright": "© {{year}} Neutra+ — Plataforma B2B exclusiva para empresas. No atendemos personas físicas ni MEI.",
+      "brandDescription": "El primer marketplace exclusivo para proveedores.",
+      "columns": {
+        "payments": "Elige cómo pagar",
+        "help": "Déjanos ayudarte",
+        "about": "Conócenos",
+        "support": "Ayuda"
+      },
+      "contactSupport": "Hablar con soporte",
+      "paymentHeading": "MÉTODOS DE PAGO ACEPTADOS",
+      "paymentMethods": {
+        "pix": "Pix",
+        "creditCard": "Tarjeta de crédito",
+        "boleto": "Boleto",
+        "ted": "TED",
+        "credit": "Crédito Neutra+",
+        "billing": "Facturación"
+      },
+      "securityNotice": "Entorno seguro · Escrow · ICP-Brasil",
+      "navLabel": "Navegación del pie de página",
+      "copyright": "© {{year}} Neutra+ — CNPJ 51.632.725/0001-33. Plataforma B2B exclusiva para empresas.",
       "links": {
         "terms": "Términos de Uso",
         "privacy": "Privacidad",
         "compliance": "Compliance",
-        "support": "Soporte"
+        "support": "Soporte",
+        "paymentMethods": "Métodos de pago",
+        "credit": "Crédito Neutra+",
+        "account": "Tu cuenta",
+        "security": "Políticas de seguridad",
+        "faq": "FAQ",
+        "help": "Ayuda",
+        "neutra": "Neutra+",
+        "bmo": "BMO",
+        "community": "Comunidad"
       }
     },
     "offers": {

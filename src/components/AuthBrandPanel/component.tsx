@@ -22,6 +22,7 @@ const STATS = [
   { value: "R$ 142M", labelKey: "AuthBrand.stats.transacted" },
   { value: "2.418", labelKey: "AuthBrand.stats.sellers" },
   { value: "98,2%", labelKey: "AuthBrand.stats.sla" },
+  { value: "4,8/5", labelKey: "AuthBrand.stats.ass" },
 ] as const;
 
 /**
