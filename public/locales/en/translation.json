@@ -2137,6 +2137,7 @@
     },
     "hero": {
       "logoAlt": "Neutra+",
+      "catalog": "View Catalog", 
       "badge": "100% B2B platform · Multi-tenant · KYC/KYB verified",
       "headline": "The marketplace for",
       "headlineHighlight": "telecom providers.",
@@ -2165,10 +2166,15 @@
       "averageResponseTime": {
         "label": "Average response time",
         "caption": "order acceptance"
+      },
+       "assessment": {
+        "label": "Assessment",
+        "caption": "Score"
       }
     },
     "categories": {
       "title": "Explore by category",
+      "headlineOpportunity": "New opportunity detected near your region!",
       "subtitle": "4 categories available in the MVP — templates approved by Operations, Product and Legal",
       "seeAll": "See all categories",
       "items": {

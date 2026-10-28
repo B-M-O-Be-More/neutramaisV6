@@ -22,6 +22,8 @@ const PLACEHOLDER_STATS: MarketplaceStatsData = {
   activeProviders: "2.418",
   slaCompliance: "98,2%",
   averageResponseTime: "2m 47s",
+  assessment: "4,5/8",
+
 };
 
 // Contagens do design, no mesmo lugar e pelo mesmo motivo das métricas acima.

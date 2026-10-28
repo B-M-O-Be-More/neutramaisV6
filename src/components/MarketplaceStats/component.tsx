@@ -13,6 +13,7 @@ const METRICS = [
   { key: "transactedVolume", accentColor: "#1F5AFF" },
   { key: "activeProviders", accentColor: "#8B5CF6" },
   { key: "averageResponseTime", accentColor: "#F59E0B" },
+  { key: "assessment", accentColor: "#EC4899" },
 ] as const;
 
 /**
@@ -25,7 +26,7 @@ export function MarketplaceStats({ data, isLoading }: MarketplaceStatsProps) {
   const loading = isLoading ?? !data;
 
   return (
-    <SimpleGrid columns={{ base: 1, sm: 2, lg: 3 }} gap="16px">
+    <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} gap="16px">
       {METRICS.map((metric) => (
         <MarketplaceStatCard
           key={metric.key}

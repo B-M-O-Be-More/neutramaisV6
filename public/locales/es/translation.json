@@ -2125,6 +2125,8 @@
     },
     "hero": {
       "logoAlt": "Neutra+",
+      "headlineOpportunity": "¡Nueva oportunidad detectada cerca de tu región!",
+      "catalog": "Ver Catálogo",
       "badge": "Plataforma 100% B2B · Multi-tenant · KYC/KYB verificado",
       "headline": "El marketplace de los",
       "headlineHighlight": "proveedores de telecom.",
@@ -2153,6 +2155,10 @@
       "averageResponseTime": {
         "label": "Tiempo medio de respuesta",
         "caption": "aceptación del pedido"
+      },
+       "assessment": {
+        "label": "Evaluación",
+        "caption": "Puntaje"
       }
     },
     "categories": {
