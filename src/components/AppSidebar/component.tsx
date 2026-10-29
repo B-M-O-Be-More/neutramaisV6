@@ -2,6 +2,7 @@
 
 import {
   Box,
+  Collapsible,
   Flex,
   Icon,
   Image,
@@ -12,9 +13,14 @@ import {
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { LuChevronDown, LuChevronRight, LuLogOut } from "react-icons/lu";
 
+import {
+  readClosedSidebarSections,
+  saveClosedSidebarSections,
+} from "@/functions/sidebarPreferences";
 import { authService } from "@/services/auth.service";
 
 import {
@@ -26,6 +32,9 @@ import {
 import { PERSONA_COLORS, SIDEBAR_NAVIGATION } from "./navigation";
 
 const AVATAR_GRADIENT = "linear-gradient(135deg, #1F5AFF 0%, #6B9FFF 100%)";
+// Setas de recolher (Figma 2709-50066): a da marca e a das seções.
+const COLLAPSE_ICON_COLOR = "#98A6B3";
+const SECTION_TOGGLE_COLOR = "#174ACC";
 
 // Iniciais do avatar: primeira letra do primeiro e do último nome.
 function getInitials(name: string) {
@@ -120,7 +129,12 @@ function NavItem({
       color={isActive ? colors.accent : "#4A5568"}
       transition="background 0.15s"
       _hover={{ bg: isActive ? colors.subtle : "#F4F6F9" }}
-      _focusVisible={{ outline: "2px solid", outlineColor: colors.accent }}
+      // Contorno por dentro: o conteúdo da seção recolhível corta o que vaza.
+      _focusVisible={{
+        outline: "2px solid",
+        outlineColor: colors.accent,
+        outlineOffset: "-2px",
+      }}
     >
       <NextLink
         href={item.href}
@@ -170,6 +184,8 @@ function NavSection({
   activeHref,
   badges,
   onNavigate,
+  isOpen,
+  onOpenChange,
 }: {
   section: SidebarNavSection;
   persona: SidebarPersona;
@@ -177,39 +193,85 @@ function NavSection({
   activeHref?: string;
   badges?: AppSidebarProps["badges"];
   onNavigate?: () => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useTranslation();
   const colors = PERSONA_COLORS[persona];
 
   return (
-    <Stack as="section" gap="2px" pb="6px">
-      <Flex align="center" gap="6px" px="8px" py="6px">
-        <Text
-          as="h3"
-          color={colors.accent}
-          fontSize="9.5px"
-          fontWeight={700}
-          lineHeight="14.25px"
-          letterSpacing="0.6px"
-          textTransform="uppercase"
-          whiteSpace="nowrap"
-        >
-          {t(`AppSidebar.sections.${section.key}`)}
-        </Text>
-        <HeadingRule color={colors.subtle} />
-      </Flex>
+    <Box as="section" pb="6px">
+      <Collapsible.Root
+        open={isOpen}
+        onOpenChange={(details) => onOpenChange(details.open)}
+      >
+        {/* O título é o próprio botão de recolher (padrão de acordeão). */}
+        <Box as="h3">
+          <Collapsible.Trigger asChild>
+            <Flex
+              as="button"
+              align="center"
+              w="full"
+              textAlign="start"
+              cursor="pointer"
+              rounded="6px"
+              _focusVisible={{
+                outline: "2px solid",
+                outlineColor: colors.accent,
+              }}
+            >
+              <Flex
+                flex="1"
+                minW="1px"
+                align="center"
+                gap="6px"
+                px="8px"
+                py="6px"
+              >
+                <Text
+                  as="span"
+                  color={colors.accent}
+                  fontSize="9.5px"
+                  fontWeight={700}
+                  lineHeight="14.25px"
+                  letterSpacing="0.6px"
+                  textTransform="uppercase"
+                  whiteSpace="nowrap"
+                >
+                  {t(`AppSidebar.sections.${section.key}`)}
+                </Text>
+                <HeadingRule color={colors.subtle} />
+              </Flex>
+              {/* Para baixo recolhida (como no design); para cima aberta. */}
+              <Icon
+                as={LuChevronDown}
+                boxSize="16px"
+                color={SECTION_TOGGLE_COLOR}
+                flexShrink={0}
+                transform={isOpen ? "rotate(180deg)" : undefined}
+                transition="transform 0.15s"
+                aria-hidden
+              />
+            </Flex>
+          </Collapsible.Trigger>
+        </Box>
 
-      {section.items.map((item) => (
-        <NavItem
-          key={item.key}
-          item={item}
-          persona={persona}
-          isActive={item.href === activeHref}
-          count={badges?.[item.key]}
-          onNavigate={onNavigate}
-        />
-      ))}
-    </Stack>
+        <Collapsible.Content>
+          <Stack gap="2px" pt="2px">
+            {section.items.map((item) => (
+              <NavItem
+                key={item.key}
+                item={item}
+                persona={persona}
+                isActive={item.href === activeHref}
+                count={badges?.[item.key]}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </Stack>
+        </Collapsible.Content>
+      </Collapsible.Root>
+    </Box>
   );
 }
 
@@ -317,10 +379,31 @@ function UserMenu({ user }: Pick<AppSidebarProps, "user">) {
  * Navegação lateral da área autenticada.
  * Exibe os grupos Buyer e/ou Seller conforme os papéis da organização do
  * usuário, destaca a rota atual e mostra os contadores recebidos por props.
+ * Cada seção recolhe os próprios itens; a seta da marca recolhe a sidebar
+ * inteira (Figma 2709-50066 e 2709-50807).
  */
-export function AppSidebar({ user, badges, onNavigate }: AppSidebarProps) {
+export function AppSidebar({
+  user,
+  badges,
+  onNavigate,
+  collapsed = false,
+  onToggleCollapse,
+}: AppSidebarProps) {
   const { t } = useTranslation();
   const pathname = usePathname() ?? "";
+  // A sidebar só renderiza no cliente (depois do /me), então o storage já
+  // está disponível na inicialização do estado.
+  const [closedSections, setClosedSections] = React.useState(
+    readClosedSidebarSections,
+  );
+
+  const setSectionOpen = (id: string, open: boolean) => {
+    const next = open
+      ? closedSections.filter((closedId) => closedId !== id)
+      : [...closedSections, id];
+    saveClosedSidebarSections(next);
+    setClosedSections(next);
+  };
 
   const groups = SIDEBAR_NAVIGATION.filter((group) =>
     user.personas.includes(group.persona),
@@ -341,7 +424,7 @@ export function AppSidebar({ user, badges, onNavigate }: AppSidebarProps) {
       as="aside"
       direction="column"
       w="232px"
-      h="full"
+      h={collapsed ? "auto" : "full"}
       bg="white"
       borderRightWidth="1px"
       borderColor="#E5E8EE"
@@ -369,50 +452,89 @@ export function AppSidebar({ user, badges, onNavigate }: AppSidebarProps) {
           </NextLink>
         </Flex>
         <Flex flex="1" justify="flex-end">
-          <Icon as={LuChevronDown} boxSize="12px" color="#A0ABB8" aria-hidden />
+          {onToggleCollapse ? (
+            <Flex
+              as="button"
+              align="center"
+              justify="center"
+              cursor="pointer"
+              rounded="4px"
+              aria-label={t(
+                collapsed ? "AppSidebar.expand" : "AppSidebar.collapse",
+              )}
+              aria-expanded={!collapsed}
+              onClick={onToggleCollapse}
+              _focusVisible={{ outline: "2px solid", outlineColor: "#1F5AFF" }}
+            >
+              <Icon
+                as={LuChevronDown}
+                boxSize="16px"
+                color={COLLAPSE_ICON_COLOR}
+              />
+            </Flex>
+          ) : (
+            <Icon
+              as={LuChevronDown}
+              boxSize="16px"
+              color={COLLAPSE_ICON_COLOR}
+              aria-hidden
+            />
+          )}
         </Flex>
       </Flex>
 
-      {/* Navegação */}
-      <Box
-        as="nav"
-        aria-label={t("AppSidebar.navLabel")}
-        flex="1"
-        minH={0}
-        overflowY="auto"
-        px="8px"
-        py="4px"
-      >
-        {groups.map((group, index) => (
-          <Box key={group.persona}>
-            {!group.hideHeading && (
-              <PersonaHeading persona={group.persona} isFirst={index === 0} />
-            )}
-            {group.sections.map((section) => (
-              <NavSection
-                key={section.key}
-                section={section}
-                persona={group.persona}
-                activeHref={activeHref}
-                badges={badges}
-                onNavigate={onNavigate}
-              />
+      {!collapsed && (
+        <>
+          {/* Navegação */}
+          <Box
+            as="nav"
+            aria-label={t("AppSidebar.navLabel")}
+            flex="1"
+            minH={0}
+            overflowY="auto"
+            px="8px"
+            py="4px"
+          >
+            {groups.map((group, index) => (
+              <Box key={group.persona}>
+                {!group.hideHeading && (
+                  <PersonaHeading
+                    persona={group.persona}
+                    isFirst={index === 0}
+                  />
+                )}
+                {group.sections.map((section) => {
+                  const sectionId = `${group.persona}.${section.key}`;
+                  return (
+                    <NavSection
+                      key={section.key}
+                      section={section}
+                      persona={group.persona}
+                      activeHref={activeHref}
+                      badges={badges}
+                      onNavigate={onNavigate}
+                      isOpen={!closedSections.includes(sectionId)}
+                      onOpenChange={(open) => setSectionOpen(sectionId, open)}
+                    />
+                  );
+                })}
+              </Box>
             ))}
           </Box>
-        ))}
-      </Box>
 
-      {/* Usuário */}
-      <Box
-        px="8px"
-        pt="11px"
-        pb="10px"
-        borderTopWidth="1px"
-        borderColor="#E5E8EE"
-        flexShrink={0}
-      >
-        <UserMenu user={user} />
-      </Box>
+          {/* Usuário */}
+          <Box
+            px="8px"
+            pt="11px"
+            pb="10px"
+            borderTopWidth="1px"
+            borderColor="#E5E8EE"
+            flexShrink={0}
+          >
+            <UserMenu user={user} />
+          </Box>
+        </>
+      )}
     </Flex>
   );
 }

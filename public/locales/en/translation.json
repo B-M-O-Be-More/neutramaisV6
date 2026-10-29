@@ -2326,6 +2326,8 @@
     "logoAlt": "Neutra+",
     "navLabel": "Main navigation",
     "openMenu": "Open menu",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
     "personas": {
       "buyer": "Buyer",
       "seller": "Seller",

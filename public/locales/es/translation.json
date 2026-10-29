@@ -2314,6 +2314,8 @@
     "logoAlt": "Neutra+",
     "navLabel": "Navegación principal",
     "openMenu": "Abrir menú",
+    "collapse": "Contraer menú",
+    "expand": "Expandir menú",
     "personas": {
       "buyer": "Buyer · Comprador",
       "seller": "Seller · Vendedor",
