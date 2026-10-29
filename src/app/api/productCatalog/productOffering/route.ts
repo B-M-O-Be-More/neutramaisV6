@@ -1,11 +1,19 @@
 import { NextRequest } from "next/server";
 
-import { forwardToMarketplace } from "@/server/marketplaceProxy";
+import { readJsonBody } from "@/server/complianceProxy";
+import { forwardToMarketplace, pickBody } from "@/server/marketplaceProxy";
 
-// Paginação aceita pelo upstream. Só estes são repassados — qualquer outro
-// parâmetro da URL é descartado no BFF. A validação (inteiros ≥ 0) fica com a
-// marketplace-api, que responde 422 quando inválidos.
-const ALLOWED_PARAMS = ["offset", "limit"] as const;
+// Paginação e filtros aceitos pelo upstream. Só estes são repassados —
+// qualquer outro parâmetro da URL é descartado no BFF. A validação (inteiros
+// ≥ 0, status conhecido) fica com a marketplace-api, que responde 422 quando
+// inválidos.
+const ALLOWED_PARAMS = [
+  "offset",
+  "limit",
+  "status",
+  "name",
+  "specificationId",
+] as const;
 
 // BFF: GET /api/productCatalog/productOffering
 //   → marketplace-api GET /productCatalog/productOffering
@@ -22,6 +30,34 @@ export async function GET(request: NextRequest) {
     method: "GET",
     path: "/productCatalog/productOffering",
     params,
+    authenticated: true,
+  });
+}
+
+// Campos de `POST /productOffering`. `isPublic` fica de fora: a oferta nasce
+// sempre `draft` e é publicada pela transição `publish`.
+const CREATE_FIELDS = [
+  "name",
+  "specificationId",
+  "monthlyPrice",
+  "installationPrice",
+  "speed",
+  "durationMonths",
+  "isCorporate",
+  "stateCode",
+  "isCapital",
+  "metadata",
+] as const;
+
+// BFF: POST /api/productCatalog/productOffering
+//   → marketplace-api POST /productCatalog/productOffering
+// Cria a oferta como rascunho. 403 `MKT_SELLER_NOT_APPROVED` com a
+// organização não ativa.
+export async function POST(request: NextRequest) {
+  return forwardToMarketplace({
+    method: "POST",
+    path: "/productCatalog/productOffering",
+    body: pickBody(await readJsonBody(request), CREATE_FIELDS),
     authenticated: true,
   });
 }

@@ -15,6 +15,81 @@ export type OrganizationStatus =
 
 export type AdminOrganizationType = "buyer" | "seller";
 
+/** Status aceitos em `GET /admin/organizations?status=` (um por consulta). */
+export const ORGANIZATION_STATUSES = [
+  "pending",
+  "active",
+  "suspended",
+  "anonymized",
+  "taken_down",
+] as const satisfies readonly OrganizationStatus[];
+
+/** Tipo da organização; `platform_operator` é a própria Neutra+ (interna). */
+export type PlatformOrganizationType =
+  | AdminOrganizationType
+  | "platform_operator";
+
+export type OrganizationKycLevel =
+  | "pending"
+  | "basic"
+  | "verified"
+  | "complete";
+
+/** Item de `GET /admin/organizations`. */
+export interface AdminOrganizationSummary {
+  id: string;
+  legal_name: string;
+  organization_type: PlatformOrganizationType;
+  status: OrganizationStatus;
+  kyc_level: OrganizationKycLevel;
+  country_code: string;
+  /** Documento mascarado (ex.: "12****0195"). */
+  tax_id_masked: string;
+  created_at: string;
+  suspended_at?: string | null;
+  suspended_reason?: string | null;
+}
+
+export interface AdminOrganizationList {
+  items: AdminOrganizationSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+/**
+ * `GET /admin/organizations/{organization_id}`. Nome fantasia, e-mail de
+ * contato e estado do KYC são do contrato novo: a identity-api ainda pode
+ * responder sem eles.
+ */
+export interface AdminOrganizationDetail extends AdminOrganizationSummary {
+  trade_name?: string | null;
+  contact_email?: string | null;
+  kyc_state?: string | null;
+}
+
+/** Membro de `GET /organizations/{org_id}/members`. */
+export interface OrganizationMember {
+  user_id: string;
+  role: string;
+  /** Do contrato novo: a identity-api pode responder só com id e papel. */
+  email?: string | null;
+  status?: string | null;
+  joined_at?: string | null;
+}
+
+export interface OrganizationMembers {
+  items: OrganizationMember[];
+  total: number;
+}
+
+export interface AdminOrganizationsParams {
+  status?: OrganizationStatus;
+  /** 1 a 200; padrão 50. */
+  limit?: number;
+  offset?: number;
+}
+
 /**
  * Status de uma solicitação na fila de KYC. O contrato HTTP é em inglês: os
  * valores vão traduzidos só na tela, nunca em `?status=`.
@@ -140,7 +215,76 @@ export interface SanctionsScreeningResult {
   checked_at: string;
 }
 
+/** Lista restritiva consultada na checagem de sanções. */
+export type SanctionsSource = "ofac" | "un" | "bacen";
+
+export type SanctionsDisposition =
+  | "pending_review"
+  | "confirmed"
+  | "false_positive";
+
+/**
+ * Ocorrência de `GET /admin/sanctions/matches/{organization_id}`: uma lista
+ * em que a organização bateu. A checagem compara só a própria organização —
+ * razão social e documento (tax id) —, sem sócios nem arquivos do KYC.
+ * Por RN-557, nada disto pode aparecer para o buyer/seller.
+ */
+export interface SanctionsMatch {
+  check_log_id: string;
+  source: SanctionsSource;
+  matched: boolean;
+  /**
+   * 0–100. 100 = o documento da organização consta na lista; abaixo disso,
+   * semelhança da razão social com um nome da lista.
+   */
+  match_score: number | null;
+  stale: boolean;
+  disposition: SanctionsDisposition;
+  checked_at: string;
+}
+
 export const adminService = {
+  /**
+   * Organizações de um status (padrão `pending`), da identity-api. Exige
+   * `org:suspend`. Sem busca nem filtro de tipo no upstream.
+   */
+  listOrganizations: (
+    params: AdminOrganizationsParams = {},
+    options: { signal?: AbortSignal } = {},
+  ) =>
+    api.get<AdminOrganizationList>("/admin/organizations", {
+      params: { ...params },
+      signal: options.signal,
+    }),
+
+  /** Uma organização. Exige `org:suspend`; 404 quando não existe. */
+  getOrganization: (
+    organizationId: string,
+    options: { signal?: AbortSignal } = {},
+  ) =>
+    api.get<AdminOrganizationDetail>(
+      `/admin/organizations/${encodeURIComponent(organizationId)}`,
+      { signal: options.signal },
+    ),
+
+  /**
+   * Membros da organização. Exige `org:manage_members`; a identity-api só
+   * lista a organização do próprio token (403 nas demais). Aceita o formato
+   * novo (`items` + `total`) e o atual (`members`).
+   */
+  listOrganizationMembers: async (
+    organizationId: string,
+    options: { signal?: AbortSignal } = {},
+  ): Promise<OrganizationMembers> => {
+    const data = await api.get<
+      Partial<OrganizationMembers> & { members?: OrganizationMember[] }
+    >(`/organizations/${encodeURIComponent(organizationId)}/members`, {
+      signal: options.signal,
+    });
+    const items = data?.items ?? data?.members ?? [];
+    return { items, total: data?.total ?? items.length };
+  },
+
   /**
    * Fila de KYC, da solicitação mais antiga para a mais nova, com indicadores
    * e SLA (72h úteis). Exige `kyc:approve` com MFA; cada leitura entra no
@@ -164,4 +308,18 @@ export const adminService = {
     api.post<SanctionsScreeningResult>("/admin/sanctions/run", {
       organization_id: organizationId,
     }),
+
+  /**
+   * Ocorrências de sanções da organização (todas as checagens, mais recente
+   * primeiro). Exige `sanctions:read_matches`. Organização nunca checada ou
+   * limpa devolve lista vazia.
+   */
+  getSanctionsMatches: (
+    organizationId: string,
+    options: { signal?: AbortSignal } = {},
+  ) =>
+    api.get<{ matches: SanctionsMatch[] }>(
+      `/admin/sanctions/matches/${encodeURIComponent(organizationId)}`,
+      { signal: options.signal },
+    ),
 };

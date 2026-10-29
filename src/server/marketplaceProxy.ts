@@ -104,3 +104,19 @@ export async function forwardToMarketplace({
     );
   }
 }
+
+/**
+ * Copia do corpo só os campos do contrato — a marketplace-api ignora campos
+ * desconhecidos na maioria das rotas, mas o BFF não repassa nada além do
+ * esperado. Corpo que não é objeto vira `{}` (o upstream responde 422).
+ */
+export function pickBody(
+  body: unknown,
+  allowed: readonly string[],
+): Record<string, unknown> {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return {};
+  const source = body as Record<string, unknown>;
+  return Object.fromEntries(
+    allowed.filter((key) => key in source).map((key) => [key, source[key]]),
+  );
+}

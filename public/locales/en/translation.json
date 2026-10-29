@@ -2664,6 +2664,32 @@
         "sanctionsMatch": "The sanctions check found a possible match. Approval stays blocked until compliance handles the case.",
         "sanctionsNotSynced": "The sanctions check passed in Identity at {{date}}, but the review has not received the result yet. Try again in a moment."
       },
+      "sanctionsMatches": {
+        "title": "Sanctions list matches",
+        "subtitle": "The check compares the organization's legal name and tax document against the OFAC, UN and BACEN lists. Partners and KYC files are not compared.",
+        "empty": "No match recorded. The failure may come from a list that did not respond or is outdated. Run the check again.",
+        "checkedAt": "Checked on {{date}}",
+        "stale": "outdated result",
+        "reasons": {
+          "document": "Document {{taxId}} is on the list",
+          "name": "Legal name \"{{name}}\" is similar to a name on the list ({{score}}% similarity)",
+          "unknown": "Possible match, no score provided"
+        },
+        "sources": {
+          "ofac": "OFAC",
+          "un": "UN",
+          "bacen": "BACEN"
+        },
+        "dispositions": {
+          "pending_review": "Awaiting compliance",
+          "confirmed": "Confirmed",
+          "false_positive": "False positive"
+        },
+        "errors": {
+          "forbidden": "Your user is not allowed to view sanctions matches (sanctions:read_matches).",
+          "loadFailed": "We could not load the sanctions matches."
+        }
+      },
       "actions": {
         "view": "View",
         "approve": "Approve",
@@ -2844,6 +2870,132 @@
         "storage_unavailable": "File storage is unavailable. Try again shortly.",
         "database_unavailable": "Compliance is unavailable. Try again shortly."
       }
+    },
+    "users": {
+      "notice": "Suspension and reactivation are audited automatically. Admin accounts can only be managed by the Super Admin. Permanent deletion requires Legal approval.",
+      "tableLabel": "Platform organizations",
+      "columns": {
+        "organization": "Organization",
+        "type": "Type",
+        "createdAt": "Registered",
+        "status": "Status",
+        "kyc": "KYC",
+        "actions": "Actions"
+      },
+      "types": {
+        "buyer": "Buyer",
+        "seller": "Seller",
+        "platform_operator": "Internal"
+      },
+      "statuses": {
+        "pending": "Pending",
+        "active": "Active",
+        "suspended": "Suspended",
+        "anonymized": "Anonymized",
+        "taken_down": "Taken down"
+      },
+      "count": "{{shown}}/{{total}}",
+      "open": "Open {{name}}",
+      "showMore_one": "Show {{count}} more",
+      "showMore_other": "Show {{count}} more",
+      "loading": "Loading organizations",
+      "empty": "No organizations with this status.",
+      "noMatches": "No organizations match these filters.",
+      "retry": "Try again",
+      "errors": {
+        "forbidden": "Your user is not allowed to list organizations.",
+        "failed": "We could not load the organizations."
+      }
+    },
+    "organizationDetail": {
+      "back": "Organizations",
+      "breadcrumb": "Breadcrumb",
+      "loading": "Loading organization",
+      "retry": "Try again",
+      "summary": "KYC: {{level}} · registered on {{date}}",
+      "counters": {
+        "users": "Users",
+        "active": "Active",
+        "suspended": "Suspended"
+      },
+      "storage": {
+        "label": "Storage quota",
+        "used": "{{used}} used"
+      },
+      "updateQuota": "Update quotas",
+      "info": {
+        "title": "{{name}} · Company information",
+        "collapse": "Collapse company information",
+        "expand": "Show company information",
+        "fields": {
+          "legalName": "Legal name",
+          "tradeName": "Trade name",
+          "taxId": "Tax ID",
+          "contactEmail": "Contact email",
+          "country": "Country",
+          "kyc": "KYC",
+          "status": "Status",
+          "createdAt": "Registered on",
+          "suspendedReason": "Suspension reason"
+        }
+      },
+      "kycStates": {
+        "pending": "pending",
+        "basic": "basic",
+        "verified": "verified",
+        "complete": "complete",
+        "approved": "approved",
+        "pending_documents": "documents pending",
+        "suspended": "suspended",
+        "rejected": "rejected",
+        "under_review": "under review"
+      },
+      "members": {
+        "search": "Search user",
+        "searchPlaceholder": "Search user or email in this organization",
+        "tableLabel": "Organization users",
+        "loading": "Loading users",
+        "joinedAt": "Joined on {{date}}",
+        "empty": "No users in this organization.",
+        "noMatches": "No users match this search.",
+        "columns": {
+          "user": "User",
+          "email": "Email",
+          "role": "Role",
+          "status": "Status"
+        },
+        "statuses": {
+          "active": "Active",
+          "suspended": "Suspended",
+          "pending": "Pending",
+          "revoked": "Removed"
+        },
+        "errors": {
+          "forbidden": "The identity-api does not yet release another organization's users to the admin panel.",
+          "notFound": "Organization not found.",
+          "failed": "We could not load the users."
+        }
+      },
+      "roles": {
+        "org_owner": "Owner",
+        "org_admin": "Administrator",
+        "buyer_owner": "Owner",
+        "buyer_purchaser": "Purchasing",
+        "buyer_finance": "Finance",
+        "buyer_technical": "Technical",
+        "buyer_support": "Support",
+        "seller_owner": "Owner",
+        "seller_commercial": "Sales",
+        "seller_finance": "Finance",
+        "seller_operations": "Operations",
+        "seller_support": "Support",
+        "seller_technical": "Technical"
+      },
+      "errors": {
+        "notFound": "Organization not found.",
+        "forbidden": "Your user is not allowed to view this organization.",
+        "failed": "We could not load the organization."
+      }
     }
   },
   "Kyc": {
@@ -2995,6 +3147,649 @@
       "rateLimit": "Too many attempts. Wait a moment and try again.",
       "invalid": "Data rejected. Check the fields and try again.",
       "inviteFailed": "We could not send the invite. Please try again."
+    }
+  },
+  "SellerOffers": {
+    "title": "My Offers",
+    "subtitle": "Manage the lifecycle of your offers · reactive moderation · auto-publishing for approved sellers",
+    "newOffer": "New Offer",
+    "tabs": {
+      "label": "Catalog areas",
+      "catalog": "My Catalog",
+      "coverage": "Coverage"
+    },
+    "stats": {
+      "totalOffers": "Total offers",
+      "views": "Views",
+      "orders": "Orders generated",
+      "revenue": "Total revenue",
+      "publishedCaption_one": "{{count}} published",
+      "publishedCaption_other": "{{count}} published"
+    },
+    "filters": {
+      "search": "Search offer",
+      "searchPlaceholder": "Search offer...",
+      "category": "Category",
+      "statusLabel": "Offer status",
+      "statuses": {
+        "all": "All",
+        "published": "Published",
+        "paused": "Paused",
+        "draft": "Drafts",
+        "unpublished": "Unpublished",
+        "archived": "Archived"
+      }
+    },
+    "list": {
+      "empty": "No items in the catalog",
+      "emptyFiltered": "No offers match these filters",
+      "error": "We could not load your offers.",
+      "retry": "Try again",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{page}} of {{total}}"
+    },
+    "card": {
+      "promoted": "Sponsored",
+      "createdAt": "Created {{date}}",
+      "perMonth": "{{price}}/mo",
+      "statuses": {
+        "draft": "Draft",
+        "published": "Published",
+        "paused": "Paused",
+        "unpublished": "Unpublished",
+        "archived": "Archived"
+      },
+      "metrics": {
+        "price": "Price",
+        "views": "Views",
+        "orders": "Orders",
+        "revenue": "Revenue"
+      },
+      "actions": {
+        "edit": "Edit",
+        "preview": "Preview",
+        "pause": "Pause",
+        "publish": "Publish",
+        "unpublish": "Unpublish",
+        "publishNow": "Publish now",
+        "republish": "Republish",
+        "archive": "Archive"
+      }
+    },
+    "archive": {
+      "title": "Archive offer?",
+      "description": "\"{{name}}\" will leave the marketplace and can no longer be edited or republished. This cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Archive"
+    },
+    "toasts": {
+      "publish": "\"{{name}}\" published.",
+      "pause": "\"{{name}}\" paused.",
+      "unpublish": "\"{{name}}\" unpublished.",
+      "archive": "\"{{name}}\" archived."
+    },
+    "errors": {
+      "permission": "Your user is not allowed to do this.",
+      "sellerNotApproved": "Your organization has not been approved to publish offers yet.",
+      "kycNotVerified": "Complete the KYC verification to publish offers.",
+      "coverageRequired": "Link a coverage (KMZ) to the offer before publishing.",
+      "invalidTransition": "The current status of the offer does not allow this action. Refresh the page.",
+      "transitionFailed": "We could not update the offer. Please try again."
+    }
+  },
+  "SellerOfferCreate": {
+    "title": "New Offer",
+    "steps": {
+      "coverage": "Coverage / KMZ",
+      "basicInfo": "Basic information",
+      "technicalSpecs": "Technical specifications",
+      "pricing": "Price and availability",
+      "review": "Final review"
+    },
+    "actions": {
+      "back": "Back",
+      "continue": "Continue",
+      "publish": "Publish offer now",
+      "publishing": "Publishing...",
+      "retryPublish": "Try publishing again"
+    },
+    "coverage": {
+      "infoTitle": "KMZ and categories",
+      "infoText": "Every connectivity or infrastructure offer must be linked to a KMZ version. Hardware, Numbering Resources, Software and Management, and Protocols and Services do not need one.",
+      "categoriesLabel": "Categories",
+      "mapTitle": "Coverage Map",
+      "chooseCoverage": "Choose Coverage",
+      "previewUnavailable": "No map preview: the KMZ exceeds the coordinate limit the browser reads.",
+      "locationLabel": "Location A / Z",
+      "locationOptional": "(when applicable)",
+      "locationPlaceholder": "Search an address (e.g.: Av. Dom Luís, Fortaleza)",
+      "notApplicableTitle": "Coverage not applicable",
+      "regionLabel": "Region or registry",
+      "regionPlaceholder": "E.g.: Brazil (LACNIC) · São Paulo metro area",
+      "notApplicable": {
+        "hardware": "Hardware/CPE: nationwide or stock-based availability — no geographic polygon.",
+        "numberingResources": "Numbering resources: coverage by region/registry (LACNIC, ANATEL). Enter the region below.",
+        "software": "Software and Management: digital or remote delivery — no geographic polygon.",
+        "protocols": "Protocols and Services: remote or cloud delivery — no geographic polygon."
+      },
+      "locationSearching": "Searching addresses...",
+      "locationNoResults": "No address found. Try with street and city.",
+      "locationClear": "Clear address",
+      "locationUnavailable": "Address search unavailable: set NEXT_PUBLIC_MAPBOX_TOKEN.",
+      "locationSearchError": "We could not search addresses right now. Try again in a moment.",
+      "radiusLabel": "Service radius",
+      "radiusHelper": "Distance around the address, up to {{max}} km",
+      "locationItemLabel": "Location {{number}}",
+      "radiusItemLabel": "Radius of location {{number}}",
+      "locationAdd": "Add location",
+      "locationRemove": "Remove location {{number}}",
+      "locationsMax": "Limit of {{max}} locations reached.",
+      "preview": {
+        "loading": "Loading the KMZ map...",
+        "noOriginal": "No map preview: this version was uploaded before the geo-api kept the original file.",
+        "unreadable": "No map preview: the original KMZ couldn't be read.",
+        "failed": "Couldn't load the KMZ map. Open it again to retry."
+      }
+    },
+    "basicInfo": {
+      "autoPublishNotice": "Auto-publishing available for sellers with verified KYC.",
+      "imageLabel": "Offer image",
+      "imageCta": "Click to add an offer photo",
+      "imageHint": "JPG, PNG · max 5 MB · 16:9 ratio recommended",
+      "imageAlt": "Offer image: {{name}}",
+      "imageReplace": "Replace",
+      "imageRemove": "Remove",
+      "nameLabel": "Service Name",
+      "namePlaceholder": "E.g.: Premium 1 Gbps Dedicated Link",
+      "shortDescriptionLabel": "Short Description",
+      "shortDescriptionPlaceholder": "One-line summary — shown on the marketplace card",
+      "descriptionLabel": "Full Description",
+      "descriptionPlaceholder": "Technical details, benefits, features, differentiators...",
+      "descriptionCounter_one": "Minimum {{min}} characters · {{count}} typed",
+      "descriptionCounter_other": "Minimum {{min}} characters · {{count}} typed"
+    },
+    "technicalSpecs": {
+      "speedLabel": "Speed / Bandwidth",
+      "speedUnit": "Speed unit",
+      "latencyLabel": "Maximum latency",
+      "acceptanceSlaLabel": "Acceptance SLA (h)",
+      "acceptanceSlaHint": "— public to buyers",
+      "acceptanceSlaHelper": "Between {{min}}h and {{max}}h · default 48h",
+      "technicalSlaLabel": "Technical SLA",
+      "deliveryTimeLabel": "Delivery / activation time",
+      "deliveryTimePlaceholder": "E.g.: 30 days after acceptance"
+    },
+    "hardware": {
+      "title": "Hardware / CPE — required fields",
+      "manufacturerLabel": "Manufacturer",
+      "manufacturerPlaceholder": "E.g.: Mikrotik",
+      "modelLabel": "Model",
+      "modelPlaceholder": "E.g.: RB4011",
+      "conditionLabel": "Condition",
+      "conditionPlaceholder": "New / Refurbished",
+      "conditions": {
+        "new": "New",
+        "refurbished": "Refurbished"
+      },
+      "warrantyLabel": "Warranty",
+      "warrantyPlaceholder": "E.g.: 12 months",
+      "serializationLabel": "Serialization",
+      "serializationPlaceholder": "Serial number required"
+    },
+    "numbering": {
+      "title": "Numbering Resources — LACNIC/ANATEL documentation",
+      "resourceTypeLabel": "Resource type",
+      "resourceTypePlaceholder": "E.g.: IPv4 /24, IPv6 /48, ASN",
+      "blockLabel": "Block / Quantity",
+      "blockPlaceholder": "E.g.: 256 IPs, ASN 65000",
+      "holderLabel": "Holder / Delegation",
+      "holderPlaceholder": "E.g.: LACNIC · transfer with support"
+    },
+    "pricing": {
+      "pricingModelLabel": "Pricing model",
+      "pricingModelPlaceholder": "Select",
+      "pricingModels": {
+        "monthly": "Recurring monthly fee",
+        "annual": "Recurring annual fee",
+        "oneTime": "One-time payment"
+      },
+      "currencyLabel": "Currency",
+      "currencies": {
+        "BRL": "BRL (default)",
+        "USD": "USD"
+      },
+      "currencyHelper": "Currency cannot be changed after publishing",
+      "priceLabel": "Price ({{currency}})",
+      "setupLabel": "Setup / NRC",
+      "setupPlaceholder": "E.g.: R$ 500.00 · or 0 for no setup",
+      "stockLabel": "Availability / Stock",
+      "stockPlaceholder": "E.g.: 2 (available) or empty for on request",
+      "cancellationLabel": "Cancellation terms",
+      "cancellationPlaceholder": "E.g.: 30 calendar days with a 3-month fee penalty for fixed-term contracts",
+      "validUntilLabel": "Offer validity",
+      "validUntilHelper": "Leave empty for no end date",
+      "sponsoredLabel": "Sponsor offer",
+      "sponsoredDescription": "Highlighted at the top of search results · additional investment"
+    },
+    "review": {
+      "moderationNotice": "Irregular offers (false information, unrealistic price, mismatched coverage) may be removed with an impact on the score. Sellers cannot duplicate offers in the same category.",
+      "truthfulnessNotice": "By publishing you confirm the information is true and that you hold the rights to sell this service on Neutra+.",
+      "validUntilOpen": "No end date",
+      "goToOffers": "See it in My Offers",
+      "fields": {
+        "name": "Name",
+        "category": "Category",
+        "shortDescription": "Short description",
+        "pricingModel": "Pricing model",
+        "price": "Price",
+        "technicalSla": "Technical SLA",
+        "acceptanceSla": "Acceptance SLA",
+        "deliveryTime": "Delivery time",
+        "cancellation": "Cancellation",
+        "validUntil": "Validity",
+        "speed": "Speed",
+        "setup": "Setup / NRC",
+        "stock": "Stock",
+        "coverage": "Coverage"
+      }
+    },
+    "publish": {
+      "savedAsDraft": "The offer was saved as a draft but has not been published yet.",
+      "errors": {
+        "createFailed": "We could not create the offer. Please try again.",
+        "invalid": "The marketplace-api rejected the offer data. Review the steps and try again.",
+        "reviewInvalid": "Some fields in the previous steps are invalid. Go back and fix them before publishing.",
+        "coverageFailed": "We could not link the coverage (KMZ) right now. Try publishing again in a moment.",
+        "coveragePermission": "Your user is not allowed to link coverage to the offer.",
+        "publishFailed": "We could not publish the offer. Please try again."
+      },
+      "warnings": {
+        "promotionForbidden": "Sponsoring was not applied: your user is not allowed to sponsor offers.",
+        "promotionFailed": "Sponsoring was not applied. You can turn it on later in My Offers."
+      }
+    },
+    "published": {
+      "heading": "Product published!",
+      "title": "Product published successfully!",
+      "subtitle": "Auto-publishing with reactive moderation. Your offer is available on the marketplace.",
+      "statusValue": "Published · reactive moderation",
+      "backToOffers": "Back to My Offers",
+      "fields": {
+        "offer": "Offer",
+        "category": "Category",
+        "price": "Price",
+        "status": "Status",
+        "acceptanceSla": "Acceptance SLA"
+      }
+    },
+    "kmz": {
+      "label": "Select KMZ version",
+      "upload": "Upload KMZ",
+      "uploading": "Uploading...",
+      "uploaded": "KMZ \"{{name}}\" uploaded.",
+      "unnamed": "Version from {{date}}",
+      "regions_one": "{{count}} region",
+      "regions_other": "{{count}} regions",
+      "polygons_one": "{{count}} polygon",
+      "polygons_other": "{{count}} polygons",
+      "hint": "New KMZ versions do not update offers automatically.",
+      "errors": {
+        "invalidExtension": "Upload a .kmz file.",
+        "tooLarge": "The KMZ must be up to 50 MB.",
+        "invalidArchive": "We could not read the KMZ. Check that the file is not corrupted.",
+        "kmlCount": "The KMZ must contain exactly one KML file.",
+        "noGeometry": "The KMZ has no area, line or point.",
+        "forbidden": "Only the organization owner can upload KMZ files.",
+        "rejected": "The geo-api rejected the KMZ. Check the file and try again.",
+        "failed": "We could not upload the KMZ. Please try again.",
+        "quota": "Your organization has no storage left for KMZ files. Contact Neutra+ to increase it.",
+        "busy": "Another KMZ is still being imported. Wait a few seconds and try again.",
+        "timeout": "The geo-api took too long to respond. The KMZ may have been imported anyway: upload the same file again in a few minutes — it won't create a duplicate version.",
+        "unavailable": "The geo-api did not respond. Try again in a few minutes; if the error persists, contact Neutra+ support."
+      },
+      "bound": "Linked",
+      "processing": "The geo-api imports the KMZ before responding. Large files take a few minutes: keep this page open.",
+      "listLoading": "Loading the organization's KMZ files...",
+      "listEmpty": "No KMZ uploaded yet. Upload one to use in this offer."
+    },
+    "preview": {
+      "title": "Marketplace preview",
+      "noCategory": "No category",
+      "untitled": "Untitled",
+      "noReviews": "No reviews",
+      "noDescription": "No description",
+      "noImage": "No image",
+      "technicalSla": "Technical SLA",
+      "acceptanceSla": "Acceptance SLA",
+      "buyNow": "Buy now",
+      "moderationTitle": "Reactive moderation",
+      "moderationText": "The offer is available right after publishing. Irregularities may lead to removal with an impact on the score.",
+      "priceSuffix": {
+        "monthly": "/ month",
+        "annual": "/ year"
+      }
+    },
+    "errors": {
+      "categoryRequired": "Choose the offer category.",
+      "coverageRequired": "Choose or upload a KMZ version for this category.",
+      "locationTooLong": "Use up to 120 characters.",
+      "imageType": "Upload a JPG or PNG image.",
+      "imageSize": "The image must be up to 5 MB.",
+      "nameRequired": "Enter the service name.",
+      "nameTooLong": "Use up to 100 characters.",
+      "shortDescriptionRequired": "Enter the short description.",
+      "shortDescriptionTooLong": "Use up to 160 characters.",
+      "descriptionRequired": "Enter the full description.",
+      "descriptionTooShort": "The full description needs at least 50 characters.",
+      "descriptionTooLong": "Use up to 5,000 characters.",
+      "speedRequired": "Enter the offer speed.",
+      "speedInvalid": "Enter a number greater than zero.",
+      "latencyInvalid": "Enter the latency in milliseconds, greater than zero.",
+      "acceptanceSlaRequired": "Enter the acceptance SLA.",
+      "acceptanceSlaRange": "Use a whole number of hours between 1 and 72.",
+      "technicalSlaRequired": "Enter the technical SLA.",
+      "technicalSlaRange": "Enter a percentage greater than 0 and up to 100 (e.g. 98.5).",
+      "deliveryTimeRequired": "Enter the delivery or activation time.",
+      "deliveryTimeTooLong": "Use up to 120 characters.",
+      "manufacturerRequired": "Enter the manufacturer.",
+      "modelRequired": "Enter the model.",
+      "conditionRequired": "Choose the equipment condition.",
+      "hardwareTooLong": "Use up to 80 characters.",
+      "pricingModelRequired": "Choose the pricing model.",
+      "priceRequired": "Enter the price.",
+      "priceInvalid": "Enter an amount greater than zero, with up to 2 decimal places.",
+      "setupInvalid": "Enter an amount from zero, with up to 2 decimal places.",
+      "stockInvalid": "Enter the quantity as a whole number.",
+      "cancellationRequired": "Enter the cancellation terms.",
+      "cancellationTooLong": "Use up to 300 characters.",
+      "validUntilPast": "The validity cannot end in the past.",
+      "numberingTypeRequired": "Enter the resource type.",
+      "numberingBlockRequired": "Enter the block or quantity.",
+      "numberingHolderRequired": "Enter the holder or delegation.",
+      "numberingTooLong": "Use up to 120 characters.",
+      "locationSelect": "Choose an address from the suggestions.",
+      "radiusRequired": "Enter the service radius.",
+      "radiusRange": "Use a radius greater than 0 and up to 500 km.",
+      "publicGeometryRequired": "Draw the custom coverage polygon or choose full coverage.",
+      "locationsMax": "Enter at most 10 locations."
+    },
+    "categories": {
+      "connectivity": {
+        "label": "Connectivity",
+        "description": "dedicated link, IP transit, L2L, VPLS, traditional PBX, local extensions, radio frequency (PTP/PTMP), mobile network (4G/5G)."
+      },
+      "physicalInfra": {
+        "label": "Physical Infrastructure",
+        "description": "dark fiber, cross-connect, colocation, tower space, termination boxes (CTO), optical distributors (DIO), outside plant cabling."
+      },
+      "hardware": {
+        "label": "Hardware / CPE",
+        "description": "ONUs, OLTs, routers, switches, ONTs, firewalls (NGFW), VPN gateways, rectifiers, UPS, generators."
+      },
+      "numberingResources": {
+        "label": "Numbering Resources",
+        "description": "IPv4, IPv6, ASN, E.164 (virtual numbering/VoIP)."
+      },
+      "software": {
+        "label": "Software and Management",
+        "description": "BSS/OSS systems, monitoring (NMS/Zabbix), IP address management (IPAM)."
+      },
+      "protocols": {
+        "label": "Protocols and Services",
+        "description": "BGP, OSPF, IS-IS, DNS, DHCP, NTP, cloud DDoS mitigation."
+      }
+    },
+    "coverageScope": {
+      "title": "Choose coverage",
+      "subtitle": "Define the coverage area that will be linked to this offer.",
+      "typeLabel": "Coverage type",
+      "mode": {
+        "full": "Full coverage",
+        "custom": "Custom coverage"
+      },
+      "modeDescription": {
+        "full": "Use the entire coverage of the selected KMZ.",
+        "custom": "Define a specific area for this offer."
+      },
+      "fullInfoTitle": "The entire KMZ coverage",
+      "fullInfoText": "No cropping will be applied. To choose only part of the area, select Custom coverage.",
+      "locationLabel": "Type the coverage location",
+      "locationPlaceholder": "Type a location",
+      "locationHint": "Enter an address, neighborhood or city.",
+      "drawTitle": "Or select on the map",
+      "drawText": "Click the map to add points and click the first point to close the polygon. You can draw more than one.",
+      "mapTitle": "Coverage Map",
+      "mapMode": {
+        "full": "Full coverage",
+        "custom": "Manual selection"
+      },
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "redo": "Clear all",
+      "legend": {
+        "full": "Coverage area of the selected KMZ",
+        "custom": "Polygons drawn for this offer",
+        "lines": "KMZ lines",
+        "points": "KMZ points"
+      },
+      "status": {
+        "full": "Full coverage selected",
+        "custom_one": "1 polygon selected",
+        "custom_other": "{{count}} polygons selected",
+        "drawing": "Click the map to draw a polygon",
+        "closing": "Click the first point to close the polygon"
+      },
+      "selected": {
+        "full": "Full coverage: the entire KMZ area is public.",
+        "custom": "Edited coverage: only the drawn polygons are public."
+      },
+      "cancel": "Cancel",
+      "confirm": "Confirm coverage",
+      "cancelDraft": "Cancel drawing",
+      "shapes": {
+        "title_one": "Drawn polygon",
+        "title_other": "Drawn polygons ({{count}})",
+        "name": "Polygon {{number}}",
+        "summary": "{{area}} · {{vertices}} vertices",
+        "remove": "Remove {{name}}"
+      },
+      "shapeInfo": {
+        "area": "Approximate area",
+        "vertices": "Vertices",
+        "status": "Status",
+        "inside": "No issues found",
+        "remove": "Remove polygon",
+        "close": "Close details",
+        "issue": {
+          "invalid": "Crosses itself or has no area",
+          "overlap": "Overlaps another polygon",
+          "outside": "Outside the KMZ area"
+        }
+      },
+      "issues": {
+        "invalid": "A polygon crosses itself or has no area. Remove it and draw it again without crossing its sides.",
+        "overlap": "Polygons can't overlap or touch. Remove one of them or redraw it apart.",
+        "outside": "Every polygon must stay inside the KMZ area. Remove or redraw the ones outside it."
+      }
+    }
+  },
+  "CoverageMap": {
+    "missingToken": "Map unavailable: set NEXT_PUBLIC_MAPBOX_TOKEN."
+  },
+  "SellerOfferDetail": {
+    "title": "Offer details",
+    "noCover": "No cover image",
+    "notFound": "Offer not found.",
+    "loadError": "Could not load the offer.",
+    "specs": {
+      "title": "Technical Specifications",
+      "speed": "Speed",
+      "latency": "Maximum latency",
+      "technicalSla": "Technical SLA",
+      "acceptanceSla": "Acceptance SLA",
+      "deliveryTime": "Delivery time",
+      "cancellation": "Cancellation policy"
+    },
+    "coverage": {
+      "title": "Coverage / KMZ",
+      "boundTitle": "Linked KMZ coverage area",
+      "boundText": "Version {{version}} · edit the offer to replace the KMZ",
+      "emptyTitle": "No coverage linked",
+      "emptyText": "Edit the offer to upload the coverage KMZ file",
+      "unknownCategory": "Offer category not identified.",
+      "upload": "Upload KMZ",
+      "replace": "Replace KMZ"
+    },
+    "pricing": {
+      "title": "Price and Availability",
+      "model": "Pricing model",
+      "models": {
+        "monthly": "Recurring (monthly)",
+        "annual": "Recurring (yearly)",
+        "oneTime": "One-time payment"
+      },
+      "currency": "Currency",
+      "price": "Price",
+      "setup": "Setup / NRC",
+      "stock": "Availability / Stock",
+      "stockOnRequest": "On request",
+      "stockUnits_one": "{{count}} available",
+      "stockUnits_other": "{{count}} available",
+      "validUntil": "Offer validity",
+      "noExpiry": "No expiration",
+      "sponsorNote": "Sponsoring is available to sellers with verified KYC and ≥ 10 completed orders."
+    },
+    "description": {
+      "title": "Description",
+      "hide": "Hide full description",
+      "show": "Show full description"
+    },
+    "actions": {
+      "back": "Back",
+      "edit": "Edit offer",
+      "sponsor": "Sponsor Offer",
+      "unsponsor": "Remove sponsorship"
+    },
+    "toasts": {
+      "sponsored": "Offer sponsored.",
+      "unsponsored": "Sponsorship removed."
+    }
+  },
+  "SellerOfferEdit": {
+    "title": "Edit offer",
+    "saved": "\"{{name}}\" updated.",
+    "actions": {
+      "save": "Save changes",
+      "saving": "Saving..."
+    },
+    "errors": {
+      "saveFailed": "Could not save the offer. Try again.",
+      "forbidden": "You do not have access to this offer.",
+      "readOnly": "Archived offers cannot be edited.",
+      "coverageFailed": "Changes were saved, but the coverage could not be linked. Try again."
+    }
+  },
+  "SellerCoverage": {
+    "title": "Coverage/KMZ",
+    "subtitle": "Owner-only upload · versioned, immutable file · max. 50 MB · private (buyers see aggregates only)",
+    "ownerOnly": "Only the Owner can upload KMZ",
+    "notOwner": "Your user is not the organization Owner: you can view coverages but not upload KMZ.",
+    "privacy": {
+      "title": "Coverage privacy",
+      "text": "The KMZ file is <strong>private</strong>. Buyers only see the <strong>public aggregates</strong> (countries, states, regions, cities). Physical routes, paths, PoPs and the raw KMZ are never exposed. You may hide subsets of the coverage, but you cannot declare areas outside the valid KMZ or use hiding to mask fraud or unavailability."
+    },
+    "list": {
+      "title": "Registered coverages",
+      "subtitle": "Manage areas, regions and linked KMZ files",
+      "empty": "No coverage registered yet.",
+      "offers_one": "{{count}} linked offer",
+      "offers_other": "{{count}} linked offers",
+      "updatedAt": "Updated: {{date}}",
+      "details": "Details",
+      "detailsOf": "Details of {{name}}",
+      "emptyHint": "Upload a KMZ to register your first coverage.",
+      "loading": "Loading coverages...",
+      "retry": "Try again",
+      "errors": {
+        "forbidden": "You don't have access to this organization's coverages.",
+        "failed": "Couldn't load the coverages. Try again."
+      }
+    },
+    "form": {
+      "title": "Register coverage",
+      "subtitle": "Upload the KMZ file for the new area",
+      "dropTitle": "Drag the KMZ file here",
+      "dropHint": "or click to select · max. 50 MB",
+      "removeFile": "Remove file",
+      "cancel": "Cancel",
+      "save": "Save coverage",
+      "saving": "Uploading..."
+    },
+    "details": {
+      "map": "Coverage area",
+      "close": "Close",
+      "fields": {
+        "offers": "Offers",
+        "size": "Size",
+        "polygons": "Polygons",
+        "createdAt": "Uploaded at",
+        "version": "Version",
+        "sha": "SHA-256"
+      }
+    },
+    "toasts": {
+      "saved": "Coverage \"{{name}}\" saved."
+    },
+    "errors": {
+      "fileRequired": "Choose the KMZ file."
+    }
+  },
+  "CoverageStorage": {
+    "title": "Coverage storage",
+    "used": "{{used}} of {{quota}} used",
+    "available": "{{available}} free",
+    "overQuota": "Usage is above the quota. Uploaded KMZ files remain valid, but new uploads are blocked until space is freed or the quota is increased.",
+    "categories": {
+      "originals": "Original KMZ files",
+      "geometries": "Geometries",
+      "metadata": "Metadata and classifications"
+    },
+    "hint": "Every version counts, including old and archived ones. Archiving does not free space.",
+    "retry": "Try again",
+    "errors": {
+      "loadFailed": "We could not load the storage usage.",
+      "forbidden": "You don't have access to this organization's storage."
+    },
+    "quota": {
+      "edit": "Change quota",
+      "title": "Update storage quota",
+      "description": "Set the organization's limit and record the administrative reason.",
+      "belowUsage": "The new quota is below what the organization already uses ({{used}}). Data is kept, but new KMZ uploads are blocked.",
+      "reasonLabel": "Reason for the increase",
+      "reasonPlaceholder": "E.g.: temporary expansion to store homologation documents...",
+      "cancel": "Cancel",
+      "save": "Save new quota",
+      "saved": "{{name}} quota changed to {{quota}}.",
+      "errors": {
+        "quotaRequired": "Enter the new quota.",
+        "quotaInvalid": "Use a whole number of MB.",
+        "quotaRange": "Use from 50 to 1,000 MB.",
+        "reasonRequired": "Enter the reason for the change.",
+        "reasonTooLong": "Use up to 500 characters.",
+        "forbidden": "Only the Neutra+ super admin can change the quota.",
+        "rejected": "The geo-api rejected the value. Check the quota and try again.",
+        "failed": "We could not change the quota. Please try again.",
+        "reasonTooShort": "Write at least 10 characters."
+      },
+      "organizationLabel": "Organization",
+      "newQuota": "New quota",
+      "currentLimit": "Current limit: {{quota}}",
+      "sliderLabel": "Storage quota in megabytes",
+      "manualLabel": "Manual amount",
+      "manualRange": "{{min}} to {{max}}",
+      "unit": "MB",
+      "reasonHelper": "{{count}}/{{min}} minimum characters · change recorded in the audit log"
     }
   }
 }

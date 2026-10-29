@@ -34,17 +34,21 @@ import {
   LuUsers,
 } from "react-icons/lu";
 
+import AdminCoverageStorage from "@/components/AdminCoverageStorage";
 import AdminKycChecks from "@/components/AdminKycChecks";
 import AdminKycDocumentViewer from "@/components/AdminKycDocumentViewer";
 import AdminKycHistory from "@/components/AdminKycHistory";
 import AdminKycReviewDocument from "@/components/AdminKycReviewDocument";
+import AdminSanctionsMatches from "@/components/AdminSanctionsMatches";
 import FormKycAccountDecision, {
   type KycAccountDecisionValues,
 } from "@/components/Forms/FormKycAccountDecision";
 import { useSession } from "@/contexts/SessionContext";
 import { formatDateTime } from "@/functions/formatDateTime";
 import { formatTaxId } from "@/functions/formatTaxId";
+import { isSuperAdmin } from "@/functions/rolesToPersonas";
 import { useAdminKycReview } from "@/hooks/useAdminKycReview";
+import { useSanctionsMatches } from "@/hooks/useSanctionsMatches";
 import type {
   KycAccountDecision,
   KycAccountReasonCode,
@@ -128,6 +132,22 @@ function sanctionsPending(request: KycReviewRequest): boolean {
     (item) => item.check_type === "sanctions",
   );
   return !check || check.status !== "passed" || check.expired;
+}
+
+/**
+ * A checagem de sanções reprovou: na sincronizada pela compliance-api ou na
+ * que acabou de rodar nesta tela. É quando vale buscar as ocorrências.
+ */
+function sanctionsFailed(
+  request: KycReviewRequest | null,
+  sanctionsRun: { is_clean: boolean } | null,
+): boolean {
+  if (sanctionsRun) return !sanctionsRun.is_clean;
+  return (
+    request?.automatic_checks.some(
+      (item) => item.check_type === "sanctions" && item.status === "failed",
+    ) ?? false
+  );
 }
 
 /**
@@ -243,6 +263,8 @@ export function AdminKycReview({
   const { t, i18n } = useTranslation();
   const { profile } = useSession();
   const userId = profile?.id ?? null;
+  // A cota de cobertura de outra organização só o super_admin lê e altera.
+  const canManageStorage = isSuperAdmin(profile?.roles ?? []);
 
   const review = useAdminKycReview({
     organizationId,
@@ -263,6 +285,14 @@ export function AdminKycReview({
     sanctionsRun,
     viewer,
   } = review;
+
+  // Quando as sanções reprovam, mostra em qual lista bateu e por quê.
+  const showSanctionsMatches = sanctionsFailed(request, sanctionsRun);
+  const sanctionsMatches = useSanctionsMatches({
+    organizationId,
+    enabled: showSanctionsMatches,
+    refreshKey: sanctionsRun?.screening_run_id,
+  });
 
   const backLink = (
     <Link
@@ -579,6 +609,20 @@ export function AdminKycReview({
         </Notice>
       )}
 
+      {showSanctionsMatches && (
+        <AdminSanctionsMatches
+          matches={sanctionsMatches.matches}
+          taxId={formatTaxId(
+            organization.tax_id,
+            organization.tax_id_country === "BR" ? "CNPJ" : undefined,
+          )}
+          legalName={organization.legal_name}
+          isLoading={sanctionsMatches.isLoading}
+          error={sanctionsMatches.error}
+          onReload={sanctionsMatches.reload}
+        />
+      )}
+
       {/* Aplicação da decisão na conta (Identity). */}
       {activation === "applied" && (
         <Notice tone={GREEN} icon={LuCircleCheck}>
@@ -712,6 +756,15 @@ export function AdminKycReview({
             </Text>
             <AdminKycChecks checks={request.automatic_checks} />
           </Stack>
+
+          {/* Só Seller envia KMZ: a cota de cobertura é dele. */}
+          {canManageStorage && organization.organization_type === "seller" && (
+            <AdminCoverageStorage
+              organizationId={organization.organization_id}
+              organizationName={organization.legal_name}
+              locale={i18n.language}
+            />
+          )}
 
           {isReviewer && (
             <Stack gap="12px" {...card} p="20px">
