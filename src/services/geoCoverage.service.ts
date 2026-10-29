@@ -1,9 +1,13 @@
 // Service das versões de cobertura (geo-api, KMZ).
 // Segue o padrão do SDD §12.2: funções nomeadas por operação, sem React, sem
 // tratamento de erro (propaga AppError tipado para o hook chamador).
-// O browser fala com o BFF (`/api/geo/*`), que anexa o Bearer do cookie.
+// O browser fala com o BFF (`/api/geo/*`), que anexa o Bearer da sessão de
+// perfil (cookie httpOnly). `organizationId` é o do contexto atual da
+// identity-api (`GET /auth/context`), não o do /me. Um 401 renova a sessão de
+// perfil uma vez e repete a chamada (`withProfileSession`).
 
 import { api } from "./api.client";
+import { withProfileSession } from "./profileSession.service";
 
 /** Versão de cobertura como a geo-api devolve hoje (upload e `GET /{id}`). */
 export interface CoverageVersion {
@@ -43,19 +47,58 @@ export interface CoverageFile {
   revision: number;
 }
 
-export interface CoverageFilePage {
-  items: CoverageFile[];
-  total: number;
-  offset: number;
-  limit: number;
-}
+export type CoverageFilePage = GeoPage<CoverageFile>;
 
 export interface ListCoverageFilesParams {
   offset?: number;
   /** 1 a 200 (padrão 50). */
   limit?: number;
-  /** Só arquivos não arquivados. */
+  /** Só arquivos não arquivados (sem ele, a lista inclui os arquivados). */
   activeOnly?: boolean;
+  /** Deixa um arquivo fora da lista (ex.: candidatos a substituí-lo). */
+  excludeFileId?: string;
+}
+
+/**
+ * Ciclo de vida de um arquivo (`GET /coverageFile/{id}/preview`): os campos
+ * da listagem mais os vínculos. Não traz o mapa.
+ */
+export interface CoverageFilePreview extends CoverageFile {
+  /** Ofertas ligadas a alguma versão do arquivo. */
+  linkedOfferCount: number;
+  /** Hash do estado (versão ativa, arquivamento e vínculos). */
+  previewRevision: string;
+  /** Caminho da geo-api que lista os arquivos ativos que podem substituí-lo. */
+  replacementsPath: string;
+}
+
+/** Versão no histórico de um arquivo, mais recente primeiro. */
+export interface CoverageFileVersion {
+  versionId: string;
+  predecessorId: string | null;
+  createdAt: string;
+  sourceSha256: string;
+}
+
+/** Oferta ligada a um arquivo, com a versão vinculada. */
+export interface CoverageFileOffer {
+  offeringId: string;
+  versionId: string;
+  updatedAt: string;
+}
+
+/** Página das listas da geo-api (`data.items`, `total`, `offset`, `limit`). */
+export interface GeoPage<T> {
+  items: T[];
+  total: number;
+  offset: number;
+  limit: number;
+}
+
+export interface GeoPageParams {
+  offset?: number;
+  /** 1 a 200 (padrão 50). */
+  limit?: number;
 }
 
 /** Campos do `POST /coverageVersion/kmz` — o contrato não tem outros. */
@@ -78,36 +121,96 @@ export const geoCoverageService = {
     form.append("organization_id", organizationId);
     form.append("file", file, file.name);
     if (predecessorId) form.append("predecessor_id", predecessorId);
-    return api.post<CoverageVersion>("/geo/coverageVersion/kmz", form, {
-      // A geo-api importa o KMZ antes de responder: um arquivo grande leva
-      // minutos (~4 min no "KMZ Geral" do benchmark). Espera o mesmo que o
-      // gateway da geo-api (900 s).
-      timeoutMs: 900_000,
-    });
+    return withProfileSession(() =>
+      api.post<CoverageVersion>("/geo/coverageVersion/kmz", form, {
+        // A geo-api importa o KMZ antes de responder: um arquivo grande leva
+        // minutos (~4 min no "KMZ Geral" do benchmark). Espera o mesmo que o
+        // gateway da geo-api (900 s).
+        timeoutMs: 900_000,
+      }),
+    );
   },
 
   /** Metadados de uma versão (sem geometria). 404/403 fora da organização. */
   getVersion: (versionId: string, options: { signal?: AbortSignal } = {}) =>
-    api.get<CoverageVersion>(
-      `/geo/coverageVersion/${encodeURIComponent(versionId)}`,
-      { signal: options.signal },
+    withProfileSession(() =>
+      api.get<CoverageVersion>(
+        `/geo/coverageVersion/${encodeURIComponent(versionId)}`,
+        { signal: options.signal },
+      ),
     ),
 
-  /** Arquivos de cobertura da organização (uma página). */
+  /**
+   * Arquivos de cobertura da organização (uma página). Próxima página: offset
+   * anterior + limit, até offset + recebidos chegar a `total`.
+   */
   listFiles: (
     organizationId: string,
-    { offset, limit, activeOnly }: ListCoverageFilesParams = {},
+    { offset, limit, activeOnly, excludeFileId }: ListCoverageFilesParams = {},
     options: { signal?: AbortSignal } = {},
   ) =>
-    api.get<CoverageFilePage>("/geo/coverageFile", {
-      params: {
-        organization_id: organizationId,
-        offset,
-        limit,
-        active_only: activeOnly,
-      },
-      signal: options.signal,
-    }),
+    withProfileSession(() =>
+      api.get<CoverageFilePage>("/geo/coverageFile", {
+        params: {
+          organization_id: organizationId,
+          offset,
+          limit,
+          active_only: activeOnly,
+          exclude_file_id: excludeFileId,
+        },
+        signal: options.signal,
+      }),
+    ),
+
+  /** Vínculos e ciclo de vida de um arquivo (sem o mapa). */
+  getFilePreview: (
+    fileId: string,
+    organizationId: string,
+    options: { signal?: AbortSignal } = {},
+  ) =>
+    withProfileSession(() =>
+      api.get<CoverageFilePreview>(
+        `/geo/coverageFile/${encodeURIComponent(fileId)}/preview`,
+        {
+          params: { organization_id: organizationId },
+          signal: options.signal,
+        },
+      ),
+    ),
+
+  /** Histórico de versões de um arquivo (uma página). */
+  listFileVersions: (
+    fileId: string,
+    organizationId: string,
+    { offset, limit }: GeoPageParams = {},
+    options: { signal?: AbortSignal } = {},
+  ) =>
+    withProfileSession(() =>
+      api.get<GeoPage<CoverageFileVersion>>(
+        `/geo/coverageFile/${encodeURIComponent(fileId)}/versions`,
+        {
+          params: { organization_id: organizationId, offset, limit },
+          signal: options.signal,
+        },
+      ),
+    ),
+
+  /** Ofertas ligadas a um arquivo (uma página). */
+  listFileOffers: (
+    fileId: string,
+    organizationId: string,
+    { offset, limit }: GeoPageParams = {},
+    options: { signal?: AbortSignal } = {},
+  ) =>
+    withProfileSession(() =>
+      api.get<GeoPage<CoverageFileOffer>>(
+        `/geo/coverageFile/${encodeURIComponent(fileId)}/offers`,
+        {
+          params: { organization_id: organizationId, offset, limit },
+          signal: options.signal,
+        },
+      ),
+    ),
 
   /**
    * KMZ original retido de um arquivo: a versão ativa ou `versionId`. 404
@@ -118,10 +221,12 @@ export const geoCoverageService = {
     organizationId: string,
     { versionId, signal }: { versionId?: string; signal?: AbortSignal } = {},
   ) =>
-    api.getBlob(`/geo/coverageFile/${encodeURIComponent(fileId)}/download`, {
-      params: { organization_id: organizationId, version_id: versionId },
-      signal,
-      // Dezenas de MB.
-      timeoutMs: 300_000,
-    }),
+    withProfileSession(() =>
+      api.getBlob(`/geo/coverageFile/${encodeURIComponent(fileId)}/download`, {
+        params: { organization_id: organizationId, version_id: versionId },
+        signal,
+        // Dezenas de MB.
+        timeoutMs: 300_000,
+      }),
+    ),
 };

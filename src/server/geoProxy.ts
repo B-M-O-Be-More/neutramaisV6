@@ -11,8 +11,11 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { Agent } from "undici";
 
-import { ACCESS_TOKEN_COOKIE } from "./authCookies";
-import { envelopeError } from "./identityProxy";
+import {
+  ACCESS_TOKEN_COOKIE,
+  PROFILE_ACCESS_TOKEN_COOKIE,
+} from "./authCookies";
+import { CORRELATION_ID_HEADER, envelopeError } from "./identityProxy";
 
 const GEO_API_URL = process.env.GEO_API_URL;
 
@@ -56,9 +59,24 @@ function buildQueryString(params?: Record<string, QueryValue>): string {
 }
 
 /**
+ * Bearer da geo-api: o da sessão de perfil (POST /auth/context), que é o que
+ * ela autoriza para o seller — o token do login, mesmo de um seller_owner,
+ * não substitui a seleção do perfil. Sem perfil selecionado (ex.: equipe da
+ * plataforma lendo cotas), vale o token do login.
+ */
+async function resolveGeoBearer(): Promise<string | undefined> {
+  const store = await cookies();
+  return (
+    store.get(PROFILE_ACCESS_TOKEN_COOKIE)?.value ??
+    store.get(ACCESS_TOKEN_COOKIE)?.value
+  );
+}
+
+/**
  * Encaminha uma requisição autenticada (Bearer do cookie httpOnly) para a
  * geo-api e devolve a resposta upstream sem alterar. Erros de infraestrutura
- * viram envelopes de erro tipados.
+ * viram envelopes de erro tipados. O `X-Correlation-ID` da resposta segue
+ * para o browser (o suporte rastreia a chamada por ele).
  */
 export async function forwardToGeo({
   method,
@@ -78,7 +96,7 @@ export async function forwardToGeo({
 
   const hasBody = body !== undefined && method !== "GET" && method !== "DELETE";
   const isFormData = body instanceof FormData;
-  const bearer = (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value;
+  const bearer = await resolveGeoBearer();
 
   try {
     const upstream = await fetch(
@@ -105,8 +123,13 @@ export async function forwardToGeo({
       } as RequestInit,
     );
 
+    const correlationId = upstream.headers.get(CORRELATION_ID_HEADER);
+    const correlation: Record<string, string> = correlationId
+      ? { [CORRELATION_ID_HEADER]: correlationId }
+      : {};
+
     if (upstream.status === 204) {
-      return new NextResponse(null, { status: 204 });
+      return new NextResponse(null, { status: 204, headers: correlation });
     }
 
     if (binary && upstream.ok) {
@@ -119,6 +142,7 @@ export async function forwardToGeo({
           ...(disposition ? { "Content-Disposition": disposition } : {}),
           "Cache-Control": "private, no-store, max-age=0",
           "X-Content-Type-Options": "nosniff",
+          ...correlation,
         },
       });
     }
@@ -128,6 +152,7 @@ export async function forwardToGeo({
       headers: {
         "Content-Type":
           upstream.headers.get("Content-Type") ?? "application/json",
+        ...correlation,
       },
     });
   } catch (error) {

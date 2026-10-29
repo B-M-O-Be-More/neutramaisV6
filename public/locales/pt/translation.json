@@ -2301,6 +2301,13 @@
       "emptyCategory": "Nenhuma oferta de {{category}} disponível no momento."
     }
   },
+  "SellerSession": {
+    "loading": "Abrindo o perfil Seller",
+    "forbidden": "Seu usuário não tem o perfil Seller liberado nesta organização.",
+    "unavailable": "O serviço de autenticação está temporariamente indisponível. Tente de novo em instantes.",
+    "error": "Não foi possível abrir o perfil Seller.",
+    "retry": "Tentar de novo"
+  },
   "AppSidebar": {
     "logoAlt": "Neutra+",
     "navLabel": "Navegação principal",

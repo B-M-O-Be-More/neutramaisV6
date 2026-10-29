@@ -7,6 +7,7 @@ import type { PaginationMetadata, ResponseEnvelope } from "@/types/api.types";
 import { NetworkError, TimeoutError, apiErrorFromResponse } from "./errors";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
+const CORRELATION_ID_HEADER = "X-Correlation-ID";
 
 type QueryValue = string | number | boolean | null | undefined;
 type QueryParams = Record<string, QueryValue | QueryValue[]>;
@@ -160,12 +161,31 @@ export function createApiClient(config: ApiClientConfig) {
     }
     clearTimeout(timeout);
 
+    // Identificador da chamada no upstream: vai no erro e no log, para o
+    // suporte localizar a falha.
+    const correlationId =
+      response.headers.get(CORRELATION_ID_HEADER) ?? undefined;
+    const fail = (envelope?: ResponseEnvelope<T> | null) => {
+      if (correlationId) {
+        console.warn(
+          `[api] ${method} ${path} → HTTP ${response.status} (${CORRELATION_ID_HEADER}: ${correlationId})`,
+        );
+      }
+      return apiErrorFromResponse(
+        response.status,
+        envelope?.errors ?? [],
+        envelope?.message,
+        envelope ?? undefined,
+        correlationId,
+      );
+    };
+
     // 204 No Content (logout/revoke) — sem envelope.
     if (
       response.status === 204 ||
       response.headers.get("Content-Length") === "0"
     ) {
-      if (!response.ok) throw apiErrorFromResponse(response.status);
+      if (!response.ok) throw fail();
       return { data: undefined as T, message: "", metadata: null };
     }
 
@@ -174,18 +194,13 @@ export function createApiClient(config: ApiClientConfig) {
       envelope = (await response.json()) as ResponseEnvelope<T>;
     } catch {
       // Corpo não-JSON ou vazio.
-      if (!response.ok) throw apiErrorFromResponse(response.status);
+      if (!response.ok) throw fail();
       return { data: undefined as T, message: "", metadata: null };
     }
 
     if (!response.ok) {
       if (response.status === 401) onUnauthorized?.();
-      throw apiErrorFromResponse(
-        response.status,
-        envelope?.errors ?? [],
-        envelope?.message,
-        envelope,
-      );
+      throw fail(envelope);
     }
 
     return {

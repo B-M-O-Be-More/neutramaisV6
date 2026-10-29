@@ -10,7 +10,10 @@ import FormSellerOffer from "@/components/Forms/FormSellerOffer";
 import AuthenticatedLayout from "@/components/Layouts/Authenticated";
 import SellerOfferLoadState from "@/components/SellerOfferLoadState";
 import { toaster } from "@/components/ui/toaster";
-import { useSession } from "@/contexts/SessionContext";
+import {
+  SellerSessionProvider,
+  useSellerSession,
+} from "@/contexts/SellerSessionContext";
 import { currencyLocale } from "@/functions/currencyLocale";
 import { offeringToFormValues } from "@/functions/offeringToFormValues";
 import { useOffering } from "@/hooks/useOffering";
@@ -19,7 +22,7 @@ import { useProductSpecifications } from "@/hooks/useProductSpecifications";
 function EditOfferContent() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { profile } = useSession();
+  const { organizationId } = useSellerSession();
   const { offeringId } = useParams<{ offeringId: string }>();
   const { offering, isLoading, notFound, hasError, refetch } =
     useOffering(offeringId);
@@ -72,7 +75,7 @@ function EditOfferContent() {
           mode="edit"
           offering={offering}
           initialValues={offeringToFormValues(offering, specificationName)}
-          organizationId={profile?.organization.id ?? null}
+          organizationId={organizationId}
           locale={currencyLocale(i18n.language)}
           onCancel={() => router.push(detailHref)}
           onSaved={(warnings) => {
@@ -107,7 +110,9 @@ function EditOfferContent() {
 export default function EditOfferPage() {
   return (
     <AuthenticatedLayout>
-      <EditOfferContent />
+      <SellerSessionProvider>
+        <EditOfferContent />
+      </SellerSessionProvider>
     </AuthenticatedLayout>
   );
 }

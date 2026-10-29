@@ -12,13 +12,16 @@ import FormSellerOffer, {
 } from "@/components/Forms/FormSellerOffer";
 import AuthenticatedLayout from "@/components/Layouts/Authenticated";
 import SellerOfferPublished from "@/components/SellerOfferPublished";
-import { useSession } from "@/contexts/SessionContext";
+import {
+  SellerSessionProvider,
+  useSellerSession,
+} from "@/contexts/SellerSessionContext";
 import { currencyLocale } from "@/functions/currencyLocale";
 
 function NewOfferContent() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { profile } = useSession();
+  const { organizationId } = useSellerSession();
   // Publicada, a página troca o assistente pela confirmação.
   const [published, setPublished] = React.useState<PublishedOffer | null>(null);
 
@@ -61,7 +64,7 @@ function NewOfferContent() {
         <SellerOfferPublished offer={published} />
       ) : (
         <FormSellerOffer
-          organizationId={profile?.organization.id ?? null}
+          organizationId={organizationId}
           locale={currencyLocale(i18n.language)}
           onCancel={() => router.push("/seller/offers")}
           onPublished={(offer) => {
@@ -80,7 +83,9 @@ function NewOfferContent() {
 export default function NewOfferPage() {
   return (
     <AuthenticatedLayout>
-      <NewOfferContent />
+      <SellerSessionProvider>
+        <NewOfferContent />
+      </SellerSessionProvider>
     </AuthenticatedLayout>
   );
 }

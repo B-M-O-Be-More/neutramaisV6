@@ -12,6 +12,9 @@ import { ACCESS_TOKEN_COOKIE } from "./authCookies";
 
 const IDENTITY_API_URL = process.env.IDENTITY_API_URL;
 
+/** Identificador da chamada nos logs do upstream — repassado ao browser. */
+export const CORRELATION_ID_HEADER = "X-Correlation-ID";
+
 export interface ForwardOptions {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   /** Caminho relativo à base da identity-api, ex.: "/organizations/register". */
@@ -46,6 +49,8 @@ export interface IdentityCallResult {
   status: number;
   text: string;
   contentType: string;
+  /** `X-Correlation-ID` da resposta, para o suporte rastrear a chamada. */
+  correlationId?: string;
   /** Presente quando a chamada falhou por infraestrutura (não chegou ao upstream). */
   infraError?: IdentityInfraError;
 }
@@ -128,6 +133,7 @@ export async function callIdentity({
       status: upstream.status,
       text: await upstream.text(),
       contentType: upstream.headers.get("Content-Type") ?? "application/json",
+      correlationId: upstream.headers.get(CORRELATION_ID_HEADER) ?? undefined,
     };
   } catch (error) {
     return {

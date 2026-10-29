@@ -33,7 +33,10 @@ import SellerOffersStats, {
   type SellerOffersStatsData,
 } from "@/components/SellerOffersStats";
 import { toaster } from "@/components/ui/toaster";
-import { useSession } from "@/contexts/SessionContext";
+import {
+  SellerSessionProvider,
+  useSellerSession,
+} from "@/contexts/SellerSessionContext";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   useOfferingTransition,
@@ -59,7 +62,7 @@ const INITIAL_FILTERS: SellerOffersFiltersValue = {
 function SellerOffersContent() {
   const { t, i18n } = useTranslation();
   const locale = currencyLocale(i18n.language);
-  const { profile } = useSession();
+  const { organizationId, context } = useSellerSession();
   const [tab, setTab] = React.useState<SellerCatalogTab>("catalog");
   const [filters, setFilters] =
     React.useState<SellerOffersFiltersValue>(INITIAL_FILTERS);
@@ -239,8 +242,8 @@ function SellerOffersContent() {
 
       {tab === "coverage" ? (
         <SellerCoveragePanel
-          organizationId={profile?.organization.id ?? null}
-          canUpload={canUploadCoverage(profile?.roles ?? [])}
+          organizationId={organizationId}
+          canUpload={canUploadCoverage(context?.roles ?? [])}
           locale={locale}
         />
       ) : (
@@ -345,7 +348,9 @@ function SellerOffersContent() {
 export default function SellerOffersPage() {
   return (
     <AuthenticatedLayout>
-      <SellerOffersContent />
+      <SellerSessionProvider>
+        <SellerOffersContent />
+      </SellerSessionProvider>
     </AuthenticatedLayout>
   );
 }

@@ -2322,6 +2322,13 @@
       "emptyCategory": "No {{category}} offers available right now."
     }
   },
+  "SellerSession": {
+    "loading": "Opening the Seller profile",
+    "forbidden": "Your user does not have the Seller profile enabled in this organization.",
+    "unavailable": "The authentication service is temporarily unavailable. Try again shortly.",
+    "error": "Could not open the Seller profile.",
+    "retry": "Try again"
+  },
   "AppSidebar": {
     "logoAlt": "Neutra+",
     "navLabel": "Main navigation",

@@ -1,9 +1,11 @@
 // Service da cota de armazenamento de cobertura (geo-api).
 // Segue o padrão do SDD §12.2: funções nomeadas por operação, sem React, sem
 // tratamento de erro (propaga AppError tipado para o hook chamador).
-// O browser fala com o BFF (`/api/geo/*`), que anexa o Bearer do cookie.
+// O browser fala com o BFF (`/api/geo/*`), que anexa o Bearer do cookie — o
+// da sessão de perfil, quando há uma (seller); senão, o do login (admin).
 
 import { api } from "./api.client";
+import { withProfileSession } from "./profileSession.service";
 
 /**
  * Armazenamento da organização, em MB (1 MB = 1.000.000 bytes). Originais,
@@ -39,9 +41,11 @@ export const geoStorageService = {
     organizationId: string,
     options: { signal?: AbortSignal } = {},
   ) =>
-    api.get<OrganizationStorage>(
-      `/geo/organizations/${encodeURIComponent(organizationId)}/storage`,
-      { signal: options.signal },
+    withProfileSession(() =>
+      api.get<OrganizationStorage>(
+        `/geo/organizations/${encodeURIComponent(organizationId)}/storage`,
+        { signal: options.signal },
+      ),
     ),
 
   /** Altera a cota. Só `super_admin` (403); 422 fora de 0–1000 MB. */
