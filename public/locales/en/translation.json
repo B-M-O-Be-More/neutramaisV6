@@ -3624,7 +3624,9 @@
     }
   },
   "CoverageMap": {
-    "missingToken": "Map unavailable: set NEXT_PUBLIC_MAPBOX_TOKEN."
+    "missingToken": "Map unavailable: set NEXT_PUBLIC_MAPBOX_TOKEN.",
+    "expand": "Expand map",
+    "collapse": "Exit fullscreen"
   },
   "SellerOfferDetail": {
     "title": "Offer details",

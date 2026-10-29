@@ -3603,7 +3603,9 @@
     }
   },
   "CoverageMap": {
-    "missingToken": "Mapa indisponível: configure NEXT_PUBLIC_MAPBOX_TOKEN."
+    "missingToken": "Mapa indisponível: configure NEXT_PUBLIC_MAPBOX_TOKEN.",
+    "expand": "Expandir mapa",
+    "collapse": "Sair da tela cheia"
   },
   "SellerOfferDetail": {
     "title": "Detalhe da oferta",

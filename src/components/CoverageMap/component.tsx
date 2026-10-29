@@ -61,6 +61,12 @@ export function CoverageMap({
   const markerClassRef = React.useRef<typeof MapboxMarker | null>(null);
   const [isReady, setIsReady] = React.useState(false);
 
+  // Textos dos controles do Mapbox no idioma atual, lidos na criação do mapa.
+  const controlLocale = React.useEffectEvent(() => ({
+    "FullscreenControl.Enter": t("CoverageMap.expand"),
+    "FullscreenControl.Exit": t("CoverageMap.collapse"),
+  }));
+
   // Cria o mapa uma vez; o import dinâmico evita `window` no SSR.
   React.useEffect(() => {
     if (!MAPBOX_TOKEN || !containerRef.current) return;
@@ -77,8 +83,12 @@ export function CoverageMap({
         center: DEFAULT_CENTER,
         zoom: DEFAULT_ZOOM,
         attributionControl: false,
+        locale: controlLocale(),
       });
       map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
+      // Expandir para a tela inteira, abaixo do zoom. Sem a Fullscreen API
+      // (ex.: Safari do iPhone), o próprio Mapbox esconde o botão.
+      map.addControl(new mapboxgl.FullscreenControl());
       map.addControl(new mapboxgl.AttributionControl({ compact: true }));
 
       map.on("load", () => {
