@@ -1,18 +1,19 @@
 import type { Control, FieldErrors, UseFormRegister } from "react-hook-form";
 
+import type { UseOfferingCoverageEditorReturn } from "@/hooks/useOfferingCoverageEditor";
 import type { SellerOfferValues } from "@/schemas/sellerOffer";
 
 export interface SellerOfferCoverageStepProps {
   control: Control<SellerOfferValues>;
   register: UseFormRegister<SellerOfferValues>;
   errors: FieldErrors<SellerOfferValues>;
-  /** Organização do seller — dona das versões de KMZ. */
+  /** Organização do seller — dona dos KMZs. */
   organizationId: string | null;
   /**
-   * Versão já vinculada à oferta (edição). A geo-api não lista versões: ela
-   * é buscada pelo id para continuar visível no seletor.
+   * Área de cobertura da oferta já criada (edição). Sem ela (criação), as
+   * categorias com KMZ mostram o aviso de que a cobertura vem depois.
    */
-  boundVersionId?: string | null;
+  coverageEditor?: UseOfferingCoverageEditorReturn;
   /** Idioma para datas e tamanhos (ex.: "pt-BR"). */
   locale: string;
 }

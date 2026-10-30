@@ -86,7 +86,7 @@ export const SIDEBAR_NAVIGATION: SidebarNavGroup[] = [
       },
       {
         key: "sellerFinance",
-        items: [{ key: "wallet", href: "/wallet", icon: LuWallet }],
+        items: [{ key: "wallet", href: "/seller/wallet", icon: LuWallet }],
       },
       {
         key: "account",

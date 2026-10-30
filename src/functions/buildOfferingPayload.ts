@@ -1,7 +1,12 @@
 import { parseDecimal } from "@/functions/parseDecimal";
-import type { SellerOfferValues } from "@/schemas/sellerOffer";
+import {
+  offerProductType,
+  postalCodeDigits,
+  type SellerOfferValues,
+} from "@/schemas/sellerOffer";
 import type {
   CreateOfferingInput,
+  OfferingShippingInput,
   ProductOffering,
   UpdateOfferingInput,
 } from "@/services/productCatalog.service";
@@ -43,18 +48,43 @@ function compact<T extends Record<string, unknown>>(
 
 const numberOrUndefined = (value: string) => parseDecimal(value) ?? undefined;
 
+/** "1,2345" → 1.235: número com as casas que a API aceita. */
+const roundTo = (value: string, digits: number) =>
+  Number((parseDecimal(value) ?? 0).toFixed(digits));
+
 /**
- * Corpo de `POST /productOffering` a partir do assistente.
- *
- * A oferta só tem campo para nome, preço, setup e velocidade. O resto vai no
- * `metadata` (texto livre, sem validação no backend). Ficam de fora a
- * categoria (representada pelo plano), a localidade A/Z, a região de
- * recursos numéricos e a imagem — aguardam campos próprios na API.
+ * Pacote de envio do produto físico (Hardware / CPE): uma unidade embalada.
+ * Peso com 3 casas, medidas e seguro com 2; CEP só com os dígitos.
  */
-export function buildOfferingPayload(
+export function buildOfferingShipping(
+  values: SellerOfferValues,
+): OfferingShippingInput {
+  return {
+    weightKg: roundTo(values.shippingWeightKg, 3),
+    heightCm: roundTo(values.shippingHeightCm, 2),
+    widthCm: roundTo(values.shippingWidthCm, 2),
+    lengthCm: roundTo(values.shippingLengthCm, 2),
+    originPostalCode: postalCodeDigits(values.shippingOriginPostalCode) ?? "",
+    ...(values.shippingInsuranceValue.trim()
+      ? { insuranceValue: roundTo(values.shippingInsuranceValue, 2) }
+      : {}),
+  };
+}
+
+/**
+ * Campos comuns ao POST e ao PATCH.
+ *
+ * A oferta só tem campo para nome, preço, setup, velocidade e, no produto
+ * físico, o pacote de envio. O resto vai no `metadata` (texto livre, sem
+ * validação no backend). Ficam de fora a categoria (representada pelo plano),
+ * a localidade A/Z, a região de recursos numéricos — aguardam campos próprios
+ * na API. Fotos têm rotas próprias, depois da oferta criada
+ * (`syncOfferingImages`).
+ */
+function offeringFields(
   values: SellerOfferValues,
   specificationId: string,
-): CreateOfferingInput {
+): Omit<CreateOfferingInput, "productType"> {
   const hasSpeed =
     values.category !== "numberingResources" && !!values.speedValue?.trim();
 
@@ -101,20 +131,40 @@ export function buildOfferingPayload(
     installationPrice: values.setupFee ? toApiDecimal(values.setupFee) : "0.00",
     speed: hasSpeed ? `${values.speedValue.trim()} ${values.speedUnit}` : null,
     metadata: metadata ?? null,
+    // Serviço com `shipping` volta 422: só o produto físico manda o pacote.
+    ...(offerProductType(values) === "physical"
+      ? { shipping: buildOfferingShipping(values) }
+      : {}),
+  };
+}
+
+/**
+ * Corpo de `POST /productOffering` a partir do assistente. Hardware / CPE
+ * nasce `physical` (publicar exige o pacote de envio, não cobertura); as
+ * demais categorias, `service`.
+ */
+export function buildOfferingPayload(
+  values: SellerOfferValues,
+  specificationId: string,
+): CreateOfferingInput {
+  return {
+    ...offeringFields(values, specificationId),
+    productType: offerProductType(values),
   };
 }
 
 /**
  * Corpo de `PATCH /productOffering/{id}` na edição. As chaves do assistente
  * no `metadata` são reescritas (campo apagado some); as demais — de outras
- * telas ou integrações — ficam como estavam.
+ * telas ou integrações — ficam como estavam. O tipo do produto não muda; o
+ * produto físico reenvia o pacote de envio inteiro.
  */
 export function buildOfferingUpdate(
   values: SellerOfferValues,
   specificationId: string,
   offering: ProductOffering,
 ): UpdateOfferingInput {
-  const payload = buildOfferingPayload(values, specificationId);
+  const payload = offeringFields(values, specificationId);
   const managed = new Set<string>(OFFERING_METADATA_KEYS);
   const kept = Object.fromEntries(
     Object.entries(offering.metadata ?? {}).filter(

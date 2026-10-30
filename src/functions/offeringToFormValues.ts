@@ -39,6 +39,23 @@ function decimalText(value: unknown, fractionDigits?: number): string {
   }).format(number);
 }
 
+/** Medida do pacote sem separador de milhar, até `digits` casas ("1,25"). */
+function measureText(value: unknown, digits: number): string {
+  const number = typeof value === "number" ? value : Number(value);
+  if (value === null || value === undefined || value === "") return "";
+  if (!Number.isFinite(number)) return "";
+  return new Intl.NumberFormat("pt-BR", {
+    useGrouping: false,
+    maximumFractionDigits: digits,
+  }).format(number);
+}
+
+/** "01310100" → "01310-100" (máscara do campo). */
+const postalCodeText = (value: string | null | undefined) =>
+  value && /^\d{8}$/.test(value)
+    ? `${value.slice(0, 5)}-${value.slice(5)}`
+    : (value ?? "");
+
 /** "500 Mbps" → ["500", "Mbps"]. */
 function splitSpeed(speed: string | null) {
   const match = speed?.trim().match(/^([\d.,]+)\s*(\w+)?$/);
@@ -54,7 +71,8 @@ function splitSpeed(speed: string | null) {
  * Valores do assistente a partir de uma oferta salva (edição). A categoria
  * vem do nome do plano; o resto, das colunas da oferta e do `metadata` que o
  * assistente gravou (ver `buildOfferingPayload`). O que a API não guarda
- * (imagem, localidades, região) volta vazio.
+ * (localidades, região) volta vazio. Fotos e cobertura ficam fora do
+ * formulário (áreas com botão próprio).
  */
 export function offeringToFormValues(
   offering: ProductOffering,
@@ -71,11 +89,11 @@ export function offeringToFormValues(
           specificationName.trim().toLocaleLowerCase("pt-BR"),
     )?.key ?? "";
   const installation = Number(offering.installationPrice);
+  const shipping = offering.shipping;
 
   return {
     ...SELLER_OFFER_DEFAULTS,
     category,
-    coverageVersionId: offering.coverageVersionId ?? "",
     name: offering.name,
     shortDescription: text(metadata.shortDescription),
     description: text(metadata.description),
@@ -98,6 +116,14 @@ export function offeringToFormValues(
     numberingResourceType: text(numbering.resourceType),
     numberingBlock: text(numbering.block),
     numberingHolder: text(numbering.holder),
+    // O tipo é fixo: oferta antiga sem o campo é serviço.
+    productType: offering.productType ?? "service",
+    shippingWeightKg: measureText(shipping?.weightKg, 3),
+    shippingHeightCm: measureText(shipping?.heightCm, 2),
+    shippingWidthCm: measureText(shipping?.widthCm, 2),
+    shippingLengthCm: measureText(shipping?.lengthCm, 2),
+    shippingOriginPostalCode: postalCodeText(shipping?.originPostalCode),
+    shippingInsuranceValue: decimalText(shipping?.insuranceValue, 2),
     pricingModel: oneOf(
       metadata.pricingModel,
       ["", ...OFFER_PRICING_MODELS],

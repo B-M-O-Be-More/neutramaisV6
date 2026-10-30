@@ -1,9 +1,17 @@
 import type { SellerOfferValues } from "@/schemas/sellerOffer";
-import type { ProductOffering } from "@/services/productCatalog.service";
+import type {
+  OfferingImage,
+  ProductOffering,
+} from "@/services/productCatalog.service";
 
-/** Oferta recém-publicada, com os valores já formatados para exibição. */
+/** Oferta recém-criada, com os valores já formatados para exibição. */
 export interface PublishedOffer {
   offeringId: string;
+  /**
+   * Criada como rascunho porque a categoria exige cobertura (KMZ), que só é
+   * vinculada depois. Sem isso, a oferta já foi publicada.
+   */
+  needsCoverage: boolean;
   name: string;
   /** Nome da categoria já traduzido. */
   categoryLabel: string;
@@ -27,7 +35,7 @@ interface FormSellerOfferBaseProps {
 /** Criação: a revisão final cria e publica a oferta. */
 interface FormSellerOfferCreateProps extends FormSellerOfferBaseProps {
   mode?: "create";
-  /** Oferta criada e publicada. */
+  /** Oferta publicada, ou criada à espera da cobertura. */
   onPublished: (offer: PublishedOffer) => void;
 }
 
@@ -37,6 +45,10 @@ interface FormSellerOfferEditProps extends FormSellerOfferBaseProps {
   offering: ProductOffering;
   /** Valores da oferta salva (ver `offeringToFormValues`). */
   initialValues: SellerOfferValues;
+  /** Fotos confirmadas, na ordem da oferta (área de fotos da etapa 2). */
+  images: OfferingImage[];
+  /** Etapa aberta de início (ex.: 1 para ir direto às fotos; 0, cobertura). */
+  initialStep?: number;
   /** Alterações salvas; avisos já traduzidos (ex.: patrocínio). */
   onSaved: (warnings: string[]) => void;
 }

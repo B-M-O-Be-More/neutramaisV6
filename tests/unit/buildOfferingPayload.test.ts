@@ -2,15 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildOfferingPayload,
+  buildOfferingUpdate,
   toApiDecimal,
 } from "@/functions/buildOfferingPayload";
 import type { SellerOfferValues } from "@/schemas/sellerOffer";
+import type { ProductOffering } from "@/services/productCatalog.service";
 
 const BASE: SellerOfferValues = {
   category: "connectivity",
-  coverageVersionId: "cov-1",
-  coverageMode: "full",
-  publicGeometry: null,
   locations: [
     {
       label: "Av. Dom Luís, 300, Caucaia - CE",
@@ -20,7 +19,6 @@ const BASE: SellerOfferValues = {
     },
   ],
   coverageRegion: "",
-  image: null,
   name: "  Link Dedicado 1 Gbps  ",
   shortDescription: "Link simétrico com SLA",
   description: "x".repeat(60),
@@ -38,6 +36,13 @@ const BASE: SellerOfferValues = {
   numberingResourceType: "IPv6",
   numberingBlock: "/48",
   numberingHolder: "LACNIC",
+  productType: "",
+  shippingWeightKg: "1,2506",
+  shippingHeightCm: "10",
+  shippingWidthCm: "25,5",
+  shippingLengthCm: "30",
+  shippingOriginPostalCode: "01310-100",
+  shippingInsuranceValue: "",
   pricingModel: "monthly",
   currency: "BRL",
   price: "1.890,00",
@@ -94,7 +99,7 @@ describe("buildOfferingPayload", () => {
     expect(json).not.toContain("Caucaia");
     expect(json).not.toContain("-38.65");
     expect(json).not.toContain("LACNIC");
-    expect(payload.metadata).not.toHaveProperty("image");
+    expect(payload.metadata).not.toHaveProperty("images");
   });
 
   it("inclui os dados de Hardware só nessa categoria", () => {
@@ -123,6 +128,39 @@ describe("buildOfferingPayload", () => {
     });
   });
 
+  it("serviço sai como `service`, sem pacote de envio", () => {
+    const payload = buildOfferingPayload(BASE, "spec-1");
+
+    expect(payload.productType).toBe("service");
+    expect(payload).not.toHaveProperty("shipping");
+  });
+
+  it("Hardware / CPE sai como `physical` com o pacote de envio", () => {
+    const payload = buildOfferingPayload(
+      { ...BASE, category: "hardware", shippingInsuranceValue: "1.200,00" },
+      "spec-1",
+    );
+
+    expect(payload.productType).toBe("physical");
+    expect(payload.shipping).toEqual({
+      weightKg: 1.251,
+      heightCm: 10,
+      widthCm: 25.5,
+      lengthCm: 30,
+      originPostalCode: "01310100",
+      insuranceValue: 1200,
+    });
+  });
+
+  it("sem seguro, o pacote não leva `insuranceValue`", () => {
+    const payload = buildOfferingPayload(
+      { ...BASE, category: "hardware" },
+      "spec-1",
+    );
+
+    expect(payload.shipping).not.toHaveProperty("insuranceValue");
+  });
+
   it("setup vazio vira zero e estoque preenchido vira número", () => {
     const payload = buildOfferingPayload(
       { ...BASE, setupFee: "", stock: "12" },
@@ -131,5 +169,30 @@ describe("buildOfferingPayload", () => {
 
     expect(payload.installationPrice).toBe("0.00");
     expect(payload.metadata).toMatchObject({ stock: 12 });
+  });
+});
+
+describe("buildOfferingUpdate", () => {
+  const OFFERING = { metadata: null } as ProductOffering;
+
+  it("produto físico reenvia o pacote, sem `productType` (fixo na criação)", () => {
+    const payload = buildOfferingUpdate(
+      { ...BASE, category: "hardware", productType: "physical" },
+      "spec-1",
+      OFFERING,
+    );
+
+    expect(payload).not.toHaveProperty("productType");
+    expect(payload.shipping).toMatchObject({ originPostalCode: "01310100" });
+  });
+
+  it("oferta salva como serviço não manda pacote, mesmo em Hardware", () => {
+    const payload = buildOfferingUpdate(
+      { ...BASE, category: "hardware", productType: "service" },
+      "spec-1",
+      OFFERING,
+    );
+
+    expect(payload).not.toHaveProperty("shipping");
   });
 });

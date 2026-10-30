@@ -21,13 +21,13 @@ const PUBLISH_ERROR_KEYS: Record<string, string> = {
   MKT_SELLER_NOT_APPROVED: "SellerOffers.errors.sellerNotApproved",
   MKT_KYC_NOT_VERIFIED: "SellerOffers.errors.kycNotVerified",
   MKT_OFFER_COVERAGE_REQUIRED: "SellerOffers.errors.coverageRequired",
+  MKT_OFFER_SHIPPING_REQUIRED: "SellerOffers.errors.shippingRequired",
   MKT_OFFER_INVALID_TRANSITION: "SellerOffers.errors.invalidTransition",
 };
 
 /** Progresso de uma oferta já criada — permite retomar sem duplicar. */
 interface Progress {
   offeringId: string;
-  coverageBound: boolean;
   promoted: boolean;
 }
 
@@ -42,12 +42,16 @@ function createErrorKey(error: unknown): string {
 }
 
 /**
- * Publicação da oferta criada no assistente (marketplace-api):
+ * Criação da oferta no assistente (marketplace-api):
  * 1. plano da categoria (encontra ou cria);
  * 2. oferta como rascunho, com os dados extras em `metadata`;
- * 3. vínculo do KMZ (Conectividade e Infra Física);
- * 4. patrocínio, quando pedido (falha não impede a publicação);
- * 5. publicação.
+ * 3. patrocínio, quando pedido (falha não impede a publicação);
+ * 4. publicação — menos em Conectividade e Infra Física: sem cobertura a
+ *    API recusa (`MKT_OFFER_COVERAGE_REQUIRED`), e ela só é vinculada à
+ *    oferta já criada. Essas ficam como rascunho (`needsCoverage`) e seguem
+ *    para a área de cobertura da edição.
+ *
+ * Fotos e cobertura não entram aqui: têm áreas próprias na edição.
  *
  * Se a oferta já foi criada e um passo seguinte falhou, a próxima chamada
  * retoma dali — sem criar outra oferta.
@@ -85,11 +89,7 @@ export function usePublishOffering(): UsePublishOfferingReturn {
             const offering = await productCatalogService.createOffering(
               buildOfferingPayload(values, specificationId),
             );
-            saveProgress({
-              offeringId: offering!.id,
-              coverageBound: false,
-              promoted: false,
-            });
+            saveProgress({ offeringId: offering!.id, promoted: false });
           } catch (error) {
             return { status: "failed", errorKey: createErrorKey(error) };
           }
@@ -103,30 +103,7 @@ export function usePublishOffering(): UsePublishOfferingReturn {
           warnings,
         });
 
-        // 3. Cobertura — só para categorias com KMZ.
-        if (
-          category.requiresCoverage &&
-          values.coverageVersionId &&
-          !current.coverageBound
-        ) {
-          try {
-            // Cobertura editada: só o polígono desenhado fica público.
-            await productCatalogService.bindCoverage(
-              current.offeringId,
-              values.coverageVersionId,
-              values.coverageMode === "custom" ? values.publicGeometry : null,
-            );
-            saveProgress({ ...progressRef.current!, coverageBound: true });
-          } catch (error) {
-            return draft(
-              error instanceof ForbiddenError
-                ? "SellerOfferCreate.publish.errors.coveragePermission"
-                : "SellerOfferCreate.publish.errors.coverageFailed",
-            );
-          }
-        }
-
-        // 4. Patrocínio — sem permissão, publica mesmo assim e avisa.
+        // 3. Patrocínio — sem permissão, publica mesmo assim e avisa.
         if (values.sponsored && !progressRef.current!.promoted) {
           try {
             await productCatalogService.setPromotion(current.offeringId, true);
@@ -140,7 +117,14 @@ export function usePublishOffering(): UsePublishOfferingReturn {
           }
         }
 
-        // 5. Publicação.
+        // 4. Publicação — sem cobertura ainda, fica como rascunho.
+        if (category.requiresCoverage) {
+          return {
+            status: "needsCoverage",
+            offeringId: current.offeringId,
+            warnings,
+          };
+        }
         try {
           await productCatalogService.transitionOffering(
             current.offeringId,

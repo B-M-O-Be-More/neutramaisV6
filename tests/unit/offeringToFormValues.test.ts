@@ -49,8 +49,6 @@ describe("offeringToFormValues", () => {
 
     expect(values).toMatchObject({
       category: "connectivity",
-      coverageVersionId: OFFERING.coverageVersionId,
-      coverageMode: "full",
       name: OFFERING.name,
       shortDescription: "Fibra simétrica com IP fixo",
       speedValue: "500",
@@ -91,6 +89,55 @@ describe("offeringToFormValues", () => {
       setupFee: "",
       stock: "",
       sponsored: false,
+    });
+  });
+
+  it("reabre o produto físico com o tipo salvo e o pacote de envio", () => {
+    const values = offeringToFormValues(
+      {
+        ...OFFERING,
+        productType: "physical",
+        coverageVersionId: null,
+        shipping: {
+          weightKg: "1.250",
+          heightCm: "10.00",
+          widthCm: "25.50",
+          lengthCm: "30.00",
+          originPostalCode: "01310100",
+          insuranceValue: "1200.00",
+        },
+      },
+      "Hardware / CPE",
+    );
+
+    expect(values).toMatchObject({
+      category: "hardware",
+      productType: "physical",
+      shippingWeightKg: "1,25",
+      shippingHeightCm: "10",
+      shippingWidthCm: "25,5",
+      shippingLengthCm: "30",
+      shippingOriginPostalCode: "01310-100",
+      shippingInsuranceValue: "1.200,00",
+    });
+    // Ida e volta: o PATCH devolve o mesmo pacote.
+    expect(buildOfferingUpdate(values, "spec-1", OFFERING).shipping).toEqual({
+      weightKg: 1.25,
+      heightCm: 10,
+      widthCm: 25.5,
+      lengthCm: 30,
+      originPostalCode: "01310100",
+      insuranceValue: 1200,
+    });
+  });
+
+  it("oferta antiga, sem o campo, reabre como serviço sem pacote", () => {
+    const values = offeringToFormValues(OFFERING, "Conectividade");
+
+    expect(values).toMatchObject({
+      productType: "service",
+      shippingWeightKg: "",
+      shippingOriginPostalCode: "",
     });
   });
 

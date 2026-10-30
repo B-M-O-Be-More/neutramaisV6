@@ -5,7 +5,6 @@ import {
   offerCategory,
   type OfferCategory,
 } from "@/data/offerCategories";
-import type { PublicGeometry } from "@/functions/geoShapes";
 import { parseDecimal } from "@/functions/parseDecimal";
 import { todayIso } from "@/functions/todayIso";
 
@@ -16,8 +15,12 @@ import { todayIso } from "@/functions/todayIso";
  * na exibição.
  * ------------------------------------------------------------------------- */
 
-/** Raio máximo da localidade de atendimento, em km. */
-export const OFFER_LOCATION_RADIUS_MAX_KM = 500;
+/**
+ * Raio da localidade de atendimento, em km. A busca de POPs da geo-api
+ * (`POST /networkPoint/nearby`) recebe o mesmo raio, em metros.
+ */
+export const OFFER_LOCATION_RADIUS_MIN_KM = 1;
+export const OFFER_LOCATION_RADIUS_MAX_KM = 80;
 /** Quantas localidades de atendimento a oferta aceita. */
 export const OFFER_LOCATIONS_MAX = 10;
 
@@ -88,7 +91,7 @@ export const offerLocationSchema = yup.object({
         const radius = parseDecimal(value);
         return (
           radius !== null &&
-          radius > 0 &&
+          radius >= OFFER_LOCATION_RADIUS_MIN_KM &&
           radius <= OFFER_LOCATION_RADIUS_MAX_KM
         );
       },
@@ -105,7 +108,11 @@ export const EMPTY_OFFER_LOCATION: OfferLocation = {
   radiusKm: "",
 };
 
-/** Etapa 1 — Cobertura / KMZ. */
+/**
+ * Etapa 1 — Categoria. A cobertura (KMZ e recorte público) não faz parte do
+ * formulário: só é vinculada depois da oferta criada, na área de cobertura
+ * da edição (`useOfferingCoverageEditor`), e só nas categorias com KMZ.
+ */
 export const sellerOfferCoverageSchema = yup.object({
   category: yup
     .mixed<OfferCategory | "">()
@@ -114,35 +121,6 @@ export const sellerOfferCoverageSchema = yup.object({
       "SellerOfferCreate.errors.categoryRequired",
     )
     .required("SellerOfferCreate.errors.categoryRequired"),
-  // Conectividade e infra física precisam de uma versão de KMZ (design). A
-  // marketplace-api exige cobertura para publicar qualquer oferta (D-10).
-  coverageVersionId: yup
-    .string()
-    .default("")
-    .test(
-      "coverage-required",
-      "SellerOfferCreate.errors.coverageRequired",
-      (value, context) =>
-        !offerCategory(context.parent.category)?.requiresCoverage || !!value,
-    ),
-  coverageMode: yup
-    .mixed<CoverageScopeMode>()
-    .oneOf([...COVERAGE_SCOPE_MODES])
-    .default("full"),
-  // Polígono público (`publicGeometry` no vínculo da cobertura): obrigatório
-  // só na cobertura editada.
-  publicGeometry: yup
-    .mixed<PublicGeometry>()
-    .nullable()
-    .default(null)
-    .test(
-      "public-geometry-required",
-      "SellerOfferCreate.errors.publicGeometryRequired",
-      (value, context) =>
-        !locationApplies(context.parent) ||
-        context.parent.coverageMode !== "custom" ||
-        !!value,
-    ),
   // Localidades de atendimento (A/Z): uma ou mais, cada uma com endereço e
   // raio. Opcionais e só no fluxo com cobertura (Conectividade e Infra
   // Física) — nas demais categorias o campo some e não é validado.
@@ -164,29 +142,37 @@ export const OFFER_NAME_MAX = 100;
 export const OFFER_SHORT_DESCRIPTION_MAX = 160;
 export const OFFER_DESCRIPTION_MIN = 50;
 export const OFFER_DESCRIPTION_MAX = 5000;
+/** Limites das imagens da oferta na marketplace-api. */
 export const OFFER_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-export const OFFER_IMAGE_TYPES = ["image/jpeg", "image/png"];
+export const OFFER_IMAGES_MAX = 10;
+export const OFFER_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 /**
- * Etapa 2 — Informações básicas. Só o nome tem campo na marketplace-api
- * (`name`); imagem e descrições ficam no assistente até a API ter onde
- * guardá-las.
+ * Foto da oferta na área de fotos da edição: já confirmada (`saved`) ou
+ * escolhida agora (`new`). Só existe para oferta já criada — o assistente de
+ * criação não tem fotos. A primeira da lista é a capa.
+ */
+export type OfferImageItem =
+  | { kind: "saved"; id: string; url: string | null }
+  | { kind: "new"; file: File };
+
+/** Erro (chave de tradução) de uma foto escolhida; as salvas já valeram. */
+export function offerImageErrorKey(item: OfferImageItem): string | undefined {
+  if (item.kind === "saved") return undefined;
+  if (!OFFER_IMAGE_TYPES.includes(item.file.type)) {
+    return "SellerOfferCreate.errors.imageType";
+  }
+  if (item.file.size > OFFER_IMAGE_MAX_BYTES) {
+    return "SellerOfferCreate.errors.imageSize";
+  }
+  return undefined;
+}
+
+/**
+ * Etapa 2 — Informações básicas. O nome vai em `name` e as descrições em
+ * `metadata`.
  */
 export const sellerOfferBasicInfoSchema = yup.object({
-  image: yup
-    .mixed<File>()
-    .nullable()
-    .default(null)
-    .test(
-      "image-type",
-      "SellerOfferCreate.errors.imageType",
-      (file) => !file || OFFER_IMAGE_TYPES.includes(file.type),
-    )
-    .test(
-      "image-size",
-      "SellerOfferCreate.errors.imageSize",
-      (file) => !file || file.size <= OFFER_IMAGE_MAX_BYTES,
-    ),
   name: yup
     .string()
     .trim()
@@ -262,6 +248,50 @@ const requiredForNumbering = (required: string) =>
     tooLong: "SellerOfferCreate.errors.numberingTooLong",
     required,
   });
+
+/**
+ * Tipo do produto na marketplace-api: Hardware / CPE é enviado (`physical`),
+ * as demais categorias são serviços. Na edição vale o tipo salvo na oferta
+ * (`productType` do formulário) — ele não muda depois de criada.
+ */
+export const OFFER_PRODUCT_TYPES = ["service", "physical"] as const;
+export type OfferProductType = (typeof OFFER_PRODUCT_TYPES)[number];
+
+export function offerProductType(values: {
+  productType?: OfferProductType | "";
+  category?: OfferCategory | "";
+}): OfferProductType {
+  if (values.productType) return values.productType;
+  return values.category === "hardware" ? "physical" : "service";
+}
+
+/** Limites do pacote de envio (marketplace-api, physical_goods.py). */
+export const OFFER_SHIPPING_MAX_WEIGHT_KG = 1000;
+export const OFFER_SHIPPING_MAX_SIDE_CM = 400;
+
+/** CEP com 8 dígitos ("01310-100"); "00000-000" não vale. */
+export function postalCodeDigits(value: string): string | null {
+  const digits = value.replace(/\D/g, "");
+  return /^\d{8}$/.test(digits) && digits !== "00000000" ? digits : null;
+}
+
+/** Medida do pacote: obrigatória em produto físico, maior que zero e até `max`. */
+const shippingMeasure = (max: number, required: string, range: string) =>
+  yup
+    .string()
+    .trim()
+    .default("")
+    .test(
+      "shipping-required",
+      required,
+      (value, context) =>
+        offerProductType(context.parent) !== "physical" || !!value,
+    )
+    .test("shipping-range", range, (value) => {
+      if (!value) return true;
+      const number = parseDecimal(value);
+      return number !== null && number > 0 && number <= max;
+    });
 
 /**
  * Número positivo opcional digitado como texto ("500", "0,5"). Vazio passa —
@@ -376,6 +406,52 @@ export const sellerOfferTechnicalSpecsSchema = yup.object({
   numberingHolder: requiredForNumbering(
     "SellerOfferCreate.errors.numberingHolderRequired",
   ),
+
+  // Envio (produto físico — Hardware / CPE): uma unidade embalada. A cotação
+  // do frete usa peso, medidas e o CEP de onde o seller despacha.
+  productType: yup
+    .mixed<OfferProductType | "">()
+    .oneOf(["", ...OFFER_PRODUCT_TYPES])
+    .default(""),
+  shippingWeightKg: shippingMeasure(
+    OFFER_SHIPPING_MAX_WEIGHT_KG,
+    "SellerOfferCreate.errors.weightRequired",
+    "SellerOfferCreate.errors.weightRange",
+  ),
+  shippingHeightCm: shippingMeasure(
+    OFFER_SHIPPING_MAX_SIDE_CM,
+    "SellerOfferCreate.errors.heightRequired",
+    "SellerOfferCreate.errors.sideRange",
+  ),
+  shippingWidthCm: shippingMeasure(
+    OFFER_SHIPPING_MAX_SIDE_CM,
+    "SellerOfferCreate.errors.widthRequired",
+    "SellerOfferCreate.errors.sideRange",
+  ),
+  shippingLengthCm: shippingMeasure(
+    OFFER_SHIPPING_MAX_SIDE_CM,
+    "SellerOfferCreate.errors.lengthRequired",
+    "SellerOfferCreate.errors.sideRange",
+  ),
+  shippingOriginPostalCode: yup
+    .string()
+    .trim()
+    .default("")
+    .test(
+      "postal-code-required",
+      "SellerOfferCreate.errors.postalCodeRequired",
+      (value, context) =>
+        offerProductType(context.parent) !== "physical" || !!value,
+    )
+    .test(
+      "postal-code-format",
+      "SellerOfferCreate.errors.postalCodeInvalid",
+      (value) => !value || postalCodeDigits(value) !== null,
+    ),
+  // Opcional: sem ele, o seguro usa o preço da oferta.
+  shippingInsuranceValue: positiveDecimal(
+    "SellerOfferCreate.errors.insuranceInvalid",
+  ),
 });
 
 /** Modelos de preço (Figma 2073-50238). A API só guarda o preço mensal. */
@@ -477,12 +553,8 @@ export type SellerOfferValues = yup.InferType<typeof sellerOfferSchema>;
 /** Valores iniciais do assistente (oferta nova). */
 export const SELLER_OFFER_DEFAULTS: SellerOfferValues = {
   category: "",
-  coverageVersionId: "",
-  coverageMode: "full",
-  publicGeometry: null,
   locations: [EMPTY_OFFER_LOCATION],
   coverageRegion: "",
-  image: null,
   name: "",
   shortDescription: "",
   description: "",
@@ -500,6 +572,13 @@ export const SELLER_OFFER_DEFAULTS: SellerOfferValues = {
   numberingResourceType: "",
   numberingBlock: "",
   numberingHolder: "",
+  productType: "",
+  shippingWeightKg: "",
+  shippingHeightCm: "",
+  shippingWidthCm: "",
+  shippingLengthCm: "",
+  shippingOriginPostalCode: "",
+  shippingInsuranceValue: "",
   pricingModel: "",
   currency: "BRL",
   price: "",

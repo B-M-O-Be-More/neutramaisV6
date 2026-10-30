@@ -22,11 +22,13 @@ import OfferMaskedInput, {
 } from "@/components/OfferMaskedInput";
 import SellerOfferHardwareFields from "@/components/SellerOfferHardwareFields";
 import SellerOfferNumberingFields from "@/components/SellerOfferNumberingFields";
+import SellerOfferShippingFields from "@/components/SellerOfferShippingFields";
 import {
   OFFER_ACCEPTANCE_SLA_MAX,
   OFFER_ACCEPTANCE_SLA_MIN,
   OFFER_DELIVERY_TIME_MAX,
   OFFER_SPEED_UNITS,
+  offerProductType,
 } from "@/schemas/sellerOffer";
 
 import { SellerOfferTechnicalSpecsStepProps } from "./interface";
@@ -38,7 +40,8 @@ import { SellerOfferTechnicalSpecsStepProps } from "./interface";
  *   para Conectividade.
  * - SLA técnico é um percentual (0–100, vírgula decimal, "%" fixo).
  * - Hardware / CPE ganha o bloco de fabricante, modelo e condição (Figma
- *   2074-56987).
+ *   2074-56987) e o de envio (peso, medidas, CEP de origem e seguro) — é
+ *   produto físico, entregue por frete.
  * - Recursos Numéricos não têm banda nem latência: aparece a documentação
  *   LACNIC/ANATEL no lugar (Figma 2074-59682).
  */
@@ -48,7 +51,12 @@ export function SellerOfferTechnicalSpecsStep({
   errors,
 }: SellerOfferTechnicalSpecsStepProps) {
   const { t } = useTranslation();
-  const category = useWatch({ control, name: "category" });
+  const [category, productType] = useWatch({
+    control,
+    name: ["category", "productType"],
+  });
+  // Na edição vale o tipo salvo (fixo); na criação, o da categoria.
+  const isPhysical = offerProductType({ category, productType }) === "physical";
   const speedRequired = category === "connectivity";
   const showNetworkFields = category !== "numberingResources";
 
@@ -286,6 +294,12 @@ export function SellerOfferTechnicalSpecsStep({
       {category === "hardware" && (
         <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
           <SellerOfferHardwareFields register={register} errors={errors} />
+        </Flex>
+      )}
+
+      {isPhysical && (
+        <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
+          <SellerOfferShippingFields control={control} errors={errors} />
         </Flex>
       )}
 

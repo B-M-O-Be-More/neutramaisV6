@@ -16,6 +16,7 @@ import {
   LuArchive,
   LuEye,
   LuHash,
+  LuInfo,
   LuPackage,
   LuPause,
   LuPencil,
@@ -28,6 +29,10 @@ import {
 
 import { detectServiceType } from "@/components/SearchNetworkCatalog/offerings";
 import { OFFERING_STATUS_STYLES } from "@/data/offeringStatus";
+import {
+  publishBlockerKey,
+  type OfferLifecycleGates,
+} from "@/functions/offerLifecycleGates";
 import type {
   OfferingAction,
   OfferingStatus,
@@ -47,7 +52,8 @@ interface ActionButton {
 }
 
 // Ações de cada status. A marketplace-api valida de novo: publicar exige
-// organização ativa, KYC verificado e cobertura vinculada.
+// `offer:publish`, organização ativa, KYC verificado e cobertura vinculada;
+// pausar, despublicar e arquivar exigem `offer:archive`.
 const STATUS_ACTIONS: Record<OfferingStatus, ActionButton[]> = {
   published: [
     {
@@ -138,6 +144,12 @@ const SECONDARY_BUTTON = {
   _disabled: { opacity: 0.5, cursor: "not-allowed" },
 } as const;
 
+const OPEN_GATES: OfferLifecycleGates = {
+  canPublish: true,
+  canArchive: true,
+  kycVerified: true,
+};
+
 /**
  * Card de uma oferta no catálogo do seller: status, preço, métricas e as ações
  * do ciclo de vida (publicar, pausar, despublicar, arquivar).
@@ -150,11 +162,29 @@ export function SellerOfferCard({
   categoryName,
   locale,
   isPending = false,
+  gates = OPEN_GATES,
   onAction,
 }: SellerOfferCardProps) {
   const { t } = useTranslation();
   const status = offering.status ?? "draft";
   const style = OFFERING_STATUS_STYLES[status];
+  const actions = STATUS_ACTIONS[status].filter((button) =>
+    button.action === "publish" ? gates.canPublish : gates.canArchive,
+  );
+  // Publicar fica visível, mas travado, enquanto falta KYC ou cobertura.
+  const publishBlocker = actions.some((button) => button.action === "publish")
+    ? publishBlockerKey(offering, gates)
+    : null;
+  // Ofertas antigas foram publicadas sem cobertura (migração 004 da
+  // marketplace-api) e fazem a busca por região falhar. Produto físico é
+  // enviado: cobertura não se aplica.
+  const publishedWithoutCoverage =
+    status === "published" &&
+    offering.productType !== "physical" &&
+    !offering.coverageVersionId;
+  const notice = publishedWithoutCoverage
+    ? t("SellerOffers.card.publishedWithoutCoverage")
+    : publishBlocker && t(publishBlocker);
   const description =
     typeof offering.metadata?.description === "string"
       ? offering.metadata.description
@@ -316,6 +346,24 @@ export function SellerOfferCard({
         ))}
       </SimpleGrid>
 
+      {notice && (
+        <Flex
+          align="flex-start"
+          gap="6px"
+          px="10px"
+          py="8px"
+          bg="#FFFBEB"
+          borderWidth="1px"
+          borderColor="#FDE68A"
+          rounded="10px"
+        >
+          <Icon as={LuInfo} boxSize="12px" mt="2px" color="#D97706" />
+          <Text color="#92400E" fontSize="11px" lineHeight="16px">
+            {notice}
+          </Text>
+        </Flex>
+      )}
+
       <Flex
         align="center"
         gap="8px"
@@ -352,11 +400,13 @@ export function SellerOfferCard({
           {t("SellerOffers.card.actions.preview")}
         </Button>
 
-        {STATUS_ACTIONS[status].map((button) => (
+        {actions.map((button) => (
           <Button
             key={button.key}
             {...SECONDARY_BUTTON}
-            disabled={isPending}
+            disabled={
+              isPending || (button.action === "publish" && !!publishBlocker)
+            }
             h={button.bg ? "34px" : "32px"}
             px={button.bg ? "12px" : "13px"}
             bg={button.bg ?? "transparent"}
@@ -372,7 +422,7 @@ export function SellerOfferCard({
           </Button>
         ))}
 
-        {status !== "archived" && (
+        {status !== "archived" && gates.canArchive && (
           <Button
             variant="plain"
             ms="auto"

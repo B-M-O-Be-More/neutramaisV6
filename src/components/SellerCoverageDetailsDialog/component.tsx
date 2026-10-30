@@ -108,9 +108,10 @@ export function SellerCoverageDetailsDialog({
                     geometry={geometry}
                     height="300px"
                     label={t("SellerCoverage.details.map")}
+                    isLoading={!geometry && isLoadingMap}
                   />
                 </Box>
-                {!geometry && (
+                {!geometry && !isLoadingMap && (
                   <Text
                     role="status"
                     color="#A0ABB8"
@@ -118,10 +119,8 @@ export function SellerCoverageDetailsDialog({
                     lineHeight="16.5px"
                   >
                     {t(
-                      isLoadingMap
-                        ? "SellerOfferCreate.coverage.preview.loading"
-                        : (mapError ??
-                            "SellerOfferCreate.coverage.previewUnavailable"),
+                      mapError ??
+                        "SellerOfferCreate.coverage.previewUnavailable",
                     )}
                   </Text>
                 )}

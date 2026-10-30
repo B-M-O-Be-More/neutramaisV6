@@ -22,6 +22,7 @@ import OfferMaskedInput, {
 import {
   EMPTY_OFFER_LOCATION,
   OFFER_LOCATION_RADIUS_MAX_KM,
+  OFFER_LOCATION_RADIUS_MIN_KM,
   OFFER_LOCATIONS_MAX,
   type SellerOfferValues,
 } from "@/schemas/sellerOffer";
@@ -45,9 +46,10 @@ const rowButton = {
 /**
  * Localidades de atendimento (A/Z): o seller busca o endereço (sugestões do
  * Mapbox), escolhe um — o mapa ganha o pin — e então informa o raio em km,
- * desenhado em volta do ponto. O "+" acrescenta outra localidade e o "−"
- * remove a da linha. Opcionais; a marketplace-api ainda não tem campo para
- * elas, então ficam no assistente e não são enviadas.
+ * desenhado em volta do ponto (1 a 80 km). O "+" acrescenta outra localidade
+ * e o "−" remove a da linha. Opcionais. Na edição, vão com a cobertura
+ * ("Confirmar cobertura") como `coverageNetworkPoints` do
+ * `PUT /productOffering/{id}/coverageVersion`.
  */
 export function SellerOfferLocationField({
   control,
@@ -129,6 +131,7 @@ function LocationRow({
   const labelError = tError(rowErrors?.label?.message);
   const radiusError = tError(rowErrors?.radiusKm?.message);
   const radiusHelper = t("SellerOfferCreate.coverage.radiusHelper", {
+    min: OFFER_LOCATION_RADIUS_MIN_KM,
     max: OFFER_LOCATION_RADIUS_MAX_KM,
   });
   const radiusId = `offer-location-${index}-radius`;
@@ -151,10 +154,14 @@ function LocationRow({
         inputValue={label.field.value ?? ""}
         error={labelError}
         onInputChange={(text) => {
-          // Digitar desfaz o endereço escolhido (e tira o pin do mapa).
+          // Digitar desfaz o endereço escolhido (e tira o pin do mapa). Só
+          // zera as coordenadas se havia ponto: cada gravação revalida o
+          // formulário, e três por tecla deixam a digitação lenta.
           label.field.onChange(text);
-          longitude.field.onChange(null);
-          latitude.field.onChange(null);
+          if (hasPoint) {
+            longitude.field.onChange(null);
+            latitude.field.onChange(null);
+          }
         }}
         onSelect={(result) => {
           label.field.onChange(result.label);

@@ -12,5 +12,7 @@ export interface UseUpdateOfferingReturn {
   save: (
     offering: ProductOffering,
     values: SellerOfferValues,
+    /** Valores de quando o formulário abriu: mesma categoria mantém o plano. */
+    initialValues?: SellerOfferValues,
   ) => Promise<UpdateOfferingOutcome>;
 }

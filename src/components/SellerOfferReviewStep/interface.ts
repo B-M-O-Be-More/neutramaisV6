@@ -16,4 +16,9 @@ export interface SellerOfferReviewStepProps {
   /** Idioma para moeda e datas (ex.: "pt-BR"). */
   locale: string;
   notice?: SellerOfferPublishNotice | null;
+  /**
+   * Categoria com KMZ na criação: a oferta nasce rascunho e a cobertura é
+   * vinculada em seguida, na edição — a revisão avisa.
+   */
+  coveragePending?: boolean;
 }

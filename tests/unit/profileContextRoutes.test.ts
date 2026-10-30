@@ -16,10 +16,13 @@ vi.mock("next/headers", () => ({
 // As envs são lidas na carga dos proxies: precisam existir antes do import.
 process.env.IDENTITY_API_URL = "https://upstream.test/identity/api/v1";
 process.env.GEO_API_URL = "https://upstream.test/geo/api/v2";
+process.env.MARKETPLACE_API_URL = "https://upstream.test/marketplace/api/v2";
 
 const context = await import("@/app/api/auth/context/route");
 const { POST: REFRESH } = await import("@/app/api/auth/context/refresh/route");
 const { GET: GEO_LIST } = await import("@/app/api/geo/coverageFile/route");
+const offering =
+  await import("@/app/api/productCatalog/productOffering/[offeringId]/route");
 
 const ORGANIZATION = "018f4c2a-9b31-7d64-a0e5-2f7c1b8d3e90";
 
@@ -224,6 +227,67 @@ describe("BFF da sessão de perfil (/api/auth/context)", () => {
       const [, init] = fetchMock.mock.calls[0];
       expect(init.headers.Authorization).toBe("Bearer seller-access");
       expect(response.headers.get("X-Correlation-ID")).toBe("corr-geo");
+    });
+  });
+
+  describe("marketplace-api com a sessão de perfil", () => {
+    const OFFERING_ID = "0192a0b1-d4e5-7f60-8a9b-0c1d2e3f4a5c";
+    const patch = () =>
+      offering.PATCH(
+        new NextRequest(
+          new URL(
+            `/api/productCatalog/productOffering/${OFFERING_ID}`,
+            "http://localhost",
+          ),
+          { method: "PATCH", body: JSON.stringify({ name: "Fibra 1 Gbps" }) },
+        ),
+        { params: Promise.resolve({ offeringId: OFFERING_ID }) },
+      );
+
+    it("o PATCH da oferta usa o token do perfil e repassa o X-Correlation-ID", async () => {
+      jar.profile_access_token = "seller-access";
+      fetchMock.mockResolvedValue(
+        json({ data: { id: OFFERING_ID } }, 200, {
+          "X-Correlation-ID": "corr-mkt",
+        }),
+      );
+
+      const response = await patch();
+
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(url).toBe(
+        `https://upstream.test/marketplace/api/v2/productCatalog/productOffering/${OFFERING_ID}`,
+      );
+      expect(init.method).toBe("PATCH");
+      expect(init.headers.Authorization).toBe("Bearer seller-access");
+      expect(response.headers.get("X-Correlation-ID")).toBe("corr-mkt");
+    });
+
+    it("sem sessão de perfil, o PATCH usa o token do login", async () => {
+      fetchMock.mockResolvedValue(json({ data: { id: OFFERING_ID } }));
+
+      await patch();
+
+      const [, init] = fetchMock.mock.calls[0];
+      expect(init.headers.Authorization).toBe("Bearer login-token");
+    });
+
+    it("a leitura da oferta segue com o token do login", async () => {
+      jar.profile_access_token = "seller-access";
+      fetchMock.mockResolvedValue(json({ data: { id: OFFERING_ID } }));
+
+      await offering.GET(
+        new NextRequest(
+          new URL(
+            `/api/productCatalog/productOffering/${OFFERING_ID}`,
+            "http://localhost",
+          ),
+        ),
+        { params: Promise.resolve({ offeringId: OFFERING_ID }) },
+      );
+
+      const [, init] = fetchMock.mock.calls[0];
+      expect(init.headers.Authorization).toBe("Bearer login-token");
     });
   });
 });

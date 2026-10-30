@@ -11,13 +11,14 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { Agent } from "undici";
 
+import { apiBaseUrl, missingApiUrlMessage } from "./apiBaseUrl";
 import {
   ACCESS_TOKEN_COOKIE,
   PROFILE_ACCESS_TOKEN_COOKIE,
 } from "./authCookies";
 import { CORRELATION_ID_HEADER, envelopeError } from "./identityProxy";
 
-const GEO_API_URL = process.env.GEO_API_URL;
+const GEO_API_URL = apiBaseUrl("geo");
 
 // O fetch do Node desiste após 300 s sem resposta. A importação de um KMZ
 // grande leva minutos (o "KMZ Geral" do benchmark da geo-api: ~4 min) — este
@@ -90,7 +91,7 @@ export async function forwardToGeo({
     return envelopeError(
       500,
       "GEO_API_URL_MISSING",
-      "GEO_API_URL não configurada no ambiente.",
+      missingApiUrlMessage("geo"),
     );
   }
 

@@ -15,7 +15,9 @@ const ERROR_KEYS: Record<string, string> = {
   MKT_SELLER_NOT_APPROVED: "SellerOffers.errors.sellerNotApproved",
   MKT_KYC_NOT_VERIFIED: "SellerOffers.errors.kycNotVerified",
   MKT_OFFER_COVERAGE_REQUIRED: "SellerOffers.errors.coverageRequired",
+  MKT_OFFER_SHIPPING_REQUIRED: "SellerOffers.errors.shippingRequired",
   MKT_OFFER_INVALID_TRANSITION: "SellerOffers.errors.invalidTransition",
+  MKT_OFFER_ARCHIVED: "SellerOfferEdit.errors.readOnly",
 };
 
 /**

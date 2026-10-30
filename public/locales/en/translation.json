@@ -3200,6 +3200,7 @@
     },
     "card": {
       "promoted": "Sponsored",
+      "publishedWithoutCoverage": "Published without coverage: this offer can make the region search fail. Link a coverage (KMZ).",
       "createdAt": "Created {{date}}",
       "perMonth": "{{price}}/mo",
       "statuses": {
@@ -3244,13 +3245,14 @@
       "kycNotVerified": "Complete the KYC verification to publish offers.",
       "coverageRequired": "Link a coverage (KMZ) to the offer before publishing.",
       "invalidTransition": "The current status of the offer does not allow this action. Refresh the page.",
-      "transitionFailed": "We could not update the offer. Please try again."
+      "transitionFailed": "We could not update the offer. Please try again.",
+      "shippingRequired": "Fill in shipping (weight, dimensions and origin postal code) in Edit offer before publishing."
     }
   },
   "SellerOfferCreate": {
     "title": "New Offer",
     "steps": {
-      "coverage": "Coverage / KMZ",
+      "coverage": "Category & coverage",
       "basicInfo": "Basic information",
       "technicalSpecs": "Technical specifications",
       "pricing": "Price and availability",
@@ -3261,11 +3263,15 @@
       "continue": "Continue",
       "publish": "Publish offer now",
       "publishing": "Publishing...",
+      "create": "Create offer",
+      "creating": "Creating offer...",
       "retryPublish": "Try publishing again"
     },
     "coverage": {
       "infoTitle": "KMZ and categories",
-      "infoText": "Every connectivity or infrastructure offer must be linked to a KMZ version. Hardware, Numbering Resources, Software and Management, and Protocols and Services do not need one.",
+      "infoText": "Connectivity and Physical Infrastructure offers are only published with a coverage (KMZ), linked after the offer is created. Hardware, Numbering Resources, Software and Management, and Protocols and Services do not need one.",
+      "afterCreateTitle": "Coverage comes after the offer is created",
+      "afterCreateText": "This category needs a coverage (KMZ) to be published. Create the offer, then choose the KMZ and the area — full or drawn — in the coverage section.",
       "categoriesLabel": "Categories",
       "mapTitle": "Coverage Map",
       "chooseCoverage": "Choose Coverage",
@@ -3288,7 +3294,7 @@
       "locationUnavailable": "Address search unavailable: set NEXT_PUBLIC_MAPBOX_TOKEN.",
       "locationSearchError": "We could not search addresses right now. Try again in a moment.",
       "radiusLabel": "Service radius",
-      "radiusHelper": "Distance around the address, up to {{max}} km",
+      "radiusHelper": "Distance around the address, from {{min}} to {{max}} km",
       "locationItemLabel": "Location {{number}}",
       "radiusItemLabel": "Radius of location {{number}}",
       "locationAdd": "Add location",
@@ -3303,12 +3309,20 @@
     },
     "basicInfo": {
       "autoPublishNotice": "Auto-publishing available for sellers with verified KYC.",
-      "imageLabel": "Offer image",
-      "imageCta": "Click to add an offer photo",
-      "imageHint": "JPG, PNG · max 5 MB · 16:9 ratio recommended",
+      "imageLabel": "Gallery",
+      "imageCta": "Click to add offer photos",
+      "imageHint": "JPG, PNG or WEBP · up to 5 MB each · up to {{max}} images · the first one is the cover",
       "imageAlt": "Offer image: {{name}}",
-      "imageReplace": "Replace",
-      "imageRemove": "Remove",
+      "imageSavedAlt": "Offer image {{index}}",
+      "imageCounter": "{{count}}/{{max}}",
+      "imageCover": "Cover",
+      "imageAdd": "Add",
+      "imageMoveLeft": "Move image {{index}} left",
+      "imageMoveRight": "Move image {{index}} right",
+      "imageRemove": "Remove image {{index}}",
+      "imageSkipped_one": "{{count}} image was not added: the limit is {{max}} per offer.",
+      "imageSkipped_other": "{{count}} images were not added: the limit is {{max}} per offer.",
+      "imageError": "Image {{index}}: {{message}}",
       "nameLabel": "Service Name",
       "namePlaceholder": "E.g.: Premium 1 Gbps Dedicated Link",
       "shortDescriptionLabel": "Short Description",
@@ -3345,6 +3359,16 @@
       "warrantyPlaceholder": "E.g.: 12 months",
       "serializationLabel": "Serialization",
       "serializationPlaceholder": "Serial number required"
+    },
+    "shipping": {
+      "title": "Shipping",
+      "description": "One packed unit of the product. Shipping is quoted with this data from the origin postal code.",
+      "weightLabel": "Weight (kg)",
+      "heightLabel": "Height (cm)",
+      "widthLabel": "Width (cm)",
+      "lengthLabel": "Length (cm)",
+      "postalCodeLabel": "Origin postal code (CEP)",
+      "insuranceLabel": "Declared value (insurance)"
     },
     "numbering": {
       "title": "Numbering Resources — LACNIC/ANATEL documentation",
@@ -3383,6 +3407,7 @@
     },
     "review": {
       "moderationNotice": "Irregular offers (false information, unrealistic price, mismatched coverage) may be removed with an impact on the score. Sellers cannot duplicate offers in the same category.",
+      "coveragePendingNotice": "The offer will be created as a draft. To publish it, link the coverage (KMZ) right after.",
       "truthfulnessNotice": "By publishing you confirm the information is true and that you hold the rights to sell this service on Neutra+.",
       "validUntilOpen": "No end date",
       "goToOffers": "See it in My Offers",
@@ -3399,8 +3424,7 @@
         "validUntil": "Validity",
         "speed": "Speed",
         "setup": "Setup / NRC",
-        "stock": "Stock",
-        "coverage": "Coverage"
+        "stock": "Stock"
       }
     },
     "publish": {
@@ -3409,7 +3433,6 @@
         "createFailed": "We could not create the offer. Please try again.",
         "invalid": "The marketplace-api rejected the offer data. Review the steps and try again.",
         "reviewInvalid": "Some fields in the previous steps are invalid. Go back and fix them before publishing.",
-        "coverageFailed": "We could not link the coverage (KMZ) right now. Try publishing again in a moment.",
         "coveragePermission": "Your user is not allowed to link coverage to the offer.",
         "publishFailed": "We could not publish the offer. Please try again."
       },
@@ -3423,6 +3446,7 @@
       "title": "Product published successfully!",
       "subtitle": "Auto-publishing with reactive moderation. Your offer is available on the marketplace.",
       "statusValue": "Published · reactive moderation",
+      "addPhotos": "Add photos",
       "backToOffers": "Back to My Offers",
       "fields": {
         "offer": "Offer",
@@ -3431,6 +3455,13 @@
         "status": "Status",
         "acceptanceSla": "Acceptance SLA"
       }
+    },
+    "created": {
+      "heading": "Offer created!",
+      "title": "Offer created as a draft",
+      "subtitle": "Coverage is missing: choose the KMZ and the served area to publish the offer.",
+      "statusValue": "Draft · awaiting coverage",
+      "addCoverage": "Add coverage"
     },
     "kmz": {
       "label": "Select KMZ version",
@@ -3481,10 +3512,9 @@
     },
     "errors": {
       "categoryRequired": "Choose the offer category.",
-      "coverageRequired": "Choose or upload a KMZ version for this category.",
       "locationTooLong": "Use up to 120 characters.",
-      "imageType": "Upload a JPG or PNG image.",
-      "imageSize": "The image must be up to 5 MB.",
+      "imageType": "Upload JPG, PNG or WEBP images.",
+      "imageSize": "Each image must be up to 5 MB.",
       "nameRequired": "Enter the service name.",
       "nameTooLong": "Use up to 100 characters.",
       "shortDescriptionRequired": "Enter the short description.",
@@ -3519,9 +3549,18 @@
       "numberingTooLong": "Use up to 120 characters.",
       "locationSelect": "Choose an address from the suggestions.",
       "radiusRequired": "Enter the service radius.",
-      "radiusRange": "Use a radius greater than 0 and up to 500 km.",
+      "radiusRange": "Use a radius between 1 and 80 km.",
       "publicGeometryRequired": "Draw the custom coverage polygon or choose full coverage.",
-      "locationsMax": "Enter at most 10 locations."
+      "locationsMax": "Enter at most 10 locations.",
+      "weightRequired": "Enter the packed weight.",
+      "weightRange": "Weight must be greater than zero and up to 1000 kg.",
+      "heightRequired": "Enter the height.",
+      "widthRequired": "Enter the width.",
+      "lengthRequired": "Enter the length.",
+      "sideRange": "Each measure must be greater than zero and up to 400 cm.",
+      "postalCodeRequired": "Enter the postal code the product ships from.",
+      "postalCodeInvalid": "Enter a valid 8-digit postal code (CEP).",
+      "insuranceInvalid": "Enter a value greater than zero or leave it blank."
     },
     "categories": {
       "connectivity": {
@@ -3626,11 +3665,76 @@
   "CoverageMap": {
     "missingToken": "Map unavailable: set NEXT_PUBLIC_MAPBOX_TOKEN.",
     "expand": "Expand map",
-    "collapse": "Exit fullscreen"
+    "collapse": "Close expanded map",
+    "info": {
+      "km": "{{value}} km",
+      "km2": "{{value}} km²",
+      "kmzArea": "KMZ area",
+      "kmzPoint": "KMZ point",
+      "publicArea": "Public area {{number}} of {{total}}",
+      "location": "Location {{number}}",
+      "name": "Name",
+      "address": "Address",
+      "coordinates": "Coordinates",
+      "radius": "Radius",
+      "radiusArea": "Radius area",
+      "area": "Area",
+      "vertices": "Vertices"
+    },
+    "loading": {
+      "download": "Downloading the original KMZ file...",
+      "read": "Reading areas, lines and points...",
+      "draw": "Drawing the coverage on the map...",
+      "large": "Large files may take a little longer...",
+      "stillWorking": "Still loading — the screen hasn't frozen."
+    }
+  },
+  "SellerOfferImages": {
+    "title": "Offer photos",
+    "subtitle": "Up to 10 photos. The first one is the cover on the marketplace.",
+    "pending": "There are photo changes not confirmed yet.",
+    "upToDate": "Photos are up to date with the offer.",
+    "confirm": "Confirm photos",
+    "confirming": "Uploading photos...",
+    "confirmed": "Photos confirmed on the offer.",
+    "notConfirmedOnSave": "The photo changes were not saved: use \"Confirm photos\" in the Basic information step.",
+    "afterPublishNotice": "Photos are added after the offer is created: it must exist first. Right after that you can add them.",
+    "errors": {
+      "reloadFailed": "The photos were uploaded, but the list could not be reloaded. Reload the page before changing them again."
+    },
+    "warnings": {
+      "imagesLimit": "Some photos were not uploaded: the offer already has the maximum of 10.",
+      "imagesUnavailable": "The photos were not uploaded: image storage is unavailable. Try again later.",
+      "imagesInvalid": "A photo was rejected for not being a valid JPG, PNG or WEBP up to 5 MB.",
+      "imagesFailed": "A photo was not uploaded. Choose it again and confirm.",
+      "imagesDeleteFailed": "A photo could not be removed. Try again.",
+      "imagesOrderFailed": "The photos were uploaded, but not in the chosen order. Adjust the order and confirm again."
+    }
+  },
+  "SellerOfferCoverage": {
+    "title": "Offer coverage",
+    "subtitle": "Choose the KMZ and the area: the whole KMZ (full coverage) or a polygon drawn inside it (manual coverage).",
+    "pending": "There are coverage changes not confirmed yet.",
+    "upToDate": "Coverage linked to the offer.",
+    "missing": "No coverage linked: the offer cannot be published without it.",
+    "confirm": "Confirm coverage",
+    "confirming": "Linking coverage...",
+    "confirmed": "Coverage linked to the offer.",
+    "notConfirmedOnSave": "The coverage change was not linked: use \"Confirm coverage\" in the Category & coverage step.",
+    "errors": {
+      "failed": "Could not link the coverage right now. Try again in a moment.",
+      "invalid": "The coverage was rejected: check that the KMZ belongs to your organization and that the drawn area is inside it.",
+      "scopeUnavailable": "We couldn't load the saved coverage area. The map shows the whole KMZ area; confirm again only if you want to change the area.",
+      "pointsInvalid": "Check the service locations: each chosen address needs a radius between 1 and 80 km."
+    },
+    "loadingScope": "Loading the saved coverage area..."
   },
   "SellerOfferDetail": {
     "title": "Offer details",
     "noCover": "No cover image",
+    "coverAlt": "Cover of the offer {{name}}",
+    "imageCount_one": "{{count}} image",
+    "imageCount_other": "{{count}} images",
     "notFound": "Offer not found.",
     "loadError": "Could not load the offer.",
     "specs": {
@@ -3697,8 +3801,7 @@
     "errors": {
       "saveFailed": "Could not save the offer. Try again.",
       "forbidden": "You do not have access to this offer.",
-      "readOnly": "Archived offers cannot be edited.",
-      "coverageFailed": "Changes were saved, but the coverage could not be linked. Try again."
+      "readOnly": "Archived offers cannot be edited."
     }
   },
   "SellerCoverage": {
@@ -3801,6 +3904,465 @@
       "manualRange": "{{min}} to {{max}}",
       "unit": "MB",
       "reasonHelper": "{{count}}/{{min}} minimum characters · change recorded in the audit log"
+    }
+  },
+  "Wallet": {
+    "back": "Back",
+    "retry": "Try again",
+    "buyer": {
+      "title": "Wallet",
+      "subtitle": "Balance · payment methods · history"
+    },
+    "seller": {
+      "title": "Seller Wallet",
+      "subtitle": "Receivables · payout · advance · bank accounts",
+      "notice": {
+        "title": "Seller Wallet · Receivables",
+        "description": "Manage your receivables, monthly payout and registered bank accounts. Payout runs every 25th with a minimum of R$ 1,000. Complete KYC required.",
+        "collapse": "Collapse notice",
+        "expand": "Expand notice",
+        "dismiss": "Close notice"
+      },
+      "advance": "Advance",
+      "payout": "Request Payout",
+      "comingSoon": "Advance and payout become available once the receivables service is integrated."
+    },
+    "errors": {
+      "forbidden": "Your profile has no access to the organization wallet.",
+      "balanceFailed": "Could not load the balance.",
+      "transactionsFailed": "Could not load the transactions."
+    },
+    "balance": {
+      "unavailable": "Available once payments are integrated",
+      "available": {
+        "label": "Available balance",
+        "help": "Neutra+ credit free to use in new purchases.",
+        "caption": "Neutra+ credit · available to withdraw or use",
+        "reserved": "{{amount}} reserved in ongoing checkouts"
+      },
+      "escrow": {
+        "label": "In escrow",
+        "help": "Paid order amounts awaiting delivery acceptance."
+      },
+      "dispute": {
+        "label": "In dispute (frozen)",
+        "help": "Amounts blocked while a dispute is open."
+      },
+      "credit": {
+        "label": "Neutra+ credit",
+        "noExpiry": "Never expires",
+        "caption": "Available balance"
+      },
+      "monthCredited": {
+        "label": "Total credited (month)",
+        "caption_one": "{{count}} credit generated",
+        "caption_other": "{{count}} credits generated"
+      },
+      "monthSpent": {
+        "label": "Total spent (month)",
+        "caption_one": "{{count}} payment made",
+        "caption_other": "{{count}} payments made"
+      },
+      "escrowNow": {
+        "label": "In escrow now"
+      }
+    },
+    "withdrawNotice": {
+      "title": "About credit withdrawal",
+      "description": "Neutra+ credit never expires and cannot be transferred between organizations. To request a withdrawal you must be Finance or Owner. Fees may apply according to the current policy."
+    },
+    "methods": {
+      "add": "Add",
+      "addNew": "Add new method",
+      "paymentTitle": "Payment methods",
+      "paymentEmpty": "No payment method registered.",
+      "combinedTitle": "Combined payment available",
+      "combinedDescription": "Combine wallet balance + PIX or card in a single checkout.",
+      "payoutTitle": "Receiving accounts",
+      "payoutEmpty": "No receiving account registered.",
+      "pixPayoutTitle": "PIX recommended for payout",
+      "pixPayoutDescription": "Instant settlement, available 24/7, free for companies (CNPJ)"
+    },
+    "transactions": {
+      "title": "Transaction history",
+      "viewAll": "View all",
+      "viewAllFooter": "View all transactions",
+      "empty": "No transactions in the wallet yet.",
+      "emptyFiltered": "No transactions match these filters.",
+      "summary": "{{total}} transactions · {{debits}} debits · {{credits}} credits",
+      "export": "Export CSV",
+      "searchPlaceholder": "Search by description or reference...",
+      "filters": "Filters",
+      "filter": {
+        "all": "All",
+        "credits": "Credits",
+        "debits": "Debits",
+        "escrow": "Escrow"
+      },
+      "period": {
+        "from": "From",
+        "to": "To",
+        "clear": "Clear period"
+      },
+      "kpis": {
+        "total": "Total transactions",
+        "credits": "Credits",
+        "debits": "Debits",
+        "pending": "In progress"
+      },
+      "results_one": "{{count}} result",
+      "results_other": "{{count}} results",
+      "legend": {
+        "credit": "Credit",
+        "debit": "Debit",
+        "escrow": "Escrow",
+        "release": "Release"
+      },
+      "loadMore": "Load more",
+      "status": {
+        "completed": "Completed",
+        "pending": "Pending",
+        "failed": "Failed"
+      },
+      "kinds": {
+        "payment": "Payment · Order {{order}}",
+        "cancellationCredit": "Neutra+ credit · Order {{order}} cancelled",
+        "credit": "Neutra+ credit · Order {{order}}"
+      }
+    },
+    "addMethod": {
+      "title": "Add payment method",
+      "subtitle": "Methods are linked to the organization and visible to Finance and Owner profiles.",
+      "typeStep": "1. Select the method type",
+      "dataStep": "2. Fill in the details",
+      "types": {
+        "pix": {
+          "title": "PIX",
+          "description": "CNPJ, CPF, e-mail or mobile key. Instant settlement 24/7."
+        },
+        "card": {
+          "title": "Credit Card",
+          "description": "Visa, Mastercard, Elo, Amex. Processed within 2 business days."
+        }
+      },
+      "pix": {
+        "keyType": "PIX key type",
+        "keyTypes": {
+          "cnpj": "CNPJ",
+          "cpf": "CPF",
+          "email": "E-mail",
+          "phone": "Mobile",
+          "random": "Random key"
+        },
+        "keyLabel": "PIX key ({{type}})",
+        "placeholders": {
+          "cnpj": "00.000.000/0000-00",
+          "cpf": "000.000.000-00",
+          "email": "finance@company.com",
+          "phone": "(00) 00000-0000",
+          "random": "00000000-0000-0000-0000-000000000000"
+        },
+        "hint": "✓ PIX available 24/7 · instant settlement · free for CNPJ"
+      },
+      "card": {
+        "number": "Card number",
+        "name": "Name printed on the card",
+        "namePlaceholder": "FULL NAME",
+        "expiry": "Expiry",
+        "expiryPlaceholder": "MM/YY",
+        "cvv": "CVV",
+        "hint": "Data protected with PCI DSS level 1 encryption. We never store the CVV."
+      },
+      "cancel": "Cancel",
+      "submit": "Add method",
+      "unavailable": {
+        "title": "Adding methods is not available yet",
+        "description": "The payment service does not accept new methods yet. No data was sent."
+      },
+      "errors": {
+        "pixKeyRequired": "Enter the PIX key.",
+        "pixKeyInvalid": "Invalid key for the selected type.",
+        "cardNumberRequired": "Enter the card number.",
+        "cardNumberInvalid": "Invalid card number.",
+        "cardNameRequired": "Enter the name printed on the card.",
+        "cardNameInvalid": "Use 3 to 26 characters, as on the card.",
+        "cardExpiryRequired": "Enter the expiry date.",
+        "cardExpiryInvalid": "Invalid or expired date.",
+        "cardCvvRequired": "Enter the CVV.",
+        "cardCvvInvalid": "The CVV has 3 or 4 digits."
+      }
+    }
+  },
+  "Proposals": {
+    "title": "Proposals",
+    "subtitle": "Quote requests sent to providers · Response SLA: 72 business hours",
+    "newRfq": "New RFQ",
+    "comingSoon": "This screen is coming soon.",
+    "dialog": {
+      "close": "Close",
+      "back": "Back"
+    },
+    "howItWorks": {
+      "title": "Proposals and RFQ · How they work",
+      "description": "Direct proposal: sent to one specific seller. RFQ: sent in bulk to every eligible seller automatically.",
+      "collapse": "Collapse explanation",
+      "expand": "Expand explanation",
+      "dismiss": "Close explanation"
+    },
+    "tabs": {
+      "label": "Negotiation type",
+      "direct": "Proposals/Offers",
+      "rfq": "Quotes/RFQ"
+    },
+    "errors": {
+      "required": "Required field.",
+      "tooLong": "Text is too long.",
+      "priceInvalid": "Enter a price greater than zero.",
+      "daysInvalid": "Enter a lead time between 1 and 365 days.",
+      "reasonRequired": "Choose the cancellation reason.",
+      "notOpen": "This proposal can no longer be changed."
+    },
+    "direct": {
+      "businessDays_one": "{{count}} business day",
+      "businessDays_other": "{{count}} business days",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "notice": {
+        "title": "Direct proposal — individual negotiation",
+        "description": "You pick a specific seller in the catalog and send a proposal with your terms. The seller can accept, decline, or ask for a revision. You can revise or cancel while there is no acceptance."
+      },
+      "filters": {
+        "label": "Filter proposals by status",
+        "all": "All",
+        "awaiting": "Awaiting",
+        "revisionRequested": "Revision",
+        "accepted": "Accepted",
+        "rejected": "Declined",
+        "cancelled": "Cancelled"
+      },
+      "status": {
+        "awaiting": "Awaiting response",
+        "revisionRequested": "Revision requested",
+        "accepted": "Accepted",
+        "rejected": "Declined",
+        "cancelled": "Cancelled"
+      },
+      "card": {
+        "kyc": "KYC",
+        "version": "v{{version}}",
+        "sellerMessageTag": "Seller msg",
+        "product": "{{product}} · {{category}}",
+        "meta": "Sent: {{sent}} · Expires: {{expires}} · {{id}}",
+        "sellerMessage": "Seller message",
+        "sla": "SLA",
+        "delivery": "Delivery",
+        "validity": "Validity",
+        "progress": {
+          "awaiting": {
+            "title": "Review in progress",
+            "description": "The proposal was received and is being reviewed by the seller."
+          },
+          "accepted": {
+            "title": "Order accepted",
+            "description": "The proposal was reviewed and accepted by the seller."
+          }
+        }
+      },
+      "actions": {
+        "revise": "Revise proposal",
+        "view": "View proposal",
+        "cancel": "Cancel proposal",
+        "viewOrder": "View generated order",
+        "newProposal": "New proposal to this seller"
+      },
+      "empty": "You haven't sent any direct proposals yet.",
+      "emptyFiltered": "No proposals with this status.",
+      "details": {
+        "title": "View Proposal",
+        "acceptedTitle": "Proposal",
+        "kycVerified": "KYC Verified",
+        "acceptedStatus": "Accepted by seller",
+        "price": "Proposed price",
+        "priceValue": "{{amount}} ({{currency}})",
+        "sla": "Technical SLA",
+        "delivery": "Delivery time",
+        "validity": "Proposal validity",
+        "cancellation": "Cancellation policy",
+        "notes": "Notes",
+        "dates": "Sent on {{sent}} · Expires on {{expires}}",
+        "acceptedNotice": {
+          "title": "Proposal accepted by the seller!",
+          "description": "An order was created automatically. Go to Orders to pay within 72h."
+        }
+      },
+      "revise": {
+        "title": "Revise proposal",
+        "notice": "The revision creates a new version of the proposal (v{{version}}). The seller will be notified. The currency can't be changed.",
+        "price": "Price ({{currency}})",
+        "priceHelper": "Currency locked to {{currency}}",
+        "sla": "Technical SLA",
+        "delivery": "Delivery time",
+        "deliveryUnit": "business days",
+        "cancellation": "Cancellation policy",
+        "notes": "Notes (optional)",
+        "notesPlaceholder": "Special terms, technical scope, proposal validity...",
+        "next": "Review before sending",
+        "confirmTitle": "Confirm revision",
+        "confirmNotice": "Once confirmed, the proposal will be updated to <b>v{{version}}</b> with traceable electronic acceptance. The previous version stays in the history.",
+        "confirmHeading": "{{product}} — {{seller}}",
+        "confirmPrice": "Price",
+        "confirmSla": "SLA",
+        "versionChange": "Version: v{{from}} → v{{to}}",
+        "confirm": "Confirm and send revision"
+      },
+      "cancel": {
+        "title": "Cancel Proposal",
+        "noticeTitle": "Cancel proposal",
+        "noticeDescription": "The seller will be notified of the cancellation. This doesn't affect your public score but counts toward commercial metrics.",
+        "target": "Proposal to cancel",
+        "targetMeta": "{{seller}} · {{id}} · v{{version}}",
+        "reason": "Cancellation reason",
+        "reasons": {
+          "otherSeller": "Purchased from another seller",
+          "otherRfqSupplier": "Accepted another supplier's proposal via RFQ",
+          "budgetRevised": "Budget revised or project on hold",
+          "specChanged": "Technical spec changed — I'll send a new proposal",
+          "sellerTooSlow": "Seller took too long to respond",
+          "other": "Other reason"
+        },
+        "notes": "Notes (optional)",
+        "notesPlaceholder": "Additional information for the seller...",
+        "keep": "Keep proposal",
+        "confirm": "Cancel proposal"
+      },
+      "toasts": {
+        "revised": "Revision sent: {{id}} is now on v{{version}}.",
+        "cancelled": "Proposal {{id}} cancelled."
+      }
+    },
+    "rfq": {
+      "title": "RFQ",
+      "filters": {
+        "label": "Filter RFQs by status",
+        "all": "All",
+        "proposalReceived": "With proposal",
+        "awaiting": "Awaiting",
+        "converted": "Converted",
+        "expired": "Expired",
+        "batch": "Select in bulk",
+        "batchExit": "Exit selection",
+        "batchCancel_one": "Cancel {{count}} selected",
+        "batchCancel_other": "Cancel {{count}} selected"
+      },
+      "status": {
+        "proposalReceived": "Proposal received",
+        "awaiting": "Awaiting response",
+        "converted": "Converted to order",
+        "expired": "Expired",
+        "cancelled": "Cancelled"
+      },
+      "card": {
+        "hoursLeft": "{{count}}h left",
+        "notifiedSellers": "Sellers notified",
+        "proposalsReceived": "Proposals received",
+        "createdAt": "Created on",
+        "bestProposal": "Best proposal",
+        "select": "Select {{id}}"
+      },
+      "actions": {
+        "viewProposals_one": "View {{count}} proposal",
+        "viewProposals_other": "View {{count}} proposals",
+        "requestRevision": "Request revision",
+        "follow": "Track progress",
+        "cancel": "Cancel RFQ",
+        "viewOrder": "View generated order",
+        "newRfq": "New RFQ for this product"
+      },
+      "empty": "You haven't opened any RFQs yet.",
+      "emptyFiltered": "No RFQs with this status.",
+      "cancel": {
+        "title_one": "Cancel RFQ",
+        "title_other": "Cancel {{count}} RFQs",
+        "description_one": "RFQ {{id}} will be closed and notified sellers will no longer be able to send proposals.",
+        "description_other": "The {{count}} selected RFQs will be closed and notified sellers will no longer be able to send proposals.",
+        "keep_one": "Keep RFQ",
+        "keep_other": "Keep RFQs",
+        "confirm_one": "Cancel RFQ",
+        "confirm_other": "Cancel RFQs"
+      },
+      "toasts": {
+        "cancelled_one": "RFQ {{id}} cancelled.",
+        "cancelled_other": "{{count}} RFQs cancelled."
+      },
+      "create": {
+        "steps": {
+          "category": "Category",
+          "details": "Details",
+          "review": "Review"
+        },
+        "titles": {
+          "category": "New RFQ — Select category",
+          "details": "New RFQ — Quote details",
+          "review": "New RFQ — Review and send",
+          "done": "RFQ sent successfully!"
+        },
+        "categoryHint": "Select the category of the product or service you need a quote for.",
+        "categories": {
+          "connectivity": "Dedicated links, MPLS, fiber, business broadband",
+          "physicalInfra": "Colocation, dark fiber, IRU, datacenter space",
+          "hardware": "Routers, switches, ONTs, antennas, CPEs",
+          "numberingResources": "IPv4/IPv6 blocks, ASN, ownership transfer"
+        },
+        "change": "Change",
+        "next": "Next",
+        "review": "Review RFQ",
+        "send": "Send RFQ to sellers",
+        "finish": "Done",
+        "fields": {
+          "product": "Product / Service",
+          "productPlaceholder": "E.g.: Dedicated Link 500 Mbps, Colocation 4U, IPv4 /24 block...",
+          "description": "Technical description",
+          "descriptionPlaceholder": "Describe technical specs, capacity, minimum expected SLA, activation time, special requirements...",
+          "location": "Location / Installation address",
+          "locationPlaceholder": "City/State or full address",
+          "budget": "Available budget (optional)",
+          "budgetPlaceholder": "E.g.: Up to R$ 5,000/month or US$ 10,000",
+          "deadline": "Response deadline",
+          "deadlineOption": "{{count}} hours",
+          "deadlineDefault": "{{count}} Hours (Default)",
+          "urgent": "Urgent",
+          "urgentHint": "Highlights the RFQ for sellers",
+          "requirements": "Additional requirements (optional)",
+          "requirementsPlaceholder": "Contract terms, required certifications, payment preferences, NDA needed..."
+        },
+        "detailsNotice": "This RFQ will be sent to <b>every eligible seller</b> in this category automatically. Sellers have 72 business hours to respond. Don't include confidential attachments — use the legal/NDA flow for that.",
+        "reviewNotice": "Once sent, the RFQ can't be edited. You can cancel it while no accepted proposal has been converted into an order.",
+        "summary": {
+          "urgent": "URGENT",
+          "description": "Technical description",
+          "location": "Location",
+          "budget": "Budget",
+          "deadline": "Response deadline",
+          "requirements": "Additional requirements",
+          "none": "None",
+          "notInformed": "Not provided",
+          "recipients": "Recipients",
+          "allSellers": "All eligible sellers",
+          "id": "RFQ ID",
+          "deadlineValue": "{{count}} hours",
+          "deadlineUrgent": "{{count}} hours (urgent)"
+        },
+        "done": {
+          "heading": "RFQ sent!",
+          "description": "Eligible sellers were notified and have {{count}}h to respond.",
+          "id": "RFQ ID",
+          "product": "Product",
+          "deadline": "Response deadline",
+          "status": "Status",
+          "statusValue": "Awaiting responses",
+          "notify": "You'll be notified when proposals arrive"
+        }
+      }
     }
   }
 }

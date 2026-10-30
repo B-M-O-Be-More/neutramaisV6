@@ -30,5 +30,6 @@ export async function PUT(
     path: `/productCatalog/productOffering/${encodeURIComponent(offeringId)}/promotion`,
     body: { isPromoted: body.isPromoted },
     authenticated: true,
+    profileSession: true,
   });
 }

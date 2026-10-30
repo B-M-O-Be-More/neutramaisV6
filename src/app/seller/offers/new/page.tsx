@@ -22,7 +22,7 @@ function NewOfferContent() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { organizationId } = useSellerSession();
-  // Publicada, a página troca o assistente pela confirmação.
+  // Criada, a página troca o assistente pela confirmação.
   const [published, setPublished] = React.useState<PublishedOffer | null>(null);
 
   return (
@@ -55,7 +55,11 @@ function NewOfferContent() {
           lineHeight={published ? "30px" : "36px"}
         >
           {published
-            ? t("SellerOfferCreate.published.heading")
+            ? t(
+                published.needsCoverage
+                  ? "SellerOfferCreate.created.heading"
+                  : "SellerOfferCreate.published.heading",
+              )
             : t("SellerOfferCreate.title")}
         </Text>
       </Flex>
@@ -69,7 +73,7 @@ function NewOfferContent() {
           onCancel={() => router.push("/seller/offers")}
           onPublished={(offer) => {
             setPublished(offer);
-            // O botão de publicar fica no fim da revisão: volta ao topo.
+            // O botão de criar fica no fim da revisão: volta ao topo.
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
         />

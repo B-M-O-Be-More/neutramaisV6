@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
 
+import { isPublicGeometry, vertexCount } from "@/functions/geoShapes";
+import { isCoverageNetworkPoint } from "@/functions/coverageNetworkPoints";
 import { isUuid, readJsonBody } from "@/server/complianceProxy";
 import { envelopeError } from "@/server/identityProxy";
 import { forwardToMarketplace } from "@/server/marketplaceProxy";
@@ -8,38 +10,33 @@ import { forwardToMarketplace } from "@/server/marketplaceProxy";
 //   → marketplace-api PUT /productCatalog/productOffering/{id}/coverageVersion
 // Vincula uma versão de cobertura (KMZ) à oferta. Exige `coverage:change`; o
 // upstream responde 503 para qualquer falha da geo-api.
-// `publicGeometry` (opcional) é o recorte público — Polygon ou MultiPolygon
-// dentro da área do KMZ; a geo-api confere se está contido.
+// `publicGeometry` é o recorte público, dentro da área do KMZ (a geo-api
+// confere se está contido):
+// - ausente ou null: vale o KMZ inteiro;
+// - Polygon: uma área;
+// - MultiPolygon: várias áreas, um polígono por área.
+// Cada anel fecha: o último ponto repete o primeiro.
+// `coverageNetworkPoints` são as localidades de atendimento, cada uma com o raio:
+//   [{ longitude, latitude, radiusMeters }]
+// - ausente: o upstream decide (não mexe nos pontos salvos);
+// - []: a oferta fica sem localidades.
 
 /** Teto de vértices aceitos no recorte desenhado. */
 const MAX_VERTICES = 2000;
+/** Teto de pontos e de raio: o que o formulário da oferta permite. */
+const MAX_POINTS = 10;
+const MAX_RADIUS_METERS = 80_000;
 
-const isPosition = (value: unknown) =>
-  Array.isArray(value) &&
-  value.length === 2 &&
-  value.every((n) => typeof n === "number" && Number.isFinite(n));
+const isDrawnGeometry = (value: unknown) =>
+  isPublicGeometry(value) && vertexCount(value) <= MAX_VERTICES;
 
-/** Anéis fechados com pelo menos 4 posições (GeoJSON). */
-const isRings = (value: unknown): value is unknown[][] =>
+const isPointList = (value: unknown) =>
   Array.isArray(value) &&
-  value.length > 0 &&
+  value.length <= MAX_POINTS &&
   value.every(
-    (ring) => Array.isArray(ring) && ring.length >= 4 && ring.every(isPosition),
+    (point) =>
+      isCoverageNetworkPoint(point) && point.radiusMeters <= MAX_RADIUS_METERS,
   );
-
-function isPublicGeometry(value: unknown): boolean {
-  if (!value || typeof value !== "object") return false;
-  const { type, coordinates } = value as Record<string, unknown>;
-  const polygons =
-    type === "Polygon"
-      ? [coordinates]
-      : type === "MultiPolygon" && Array.isArray(coordinates)
-        ? coordinates
-        : null;
-  if (!polygons?.length || !polygons.every(isRings)) return false;
-  const vertices = (polygons as unknown[][][]).flat().flat().length;
-  return vertices <= MAX_VERTICES;
-}
 
 export async function PUT(
   request: NextRequest,
@@ -47,10 +44,15 @@ export async function PUT(
 ) {
   const { offeringId } = await params;
   const body = (await readJsonBody(request)) as
-    | { coverageVersionId?: unknown; publicGeometry?: unknown }
+    | {
+        coverageVersionId?: unknown;
+        publicGeometry?: unknown;
+        coverageNetworkPoints?: unknown;
+      }
     | undefined;
   const coverageVersionId = body?.coverageVersionId;
   const publicGeometry = body?.publicGeometry;
+  const coverageNetworkPoints = body?.coverageNetworkPoints;
 
   if (
     !isUuid(offeringId) ||
@@ -63,20 +65,33 @@ export async function PUT(
       "offeringId e coverageVersionId devem ser UUIDs.",
     );
   }
-  if (publicGeometry != null && !isPublicGeometry(publicGeometry)) {
+  if (publicGeometry != null && !isDrawnGeometry(publicGeometry)) {
     return envelopeError(
       422,
       "validation_error",
       "publicGeometry deve ser um Polygon ou MultiPolygon GeoJSON válido.",
     );
   }
+  if (
+    coverageNetworkPoints !== undefined &&
+    !isPointList(coverageNetworkPoints)
+  ) {
+    return envelopeError(
+      422,
+      "validation_error",
+      "coverageNetworkPoints deve ter até 10 pontos { longitude, latitude, radiusMeters } com raio de até 80 km.",
+    );
+  }
 
   return forwardToMarketplace({
     method: "PUT",
     path: `/productCatalog/productOffering/${offeringId}/coverageVersion`,
-    body: publicGeometry
-      ? { coverageVersionId, publicGeometry }
-      : { coverageVersionId },
+    body: {
+      coverageVersionId,
+      ...(publicGeometry ? { publicGeometry } : {}),
+      ...(coverageNetworkPoints !== undefined ? { coverageNetworkPoints } : {}),
+    },
     authenticated: true,
+    profileSession: true,
   });
 }

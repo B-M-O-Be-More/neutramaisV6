@@ -47,6 +47,9 @@ const CREATE_FIELDS = [
   "stateCode",
   "isCapital",
   "metadata",
+  // Hardware / CPE: produto físico com o pacote de envio.
+  "productType",
+  "shipping",
 ] as const;
 
 // BFF: POST /api/productCatalog/productOffering

@@ -3,25 +3,67 @@
 import { Button, Flex, Icon, Stack, Text } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { useTranslation } from "react-i18next";
-import { LuArrowLeft, LuCircleCheck, LuTriangleAlert } from "react-icons/lu";
+import {
+  LuArrowLeft,
+  LuCircleCheck,
+  LuImagePlus,
+  LuMapPinned,
+  LuTriangleAlert,
+} from "react-icons/lu";
 
 import { SellerOfferPublishedProps } from "./interface";
 
+const BUTTON_STYLES = {
+  h: "45px",
+  px: "32px",
+  gap: "8px",
+  rounded: "14px",
+  fontSize: "14px",
+} as const;
+const PRIMARY_STYLES = {
+  ...BUTTON_STYLES,
+  bg: "#8B5CF6",
+  color: "white",
+  fontWeight: 700,
+  _hover: { bg: "#7C4DEB" },
+} as const;
+const OUTLINE_STYLES = {
+  ...BUTTON_STYLES,
+  variant: "outline",
+  borderColor: "#E5E8EE",
+  color: "#5A6478",
+  fontWeight: 600,
+} as const;
+
 /**
- * Confirmação depois de publicar a oferta (Figma 2074-55740): selo de
- * sucesso, resumo da oferta e atalho para Minhas Ofertas. Avisos da
- * publicação (ex.: patrocínio não aplicado) aparecem abaixo do resumo.
+ * Confirmação depois de criar a oferta (Figma 2074-55740): selo de sucesso,
+ * resumo da oferta e atalhos para o que só existe depois da oferta criada —
+ * fotos e, nas categorias com KMZ, a cobertura — e para Minhas Ofertas.
+ * Sem cobertura a oferta não publica: fica rascunho e o atalho principal
+ * leva à área de cobertura. Avisos (ex.: patrocínio não aplicado) aparecem
+ * abaixo do resumo.
  */
 export function SellerOfferPublished({ offer }: SellerOfferPublishedProps) {
   const { t } = useTranslation();
+  const texts = offer.needsCoverage
+    ? "SellerOfferCreate.created"
+    : "SellerOfferCreate.published";
+  const editHref = `/seller/offers/${encodeURIComponent(offer.offeringId)}/edit`;
 
   const rows = [
     { key: "offer", value: offer.name },
     { key: "category", value: offer.categoryLabel },
     { key: "price", value: offer.price },
-    { key: "status", value: t("SellerOfferCreate.published.statusValue") },
+    { key: "status", value: t(`${texts}.statusValue`) },
     { key: "acceptanceSla", value: offer.acceptanceSla },
   ];
+
+  const photosLink = (
+    <NextLink href={`${editHref}?section=photos`}>
+      <Icon as={LuImagePlus} boxSize="15px" />
+      {t("SellerOfferCreate.published.addPhotos")}
+    </NextLink>
+  );
 
   return (
     <Stack
@@ -58,10 +100,10 @@ export function SellerOfferPublished({ offer }: SellerOfferPublishedProps) {
           fontWeight={800}
           lineHeight="36px"
         >
-          {t("SellerOfferCreate.published.title")}
+          {t(`${texts}.title`)}
         </Text>
         <Text color="#8A9AB5" fontSize="14px" lineHeight="21px" role="status">
-          {t("SellerOfferCreate.published.subtitle")}
+          {t(`${texts}.subtitle`)}
         </Text>
       </Stack>
 
@@ -136,23 +178,36 @@ export function SellerOfferPublished({ offer }: SellerOfferPublishedProps) {
         </Flex>
       )}
 
-      <Button
-        asChild
-        h="45px"
-        px="32px"
-        gap="8px"
-        rounded="14px"
-        bg="#8B5CF6"
-        color="white"
-        fontSize="14px"
-        fontWeight={700}
-        _hover={{ bg: "#7C4DEB" }}
+      <Flex
+        direction={{ base: "column", sm: "row" }}
+        justify="center"
+        gap="12px"
+        w={{ base: "full", sm: "auto" }}
       >
-        <NextLink href="/seller/offers">
-          <Icon as={LuArrowLeft} boxSize="15px" />
-          {t("SellerOfferCreate.published.backToOffers")}
-        </NextLink>
-      </Button>
+        {offer.needsCoverage ? (
+          <>
+            <Button asChild {...PRIMARY_STYLES}>
+              <NextLink href={`${editHref}?section=coverage`}>
+                <Icon as={LuMapPinned} boxSize="15px" />
+                {t("SellerOfferCreate.created.addCoverage")}
+              </NextLink>
+            </Button>
+            <Button asChild {...OUTLINE_STYLES}>
+              {photosLink}
+            </Button>
+          </>
+        ) : (
+          <Button asChild {...PRIMARY_STYLES}>
+            {photosLink}
+          </Button>
+        )}
+        <Button asChild {...OUTLINE_STYLES}>
+          <NextLink href="/seller/offers">
+            <Icon as={LuArrowLeft} boxSize="15px" />
+            {t("SellerOfferCreate.published.backToOffers")}
+          </NextLink>
+        </Button>
+      </Flex>
     </Stack>
   );
 }

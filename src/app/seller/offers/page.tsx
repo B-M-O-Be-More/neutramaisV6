@@ -47,6 +47,7 @@ import { useOrganizationOfferings } from "@/hooks/useOrganizationOfferings";
 import { useProductSpecifications } from "@/hooks/useProductSpecifications";
 import type { ProductOffering } from "@/services/productCatalog.service";
 import { currencyLocale } from "@/functions/currencyLocale";
+import { offerLifecycleGates } from "@/functions/offerLifecycleGates";
 import { canUploadCoverage } from "@/functions/rolesToPersonas";
 
 const PAGE_SIZE = 20;
@@ -85,6 +86,7 @@ function SellerOffersContent() {
   const summary = useOfferingsSummary();
   const { specifications } = useProductSpecifications();
   const { pendingId, transition } = useOfferingTransition();
+  const gates = offerLifecycleGates(context);
 
   const specificationNames = React.useMemo(
     () => new Map(specifications.map((spec) => [spec.id, spec.name])),
@@ -220,6 +222,7 @@ function SellerOffersContent() {
             categoryName={specificationNames.get(offering.specificationId)}
             locale={locale}
             isPending={pendingId === offering.id}
+            gates={gates}
             onAction={(action) => handleAction(offering, action)}
           />
         ))}

@@ -81,6 +81,39 @@ describe("BFF da publicação de oferta", () => {
     });
   });
 
+  it("POST productOffering repassa o tipo e o pacote de envio do produto físico", async () => {
+    const shipping = {
+      weightKg: 1.25,
+      heightCm: 10,
+      widthCm: 25.5,
+      lengthCm: 30,
+      originPostalCode: "01310100",
+    };
+    await offeringRoute.POST(
+      jsonRequest("/api/productCatalog/productOffering", "POST", {
+        name: "Roteador CPE",
+        specificationId: "spec-1",
+        monthlyPrice: "100.00",
+        productType: "physical",
+        shipping,
+      }),
+    );
+
+    expect(sent().body).toMatchObject({ productType: "physical", shipping });
+  });
+
+  it("PATCH productOffering repassa o pacote de envio, mas não o tipo", async () => {
+    await detailRoute.PATCH(
+      jsonRequest(`/api/productCatalog/productOffering/${OFFERING}`, "PATCH", {
+        shipping: { weightKg: 2 },
+        productType: "service",
+      }),
+      params(OFFERING),
+    );
+
+    expect(sent().body).toEqual({ shipping: { weightKg: 2 } });
+  });
+
   it("POST productSpecification repassa nome e descrição", async () => {
     await specificationRoute.POST(
       jsonRequest("/api/productCatalog/productSpecification", "POST", {
@@ -122,6 +155,92 @@ describe("BFF da publicação de oferta", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("PUT coverageVersion com publicGeometry null vale o KMZ inteiro (vai sem o campo)", async () => {
+    await coverageRoute.PUT(
+      jsonRequest(
+        `/api/productCatalog/productOffering/${OFFERING}/coverageVersion`,
+        "PUT",
+        { coverageVersionId: VERSION, publicGeometry: null },
+      ),
+      params(OFFERING),
+    );
+    expect(sent().body).toEqual({ coverageVersionId: VERSION });
+  });
+
+  it("PUT coverageVersion repassa as localidades (coverageNetworkPoints) e recusa as inválidas", async () => {
+    const coverageNetworkPoints = [
+      { longitude: -46.655, latitude: -23.56, radiusMeters: 800 },
+      { longitude: -46.635, latitude: -23.54, radiusMeters: 1500 },
+    ];
+    const put = (body: unknown) =>
+      coverageRoute.PUT(
+        jsonRequest(
+          `/api/productCatalog/productOffering/${OFFERING}/coverageVersion`,
+          "PUT",
+          body,
+        ),
+        params(OFFERING),
+      );
+
+    await put({ coverageVersionId: VERSION, coverageNetworkPoints });
+    expect(sent().body).toEqual({
+      coverageVersionId: VERSION,
+      coverageNetworkPoints,
+    });
+
+    // Lista vazia apaga as localidades: vai como veio.
+    fetchMock.mockClear();
+    await put({ coverageVersionId: VERSION, coverageNetworkPoints: [] });
+    expect(sent().body).toEqual({
+      coverageVersionId: VERSION,
+      coverageNetworkPoints: [],
+    });
+
+    fetchMock.mockClear();
+    for (const invalid of [
+      "pontos",
+      [{ longitude: -46.6, latitude: -23.5 }],
+      [{ longitude: -46.6, latitude: -91, radiusMeters: 800 }],
+      [{ longitude: -46.6, latitude: -23.5, radiusMeters: 80_001 }],
+      Array.from({ length: 11 }, () => coverageNetworkPoints[0]),
+    ]) {
+      const response = await put({
+        coverageVersionId: VERSION,
+        coverageNetworkPoints: invalid,
+      });
+      expect(response.status).toBe(422);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("PUT coverageVersion repassa várias áreas num MultiPolygon", async () => {
+    const square = (x: number, y: number) => [
+      [
+        [x, y],
+        [x + 0.01, y],
+        [x + 0.01, y + 0.01],
+        [x, y + 0.01],
+        [x, y],
+      ],
+    ];
+    const multi = {
+      type: "MultiPolygon",
+      coordinates: [square(-46.66, -23.565), square(-46.64, -23.545)],
+    };
+    await coverageRoute.PUT(
+      jsonRequest(
+        `/api/productCatalog/productOffering/${OFFERING}/coverageVersion`,
+        "PUT",
+        { coverageVersionId: VERSION, publicGeometry: multi },
+      ),
+      params(OFFERING),
+    );
+    expect(sent().body).toEqual({
+      coverageVersionId: VERSION,
+      publicGeometry: multi,
+    });
+  });
+
   it("PUT coverageVersion repassa o publicGeometry válido e recusa o inválido", async () => {
     const polygon = {
       type: "Polygon",
@@ -157,6 +276,18 @@ describe("BFF da publicação de oferta", () => {
           [
             [0, 0],
             [1, 1],
+          ],
+        ],
+      },
+      // Anel aberto: o último ponto não repete o primeiro.
+      {
+        type: "Polygon",
+        coordinates: [
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 1],
           ],
         ],
       },

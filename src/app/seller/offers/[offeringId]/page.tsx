@@ -13,6 +13,7 @@ import SellerOfferLoadState from "@/components/SellerOfferLoadState";
 import { toaster } from "@/components/ui/toaster";
 import { currencyLocale } from "@/functions/currencyLocale";
 import { useOffering } from "@/hooks/useOffering";
+import { useOfferingImages } from "@/hooks/useOfferingImages";
 import { useProductSpecifications } from "@/hooks/useProductSpecifications";
 import { ForbiddenError } from "@/services/errors";
 import { productCatalogService } from "@/services/productCatalog.service";
@@ -24,6 +25,8 @@ function OfferDetailContent() {
   const { offering, isLoading, notFound, hasError, refetch } =
     useOffering(offeringId);
   const { specifications } = useProductSpecifications();
+  // Sem a lista, a capa fica vazia — o detalhe abre do mesmo jeito.
+  const { images } = useOfferingImages(offeringId);
   const [isPromoting, setIsPromoting] = React.useState(false);
 
   const specificationName = specifications.find(
@@ -93,12 +96,18 @@ function OfferDetailContent() {
         <SellerOfferDetail
           offering={offering}
           specificationName={specificationName}
+          images={images}
           locale={currencyLocale(i18n.language)}
           isPromoting={isPromoting}
           onBack={() => router.push("/seller/offers")}
           onEdit={() =>
             router.push(
               `/seller/offers/${encodeURIComponent(offering.id)}/edit`,
+            )
+          }
+          onEditCoverage={() =>
+            router.push(
+              `/seller/offers/${encodeURIComponent(offering.id)}/edit?section=coverage`,
             )
           }
           onTogglePromotion={togglePromotion}

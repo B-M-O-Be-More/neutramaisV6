@@ -127,11 +127,17 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
     ).toBeVisible();
   });
 
-  it("Conectividade exige KMZ e mostra a localidade A/Z", async () => {
+  it("Conectividade avisa que a cobertura vem depois, mostra a localidade A/Z e avança", async () => {
     const { user } = renderForm();
 
     await user.click(category("connectivity"));
-    expect(screen.getByText("SellerOfferCreate.kmz.label")).toBeVisible();
+    expect(
+      screen.getByText("SellerOfferCreate.coverage.afterCreateTitle"),
+    ).toBeVisible();
+    // Sem KMZ na criação: ele só é vinculado à oferta já criada.
+    expect(
+      screen.queryByText("SellerOfferCreate.kmz.label"),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("combobox", {
         name: /SellerOfferCreate.coverage.locationLabel/,
@@ -141,8 +147,8 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
     await user.click(continueButton());
 
     expect(
-      await screen.findByText("SellerOfferCreate.errors.coverageRequired"),
-    ).toBeInTheDocument();
+      await screen.findByLabelText(/SellerOfferCreate.basicInfo.nameLabel/),
+    ).toBeVisible();
   });
 
   it("Hardware mostra 'Cobertura não aplicável', sem KMZ nem localidade, e avança", async () => {
@@ -255,33 +261,16 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       ).not.toBeInTheDocument();
     });
 
-    it("mostra a prévia da imagem escolhida e permite remover", async () => {
-      const { user, container } = await goToBasicInfo();
-      const input = container.querySelector<HTMLInputElement>(
-        'input[type="file"][accept="image/jpeg,image/png"]',
-      );
-      expect(input).not.toBeNull();
+    it("não tem fotos na criação: avisa que entram depois de publicar", async () => {
+      const { container } = await goToBasicInfo();
 
-      await user.upload(
-        input!,
-        new File(["png"], "oferta.png", { type: "image/png" }),
-      );
-
+      expect(container.querySelector('input[type="file"]')).toBeNull();
       expect(
-        await screen.findByAltText("SellerOfferCreate.basicInfo.imageAlt"),
-      ).toBeInTheDocument();
-
-      await user.click(
-        screen.getByRole("button", {
-          name: /SellerOfferCreate.basicInfo.imageRemove/,
-        }),
-      );
-
-      await waitFor(() =>
-        expect(
-          screen.queryByAltText("SellerOfferCreate.basicInfo.imageAlt"),
-        ).not.toBeInTheDocument(),
-      );
+        screen.queryByRole("button", { name: /SellerOfferImages.confirm/ }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText("SellerOfferImages.afterPublishNotice"),
+      ).toBeVisible();
     });
   });
 
@@ -413,12 +402,17 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       ).toBeInTheDocument();
     });
 
-    it("Hardware exige fabricante, modelo e condição", async () => {
+    it("Hardware exige fabricante, modelo, condição e o envio", async () => {
       const { user } = await goToTechnicalSpecs();
 
       expect(
         screen.getByRole("group", {
           name: "SellerOfferCreate.hardware.title",
+        }),
+      ).toBeVisible();
+      expect(
+        screen.getByRole("group", {
+          name: "SellerOfferCreate.shipping.title",
         }),
       ).toBeVisible();
 
@@ -435,14 +429,25 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       expect(
         screen.getByText("SellerOfferCreate.errors.conditionRequired"),
       ).toBeInTheDocument();
+      expect(
+        screen.getByText("SellerOfferCreate.errors.weightRequired"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("SellerOfferCreate.errors.postalCodeRequired"),
+      ).toBeInTheDocument();
     });
 
-    it("não mostra o bloco de Hardware nas outras categorias", async () => {
+    it("não mostra os blocos de Hardware e de envio nas outras categorias", async () => {
       await goToTechnicalSpecs("software");
 
       expect(
         screen.queryByRole("group", {
           name: "SellerOfferCreate.hardware.title",
+        }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("group", {
+          name: "SellerOfferCreate.shipping.title",
         }),
       ).not.toBeInTheDocument();
     });
@@ -474,6 +479,19 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
         screen.getByLabelText(/SellerOfferCreate.hardware.conditionLabel/),
         "new",
       );
+      for (const [label, value] of [
+        [/SellerOfferCreate.shipping.weightLabel/, "1,25"],
+        [/SellerOfferCreate.shipping.heightLabel/, "10"],
+        [/SellerOfferCreate.shipping.widthLabel/, "25"],
+        [/SellerOfferCreate.shipping.lengthLabel/, "30"],
+        [/SellerOfferCreate.shipping.postalCodeLabel/, "01310100"],
+      ] as const) {
+        await user.type(screen.getByLabelText(label), value);
+      }
+      // A máscara põe o hífen do CEP.
+      expect(
+        screen.getByLabelText(/SellerOfferCreate.shipping.postalCodeLabel/),
+      ).toHaveValue("01310-100");
 
       expect(screen.getByText("98,5%")).toBeInTheDocument();
       expect(screen.getByText("48h")).toBeInTheDocument();
@@ -615,6 +633,7 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
             categoryLabel: "SellerOfferCreate.categories.software.label",
             price: expect.stringMatching(/^BRL\s1\.890,00$/),
             acceptanceSla: "48h",
+            needsCoverage: false,
             warnings: [],
           }),
         ),

@@ -6,6 +6,7 @@ import {
   Flex,
   Grid,
   Icon,
+  Image,
   SimpleGrid,
   Stack,
   Text,
@@ -184,16 +185,17 @@ const SOLID_BUTTON = {
  * editar e patrocinar.
  *
  * Avaliação, visualizações, pedidos e receita por oferta ainda não têm
- * endpoint — os cards mostram "—". A imagem de capa também não é guardada
- * pela API.
+ * endpoint — os cards mostram "—". A capa é a primeira imagem da oferta.
  */
 export function SellerOfferDetail({
   offering,
   specificationName,
+  images = [],
   locale,
   isPromoting = false,
   onBack,
   onEdit,
+  onEditCoverage,
   onTogglePromotion,
 }: SellerOfferDetailProps) {
   const { t } = useTranslation();
@@ -201,6 +203,7 @@ export function SellerOfferDetail({
 
   const status = offering.status ?? "draft";
   const statusStyle = OFFERING_STATUS_STYLES[status];
+  const coverUrl = images[0]?.url ?? null;
   const isArchived = status === "archived";
   // Os valores do assistente já vêm normalizados do `metadata`.
   const values = offeringToFormValues(offering, specificationName);
@@ -336,7 +339,7 @@ export function SellerOfferDetail({
       rounded="22px"
       p="1px"
     >
-      {/* Capa — a API ainda não guarda imagem. */}
+      {/* Capa — a primeira imagem da oferta. */}
       <Flex
         position="relative"
         h="129px"
@@ -344,13 +347,45 @@ export function SellerOfferDetail({
         justify="center"
         bg="#EEF3FF"
         rounded="21px"
+        overflow="hidden"
       >
-        <Stack align="center" gap="8px" opacity={0.3}>
-          <Icon as={LuImage} boxSize="36px" color="#1F5AFF" />
-          <Text color="#5A6478" fontSize="11px" fontWeight={600}>
-            {t("SellerOfferDetail.noCover")}
-          </Text>
-        </Stack>
+        {coverUrl ? (
+          <Image
+            src={coverUrl}
+            alt={t("SellerOfferDetail.coverAlt", { name: offering.name })}
+            position="absolute"
+            inset={0}
+            w="full"
+            h="full"
+            objectFit="cover"
+          />
+        ) : (
+          <Stack align="center" gap="8px" opacity={0.3}>
+            <Icon as={LuImage} boxSize="36px" color="#1F5AFF" />
+            <Text color="#5A6478" fontSize="11px" fontWeight={600}>
+              {t("SellerOfferDetail.noCover")}
+            </Text>
+          </Stack>
+        )}
+        {images.length > 1 && (
+          <Flex
+            position="absolute"
+            bottom="12px"
+            right="16px"
+            align="center"
+            gap="4px"
+            px="9px"
+            py="3px"
+            bg="rgba(15, 23, 41, 0.7)"
+            color="white"
+            rounded="8px"
+          >
+            <Icon as={LuImage} boxSize="11px" />
+            <Text fontSize="11px" fontWeight={600} lineHeight="16.5px">
+              {t("SellerOfferDetail.imageCount", { count: images.length })}
+            </Text>
+          </Flex>
+        )}
         <Flex
           position="absolute"
           top="12px"
@@ -558,7 +593,7 @@ export function SellerOfferDetail({
                     color="#5A6478"
                     fontSize="12px"
                     fontWeight={500}
-                    onClick={onEdit}
+                    onClick={onEditCoverage ?? onEdit}
                   >
                     <Icon as={LuUpload} boxSize="12px" />
                     {coverage.action}

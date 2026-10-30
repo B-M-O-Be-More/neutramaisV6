@@ -22,7 +22,17 @@ import {
   formatPercent,
 } from "@/functions/offerFormat";
 import { parseDecimal } from "@/functions/parseDecimal";
+import {
+  locationsToCoverageNetworkPoints,
+  coverageNetworkPointsToLocations,
+} from "@/functions/coverageNetworkPoints";
+import { offerCategory } from "@/data/offerCategories";
 import { useObjectUrl } from "@/hooks/useObjectUrl";
+import {
+  useOfferingCoverageEditor,
+  type OfferingCoveragePoints,
+} from "@/hooks/useOfferingCoverageEditor";
+import { useOfferingImagesEditor } from "@/hooks/useOfferingImagesEditor";
 import { usePublishOffering } from "@/hooks/usePublishOffering";
 import { useUpdateOffering } from "@/hooks/useUpdateOffering";
 import {
@@ -30,24 +40,20 @@ import {
   SELLER_OFFER_DEFAULTS,
   type SellerOfferValues,
 } from "@/schemas/sellerOffer";
+import type { OfferingImage } from "@/services/productCatalog.service";
 
 import { FormSellerOfferProps } from "./interface";
+
+const NO_IMAGES: OfferingImage[] = [];
 
 const STEPS: { titleKey: string; fields: (keyof SellerOfferValues)[] }[] = [
   {
     titleKey: "SellerOfferCreate.steps.coverage",
-    fields: [
-      "category",
-      "coverageVersionId",
-      "coverageMode",
-      "publicGeometry",
-      "locations",
-      "coverageRegion",
-    ],
+    fields: ["category", "locations", "coverageRegion"],
   },
   {
     titleKey: "SellerOfferCreate.steps.basicInfo",
-    fields: ["image", "name", "shortDescription", "description"],
+    fields: ["name", "shortDescription", "description"],
   },
   {
     titleKey: "SellerOfferCreate.steps.technicalSpecs",
@@ -66,6 +72,12 @@ const STEPS: { titleKey: string; fields: (keyof SellerOfferValues)[] }[] = [
       "numberingResourceType",
       "numberingBlock",
       "numberingHolder",
+      "shippingWeightKg",
+      "shippingHeightCm",
+      "shippingWidthCm",
+      "shippingLengthCm",
+      "shippingOriginPostalCode",
+      "shippingInsuranceValue",
     ],
   },
   {
@@ -92,16 +104,20 @@ const ALL_FIELDS = STEPS.flatMap((item) => item.fields);
  *
  * As etapas ficam montadas (só a atual visível) para não perder o KMZ
  * enviado nem o mapa ao voltar. A oferta só é criada na revisão final
- * ("Publicar oferta agora") — ver `usePublishOffering`. Depois de criada, o
- * assistente não volta mais às etapas: um rascunho só é editado em Minhas
- * Ofertas, e uma nova tentativa retoma a publicação sem duplicar a oferta.
+ * ("Publicar oferta agora" ou, nas categorias com KMZ, "Criar oferta") — ver
+ * `usePublishOffering`. Fotos e cobertura só existem para oferta criada: na
+ * edição, a etapa 1 abre com a área de cobertura e a etapa 2 com a de fotos,
+ * cada uma com botão próprio, sem depender de "Salvar alterações". Depois de
+ * criada, o assistente não volta mais às etapas: um rascunho só é editado em
+ * Minhas Ofertas, e uma nova tentativa retoma a publicação sem duplicar a
+ * oferta.
  */
 export function FormSellerOffer(props: FormSellerOfferProps) {
   const { organizationId, locale, onCancel } = props;
   const isEdit = props.mode === "edit";
   const initialValues = isEdit ? props.initialValues : undefined;
   const { t } = useTranslation();
-  const [step, setStep] = React.useState(0);
+  const [step, setStep] = React.useState(isEdit ? (props.initialStep ?? 0) : 0);
   const lastStep = STEPS.length - 1;
   const isReview = step === lastStep;
 
@@ -111,6 +127,8 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     trigger,
     subscribe,
     getValues,
+    getFieldState,
+    resetField,
     formState: { errors },
   } = useForm<SellerOfferValues>({
     resolver: yupResolver(sellerOfferSchema),
@@ -143,7 +161,6 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     category,
     name,
     shortDescription,
-    image,
     acceptanceSla,
     technicalSla,
     price,
@@ -155,7 +172,6 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
       "category",
       "name",
       "shortDescription",
-      "image",
       "acceptanceSla",
       "technicalSla",
       "price",
@@ -163,7 +179,55 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
       "pricingModel",
     ],
   });
-  const imageUrl = useObjectUrl(image);
+  // Fotos (só na edição). Na criação o hook fica sem uso.
+  const imagesEditor = useOfferingImagesEditor(
+    isEdit ? props.offering.id : "",
+    isEdit ? props.images : NO_IMAGES,
+  );
+  // Cobertura (só na edição e nas categorias com KMZ). As localidades de
+  // atendimento vão junto, como `coverageNetworkPoints`.
+  // Assina as localidades em vez de observá-las: `useWatch` aqui
+  // re-renderizaria o formulário inteiro a cada tecla do endereço. O estado
+  // só muda quando os pontos mudam (texto igual = sem render).
+  const [coveragePointsKey, setCoveragePointsKey] = React.useState(() =>
+    JSON.stringify(locationsToCoverageNetworkPoints(getValues("locations"))),
+  );
+  React.useEffect(
+    () =>
+      subscribe({
+        name: "locations",
+        formState: { values: true },
+        callback: ({ values }) =>
+          setCoveragePointsKey(
+            JSON.stringify(locationsToCoverageNetworkPoints(values.locations)),
+          ),
+      }),
+    [subscribe],
+  );
+  const coveragePoints = React.useMemo(
+    () => JSON.parse(coveragePointsKey) as OfferingCoveragePoints,
+    [coveragePointsKey],
+  );
+  const coverageEditor = useOfferingCoverageEditor(
+    isEdit ? props.offering : null,
+    coveragePoints,
+  );
+  // As localidades salvas chegam com a cobertura (GET /offerCoverage):
+  // preenchem a lista, se o seller ainda não mexeu nela.
+  const { savedPoints } = coverageEditor;
+  React.useEffect(() => {
+    if (!savedPoints?.length || getFieldState("locations").isDirty) return;
+    resetField("locations", {
+      defaultValue: coverageNetworkPointsToLocations(savedPoints),
+    });
+  }, [savedPoints, getFieldState, resetField]);
+  const requiresCoverage = !!offerCategory(category)?.requiresCoverage;
+  // Capa do preview: a primeira foto (escolhida agora ou já salva).
+  const cover = isEdit ? imagesEditor.items[0] : undefined;
+  const coverObjectUrl = useObjectUrl(
+    cover?.kind === "new" ? cover.file : null,
+  );
+  const imageUrl = cover?.kind === "saved" ? cover.url : coverObjectUrl;
 
   const { publish, isPublishing, createdOfferingId } = usePublishOffering();
   const { save, isSaving } = useUpdateOffering();
@@ -191,9 +255,22 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     }
 
     setNotice(null);
-    const outcome = await save(props.offering, getValues());
+    const outcome = await save(
+      props.offering,
+      getValues(),
+      props.initialValues,
+    );
     if (outcome.status === "saved") {
-      props.onSaved(outcome.warnings.map((key) => t(key)));
+      const warnings = outcome.warnings.map((key) => t(key));
+      // Fotos e cobertura têm botão próprio: avisa se ficou mudança sem
+      // confirmar.
+      if (imagesEditor.isDirty) {
+        warnings.push(t("SellerOfferImages.notConfirmedOnSave"));
+      }
+      if (requiresCoverage && coverageEditor.isDirty) {
+        warnings.push(t("SellerOfferCoverage.notConfirmedOnSave"));
+      }
+      props.onSaved(warnings);
       return;
     }
     setNotice({ tone: "error", messages: [t(outcome.errorKey)] });
@@ -214,10 +291,11 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     setNotice(null);
     const outcome = await publish(getValues());
 
-    if (outcome.status === "published") {
+    if (outcome.status === "published" || outcome.status === "needsCoverage") {
       const values = getValues();
       onPublished({
         offeringId: outcome.offeringId,
+        needsCoverage: outcome.status === "needsCoverage",
         name: values.name.trim(),
         categoryLabel: values.category
           ? t(`SellerOfferCreate.categories.${values.category}.label`)
@@ -309,9 +387,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
                 register={register}
                 errors={errors}
                 organizationId={organizationId}
-                boundVersionId={
-                  isEdit ? (props.offering.coverageVersionId ?? null) : null
-                }
+                coverageEditor={isEdit ? coverageEditor : undefined}
                 locale={locale}
               />
             </Box>
@@ -321,6 +397,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
                 control={control}
                 register={register}
                 errors={errors}
+                imagesEditor={isEdit ? imagesEditor : undefined}
               />
             </Box>
 
@@ -345,6 +422,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
                 control={control}
                 locale={locale}
                 notice={notice}
+                coveragePending={!isEdit && requiresCoverage}
               />
             )}
 
@@ -380,7 +458,9 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
                 loadingText={
                   isEdit
                     ? t("SellerOfferEdit.actions.saving")
-                    : t("SellerOfferCreate.actions.publishing")
+                    : requiresCoverage
+                      ? t("SellerOfferCreate.actions.creating")
+                      : t("SellerOfferCreate.actions.publishing")
                 }
                 h="47px"
                 w={{ base: "auto", md: isReview ? "394px" : "355px" }}
@@ -401,7 +481,9 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
                       ? t("SellerOfferEdit.actions.save")
                       : isLocked
                         ? t("SellerOfferCreate.actions.retryPublish")
-                        : t("SellerOfferCreate.actions.publish")}
+                        : requiresCoverage
+                          ? t("SellerOfferCreate.actions.create")
+                          : t("SellerOfferCreate.actions.publish")}
                   </>
                 ) : (
                   <>

@@ -1,121 +1,68 @@
 "use client";
 
-import { Box, Button, Flex, Icon, Input, Stack, Text } from "@chakra-ui/react";
+import { Box, Flex, Icon, Input, Stack, Text } from "@chakra-ui/react";
 import React from "react";
-import { Controller, useController, useWatch } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { LuFileText, LuShield } from "react-icons/lu";
+import { LuFileText, LuMapPinned, LuShield } from "react-icons/lu";
 
-import CoverageMap, { type CoverageGeoJson } from "@/components/CoverageMap";
-import CoverageScopeDialog from "@/components/CoverageScopeDialog";
-import KmzVersionPicker from "@/components/KmzVersionPicker";
+import type { CoverageMapLocation } from "@/components/CoverageMap";
 import OfferCategoryPicker from "@/components/OfferCategoryPicker";
+import SellerOfferCoverageSection from "@/components/SellerOfferCoverageSection";
 import SellerOfferLocationField from "@/components/SellerOfferLocationField";
-import { toaster } from "@/components/ui/toaster";
 import { offerCategory } from "@/data/offerCategories";
-import { mergeVersions } from "@/functions/mergeCoverageVersions";
 import { parseDecimal } from "@/functions/parseDecimal";
-import { useCoverageFiles } from "@/hooks/useCoverageFiles";
-import { useCoverageGeometry } from "@/hooks/useCoverageGeometry";
-import { useCoverageVersion } from "@/hooks/useCoverageVersion";
-import { useKmzUpload } from "@/hooks/useKmzUpload";
-import type { CoverageVersionSummary } from "@/services/geoCoverage.service";
 
 import { SellerOfferCoverageStepProps } from "./interface";
 
 /**
- * Etapa 1 da criação de oferta: categoria e cobertura.
- * - Conectividade e Infra Física: mapa, versão de KMZ e localidade de
- *   atendimento (endereço do Mapbox + raio, com pin e círculo no mapa). A
- *   versão escolhida é vinculada à oferta depois de criada
- *   (`PUT /productOffering/{id}/coverageVersion`).
+ * Etapa 1 da oferta: categoria e cobertura.
+ * - Conectividade e Infra Física: precisam de cobertura (KMZ) para publicar,
+ *   mas ela só é vinculada à oferta já criada. Na criação, um aviso explica
+ *   o passo seguinte; na edição, entra a área de cobertura
+ *   (`SellerOfferCoverageSection`), com botão próprio. Nas duas, a
+ *   localidade de atendimento (endereço do Mapbox + raio).
  * - Demais categorias: "Cobertura não aplicável" (Figma 2074-57991), com o
  *   campo de região quando a categoria pede (Figma 2074-59081).
- *
- * As versões vêm dos arquivos da organização na geo-api (`/coverageFile`) e
- * dos KMZs enviados aqui. A geo-api não devolve a geometria: o mapa lê o KMZ
- * enviado ou, para os anteriores, o original baixado.
  */
 export function SellerOfferCoverageStep({
   control,
   register,
   errors,
   organizationId,
-  boundVersionId = null,
+  coverageEditor,
   locale,
 }: SellerOfferCoverageStepProps) {
   const { t } = useTranslation();
   const category = useWatch({ control, name: "category" });
-  const selectedId = useWatch({ control, name: "coverageVersionId" });
   const locations = useWatch({ control, name: "locations" });
-  // Pins e raios das localidades de atendimento no mapa — memorizados para o
-  // mapa só reenquadrar quando um ponto ou raio muda.
+  // Pins e raios das localidades de atendimento no mapa. O `useWatch` devolve
+  // um array novo a cada tecla (inclusive no endereço ainda sem ponto): a
+  // lista só muda quando o conteúdo muda, senão o mapa redesenharia tudo —
+  // KMZ, pins e enquadramento — a cada letra digitada.
+  const mapLocationsKey = JSON.stringify(
+    (locations ?? []).flatMap(({ longitude, latitude, radiusKm, label }) =>
+      typeof longitude === "number" && typeof latitude === "number"
+        ? [
+            {
+              longitude,
+              latitude,
+              radiusKm: parseDecimal(radiusKm),
+              label: label?.trim() || undefined,
+            },
+          ]
+        : [],
+    ),
+  );
   const mapLocations = React.useMemo(
-    () =>
-      (locations ?? []).flatMap(({ longitude, latitude, radiusKm }) =>
-        typeof longitude === "number" && typeof latitude === "number"
-          ? [{ longitude, latitude, radiusKm: parseDecimal(radiusKm) }]
-          : [],
-      ),
-    [locations],
+    () => JSON.parse(mapLocationsKey) as CoverageMapLocation[],
+    [mapLocationsKey],
   );
   const definition = offerCategory(category);
   const requiresCoverage = !!definition?.requiresCoverage;
   // Só Conectividade e Infra Física têm cobertura geográfica; as demais
-  // mostram o aviso no lugar do mapa e do KMZ. A versão já escolhida fica no
-  // formulário (para não se perder ao trocar de categoria), mas só é
-  // vinculada à oferta quando a categoria exige cobertura.
+  // mostram o aviso no lugar do mapa e do KMZ.
   const coverageNotApplicable = !!definition && !requiresCoverage;
-
-  const { upload, isUploading } = useKmzUpload(organizationId);
-  const [uploadError, setUploadError] = React.useState<string>();
-  // KMZs enviados nesta tela, com a geometria lida do arquivo.
-  const [uploaded, setUploaded] = React.useState<
-    { version: CoverageVersionSummary; geometry: CoverageGeoJson | null }[]
-  >([]);
-  // KMZs já enviados pela organização (sobrevivem ao recarregar).
-  const files = useCoverageFiles(organizationId);
-  const listed = React.useMemo(
-    () => mergeVersions(uploaded, files.versions),
-    [uploaded, files.versions],
-  );
-
-  // Recorte da cobertura ("Escolher cobertura").
-  const coverageMode = useController({ control, name: "coverageMode" });
-  const publicGeometry = useController({ control, name: "publicGeometry" });
-  const [isScopeOpen, setIsScopeOpen] = React.useState(false);
-  const resetScope = () => {
-    coverageMode.field.onChange("full");
-    publicGeometry.field.onChange(null);
-  };
-
-  // Edição: a versão vinculada segue no seletor, mesmo após enviar outra ou
-  // quando não é mais a ativa do arquivo.
-  const boundListed = listed.some((version) => version.id === boundVersionId);
-  const bound = useCoverageVersion(
-    boundVersionId && !boundListed ? boundVersionId : null,
-  );
-  const selectable =
-    bound.version && !boundListed ? [...listed, bound.version] : listed;
-
-  // Mapa: a geometria do KMZ enviado aqui ou a do original baixado.
-  const selectedVersion =
-    selectable.find((version) => version.id === selectedId) ?? null;
-  const selectedUpload = uploaded.find(
-    (item) => item.version.id === selectedId,
-  );
-  const preview = useCoverageGeometry(
-    organizationId,
-    selectedVersion,
-    selectedUpload ? selectedUpload.geometry : undefined,
-  );
-  const geometry = preview.geometry;
-  // Tamanho e contagens do original baixado entram no item escolhido.
-  const versions = preview.info
-    ? selectable.map((version) =>
-        version.id === selectedId ? { ...version, ...preview.info } : version,
-      )
-    : selectable;
 
   const tError = (message?: string) => (message ? t(message) : undefined);
 
@@ -234,135 +181,53 @@ export function SellerOfferCoverageStep({
           </Stack>
         </Box>
       ) : (
-        <>
-          <Stack gap="16px" px={{ base: 0, md: "20px" }} py="20px">
-            <Flex align="center" justify="space-between" gap="12px" wrap="wrap">
-              <Text
-                color="#0F1729"
-                fontSize="15px"
-                fontWeight={700}
-                lineHeight="22.5px"
-              >
-                {t("SellerOfferCreate.coverage.mapTitle")}
-                {requiresCoverage && (
-                  <Text as="span" color="#CC0000">
-                    {" *"}
-                  </Text>
-                )}
-              </Text>
-              {/* O recorte é sobre a área de um KMZ: exige a versão escolhida. */}
-              <Button
-                disabled={!selectedId}
-                onClick={() => setIsScopeOpen(true)}
-                h="40px"
-                px="12px"
-                rounded="14px"
-                bg="#1F5AFF"
-                color="white"
-                fontSize="14px"
-                fontWeight={700}
-                _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
-              >
-                {t("SellerOfferCreate.coverage.chooseCoverage")}
-              </Button>
-            </Flex>
-            <CoverageMap
-              geometry={geometry}
-              locations={mapLocations}
-              publicGeometry={publicGeometry.field.value}
-              label={t("SellerOfferCreate.coverage.mapTitle")}
-            />
-            {selectedId && (
-              <Text
-                color={errors.publicGeometry ? "#EF4444" : "#5A6478"}
-                fontSize="12px"
-                lineHeight="18px"
-              >
-                {errors.publicGeometry
-                  ? tError(errors.publicGeometry.message)
-                  : t(
-                      `SellerOfferCreate.coverageScope.selected.${coverageMode.field.value}`,
-                    )}
-              </Text>
-            )}
-            <CoverageScopeDialog
-              open={isScopeOpen}
-              coverage={geometry}
-              value={{
-                mode: coverageMode.field.value,
-                publicGeometry: publicGeometry.field.value,
-              }}
-              onClose={() => setIsScopeOpen(false)}
-              onConfirm={(scope) => {
-                coverageMode.field.onChange(scope.mode);
-                publicGeometry.field.onChange(scope.publicGeometry);
-                setIsScopeOpen(false);
-              }}
-            />
-            {selectedId && !geometry && (
-              <Text
-                role="status"
-                color="#A0ABB8"
-                fontSize="11px"
-                lineHeight="16.5px"
-              >
-                {t(
-                  preview.isLoading
-                    ? "SellerOfferCreate.coverage.preview.loading"
-                    : (preview.error ??
-                        "SellerOfferCreate.coverage.previewUnavailable"),
-                )}
-              </Text>
-            )}
-          </Stack>
-
-          <Controller
-            control={control}
-            name="coverageVersionId"
-            render={({ field }) => (
-              <KmzVersionPicker
-                versions={versions}
-                isLoadingList={files.isLoading}
-                selectedId={field.value || null}
-                boundId={boundVersionId}
-                onSelect={(id) => {
-                  // O polígono foi desenhado sobre a área do KMZ anterior.
-                  if (id !== field.value) resetScope();
-                  field.onChange(id);
-                }}
-                isUploading={isUploading}
-                uploadError={uploadError}
-                error={tError(errors.coverageVersionId?.message)}
+        requiresCoverage && (
+          <>
+            {coverageEditor ? (
+              <SellerOfferCoverageSection
+                editor={coverageEditor}
+                organizationId={organizationId}
+                mapLocations={mapLocations}
                 locale={locale}
-                onUpload={async (file) => {
-                  setUploadError(undefined);
-                  const result = await upload(file);
-                  if (!result.ok) {
-                    setUploadError(t(result.errorKey));
-                    return;
-                  }
-                  setUploaded((current) => [
-                    result,
-                    ...current.filter(
-                      (item) => item.version.id !== result.version.id,
-                    ),
-                  ]);
-                  files.reload();
-                  if (result.version.id !== field.value) resetScope();
-                  field.onChange(result.version.id);
-                  toaster.create({
-                    type: "success",
-                    title: t("SellerOfferCreate.kmz.uploaded", {
-                      name: file.name,
-                    }),
-                  });
-                }}
               />
+            ) : (
+              <Flex
+                align="flex-start"
+                gap="12px"
+                px="17px"
+                py="15px"
+                bg="#F8F9FB"
+                borderWidth="1px"
+                borderColor="#E5E8EE"
+                rounded="14px"
+                role="note"
+              >
+                <Icon
+                  as={LuMapPinned}
+                  boxSize="16px"
+                  color="#1F5AFF"
+                  mt="2px"
+                  flexShrink={0}
+                />
+                <Stack gap="2px">
+                  <Text
+                    color="#0F1729"
+                    fontSize="13px"
+                    fontWeight={700}
+                    lineHeight="19.5px"
+                  >
+                    {t("SellerOfferCreate.coverage.afterCreateTitle")}
+                  </Text>
+                  <Text color="#5A6478" fontSize="12px" lineHeight="18px">
+                    {t("SellerOfferCreate.coverage.afterCreateText")}
+                  </Text>
+                </Stack>
+              </Flex>
             )}
-          />
 
-          <SellerOfferLocationField control={control} errors={errors} />
-        </>
+            <SellerOfferLocationField control={control} errors={errors} />
+          </>
+        )
       )}
     </Stack>
   );

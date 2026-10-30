@@ -87,6 +87,19 @@ export interface CoverageFileOffer {
   updatedAt: string;
 }
 
+/**
+ * Cobertura vinculada a uma oferta (`GET /offerCoverage/{offeringId}`). A
+ * geo-api devolve o `publicGeometry` como GeoJSON (null = o KMZ inteiro) e
+ * os `coverageNetworkPoints` — localidades `{ longitude, latitude, radiusMeters }`.
+ * Os dois chegam sem tipo garantido: quem lê confere.
+ */
+export interface OfferCoverage {
+  offeringId: string;
+  coverageVersionId: string;
+  publicGeometry: unknown;
+  coverageNetworkPoints?: unknown;
+}
+
 /** Página das listas da geo-api (`data.items`, `total`, `offset`, `limit`). */
 export interface GeoPage<T> {
   items: T[];
@@ -136,6 +149,21 @@ export const geoCoverageService = {
     withProfileSession(() =>
       api.get<CoverageVersion>(
         `/geo/coverageVersion/${encodeURIComponent(versionId)}`,
+        { signal: options.signal },
+      ),
+    ),
+
+  /**
+   * Cobertura vinculada à oferta, com o recorte público salvo. 404 quando a
+   * oferta não tem vínculo na geo-api.
+   */
+  getOfferCoverage: (
+    offeringId: string,
+    options: { signal?: AbortSignal } = {},
+  ) =>
+    withProfileSession(() =>
+      api.get<OfferCoverage>(
+        `/geo/offerCoverage/${encodeURIComponent(offeringId)}`,
         { signal: options.signal },
       ),
     ),

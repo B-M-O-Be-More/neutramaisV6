@@ -1,3 +1,4 @@
+import type { OfferLifecycleGates } from "@/functions/offerLifecycleGates";
 import type {
   OfferingAction,
   ProductOffering,
@@ -11,5 +12,10 @@ export interface SellerOfferCardProps {
   locale: string;
   /** Transição desta oferta em andamento — trava as ações. */
   isPending?: boolean;
+  /**
+   * Permissões e KYC do contexto do perfil. Ausente, todas as ações aparecem
+   * e vale a resposta da marketplace-api.
+   */
+  gates?: OfferLifecycleGates;
   onAction: (action: OfferingAction) => void;
 }

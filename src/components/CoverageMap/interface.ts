@@ -13,6 +13,8 @@ export interface CoverageMapLocation {
   latitude: number;
   /** Raio em km; desenha um círculo em volta do pin. */
   radiusKm?: number | null;
+  /** Endereço escolhido, mostrado na leitura ao clicar no pin ou no raio. */
+  label?: string;
 }
 
 export interface CoverageMapProps {
@@ -26,4 +28,14 @@ export interface CoverageMapProps {
   height?: string;
   /** Rótulo acessível do mapa. */
   label: string;
+  /**
+   * KMZ carregando: cobre o mapa com um spinner e mensagens que mudam a cada
+   * 3 s (a tela não parece travada).
+   */
+  isLoading?: boolean;
+  /**
+   * Mostra o botão "Expandir mapa" (abaixo do zoom), que abre o mapa num
+   * modal com 70% da tela. Padrão: true.
+   */
+  expandable?: boolean;
 }

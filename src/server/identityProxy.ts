@@ -8,9 +8,10 @@ import "server-only";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { apiBaseUrl, missingApiUrlMessage } from "./apiBaseUrl";
 import { ACCESS_TOKEN_COOKIE } from "./authCookies";
 
-const IDENTITY_API_URL = process.env.IDENTITY_API_URL;
+const IDENTITY_API_URL = apiBaseUrl("identity");
 
 /** Identificador da chamada nos logs do upstream — repassado ao browser. */
 export const CORRELATION_ID_HEADER = "X-Correlation-ID";
@@ -100,7 +101,7 @@ export async function callIdentity({
       infraError: {
         status: 500,
         code: "IDENTITY_API_URL_MISSING",
-        detail: "IDENTITY_API_URL não configurada no ambiente.",
+        detail: missingApiUrlMessage("identity"),
       },
     };
   }

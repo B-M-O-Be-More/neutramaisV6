@@ -1,15 +1,15 @@
 "use client";
 
 import { Flex, Icon, Input, Stack, Text, Textarea } from "@chakra-ui/react";
-import { Controller, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { LuCircleAlert } from "react-icons/lu";
+import { LuCircleAlert, LuImage } from "react-icons/lu";
 
 import OfferFormField, {
   OFFER_INPUT_STYLES,
   offerFieldDescribedBy,
 } from "@/components/OfferFormField";
-import OfferImagePicker from "@/components/OfferImagePicker";
+import SellerOfferImagesSection from "@/components/SellerOfferImagesSection";
 import {
   OFFER_DESCRIPTION_MAX,
   OFFER_DESCRIPTION_MIN,
@@ -20,14 +20,17 @@ import {
 import { SellerOfferBasicInfoStepProps } from "./interface";
 
 /**
- * Etapa 2 da criação de oferta (Figma 2073-44741): imagem, nome e
- * descrições, com contadores de caracteres. O nome e a descrição curta
- * alimentam o preview do marketplace.
+ * Etapa 2 da criação de oferta (Figma 2073-44741): nome e descrições, com
+ * contadores de caracteres. O nome e a descrição curta alimentam o preview do
+ * marketplace. Fotos só existem para oferta já criada: na edição, a área de
+ * fotos (com botão próprio) abre a etapa; na criação, um aviso aponta para
+ * depois de publicar.
  */
 export function SellerOfferBasicInfoStep({
   control,
   register,
   errors,
+  imagesEditor,
 }: SellerOfferBasicInfoStepProps) {
   const { t } = useTranslation();
   const name = useWatch({ control, name: "name" }) ?? "";
@@ -71,17 +74,31 @@ export function SellerOfferBasicInfoStep({
         </Text>
       </Flex>
 
-      <Controller
-        control={control}
-        name="image"
-        render={({ field }) => (
-          <OfferImagePicker
-            value={field.value ?? null}
-            onChange={field.onChange}
-            error={tError(errors.image?.message)}
+      {imagesEditor ? (
+        <SellerOfferImagesSection editor={imagesEditor} />
+      ) : (
+        <Flex
+          align="flex-start"
+          gap="12px"
+          px="17px"
+          py="15px"
+          bg="#F8F9FB"
+          borderWidth="1px"
+          borderColor="#E5E8EE"
+          rounded="14px"
+        >
+          <Icon
+            as={LuImage}
+            boxSize="14px"
+            color="#8B5CF6"
+            mt="2px"
+            flexShrink={0}
           />
-        )}
-      />
+          <Text color="#5A6478" fontSize="12px" lineHeight="18px">
+            {t("SellerOfferImages.afterPublishNotice")}
+          </Text>
+        </Flex>
+      )}
 
       <OfferFormField
         id="offer-name"

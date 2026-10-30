@@ -6,7 +6,12 @@ import type { ReactNode } from "react";
 import { useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import type { IconType } from "react-icons";
-import { LuCircleAlert, LuShield, LuTriangleAlert } from "react-icons/lu";
+import {
+  LuCircleAlert,
+  LuMapPinned,
+  LuShield,
+  LuTriangleAlert,
+} from "react-icons/lu";
 
 import { offerCategory } from "@/data/offerCategories";
 import {
@@ -64,6 +69,12 @@ const RED = {
   icon: "#EF4444",
   text: "#991B1B",
 };
+const BLUE = {
+  bg: "#EEF3FF",
+  border: "#C7D8FF",
+  icon: "#1F5AFF",
+  text: "#1E3A8A",
+};
 const GREEN = {
   bg: "#EDFBF5",
   border: "#AAECD5",
@@ -74,12 +85,14 @@ const GREEN = {
 /**
  * Etapa 5 da criação de oferta (Figma 2074-54253): aviso de moderação,
  * resumo do que foi preenchido e a confirmação de veracidade. O botão
- * "Publicar oferta agora" fica no rodapé do assistente.
+ * "Publicar oferta agora" (ou "Criar oferta", nas categorias com KMZ) fica no
+ * rodapé do assistente.
  */
 export function SellerOfferReviewStep({
   control,
   locale,
   notice,
+  coveragePending = false,
 }: SellerOfferReviewStepProps) {
   const { t } = useTranslation();
   const values = useWatch({ control });
@@ -122,14 +135,6 @@ export function SellerOfferReviewStep({
     },
   ];
 
-  if (category?.requiresCoverage) {
-    items.push({
-      key: "coverage",
-      value: t(
-        `SellerOfferCreate.coverageScope.mode.${values.coverageMode ?? "full"}`,
-      ),
-    });
-  }
   if (values.speedValue && values.category !== "numberingResources") {
     items.push({
       key: "speed",
@@ -188,6 +193,12 @@ export function SellerOfferReviewStep({
           </Stack>
         ))}
       </SimpleGrid>
+
+      {coveragePending && (
+        <Notice icon={LuMapPinned} tone={BLUE} role="status">
+          <Text>{t("SellerOfferCreate.review.coveragePendingNotice")}</Text>
+        </Notice>
+      )}
 
       <Notice icon={LuShield} tone={GREEN}>
         <Text>{t("SellerOfferCreate.review.truthfulnessNotice")}</Text>

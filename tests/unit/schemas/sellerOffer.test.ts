@@ -4,6 +4,7 @@ import { ValidationError, type AnyObjectSchema } from "yup";
 import {
   OFFER_IMAGE_MAX_BYTES,
   OFFER_LOCATIONS_MAX,
+  offerImageErrorKey,
   sellerOfferBasicInfoSchema,
   sellerOfferCoverageSchema,
   sellerOfferPricingSchema,
@@ -26,81 +27,30 @@ async function validate(
 const errorsFor = (values: Record<string, unknown>) =>
   validate(sellerOfferCoverageSchema, values);
 
-describe("sellerOfferCoverageSchema (etapa Cobertura / KMZ)", () => {
+describe("sellerOfferCoverageSchema (etapa Categoria e cobertura)", () => {
   it("exige a categoria", async () => {
     expect(await errorsFor({ category: "" })).toContain(
       "SellerOfferCreate.errors.categoryRequired",
     );
   });
 
-  it.each(["connectivity", "physicalInfra"])(
-    "exige uma versão de KMZ para %s",
+  it.each([
+    "connectivity",
+    "physicalInfra",
+    "hardware",
+    "numberingResources",
+    "software",
+    "protocols",
+  ])(
+    "não pede KMZ para %s: a cobertura é vinculada depois de criar",
     async (category) => {
-      expect(await errorsFor({ category, coverageVersionId: "" })).toEqual([
-        "SellerOfferCreate.errors.coverageRequired",
-      ]);
-      expect(
-        await errorsFor({ category, coverageVersionId: "version-1" }),
-      ).toEqual([]);
+      expect(await errorsFor({ category })).toEqual([]);
     },
   );
-
-  it.each(["hardware", "numberingResources", "software", "protocols"])(
-    "não exige KMZ para %s (cobertura não aplicável)",
-    async (category) => {
-      expect(await errorsFor({ category, coverageVersionId: "" })).toEqual([]);
-    },
-  );
-
-  describe("recorte da cobertura", () => {
-    const POLYGON = {
-      type: "Polygon",
-      coordinates: [
-        [
-          [0, 0],
-          [1, 0],
-          [1, 1],
-          [0, 0],
-        ],
-      ],
-    };
-    const connectivity = {
-      category: "connectivity",
-      coverageVersionId: "version-1",
-    };
-
-    it("cobertura completa não pede polígono", async () => {
-      expect(
-        await errorsFor({ ...connectivity, coverageMode: "full" }),
-      ).toEqual([]);
-    });
-
-    it("cobertura editada exige o polígono desenhado", async () => {
-      expect(
-        await errorsFor({ ...connectivity, coverageMode: "custom" }),
-      ).toEqual(["SellerOfferCreate.errors.publicGeometryRequired"]);
-      expect(
-        await errorsFor({
-          ...connectivity,
-          coverageMode: "custom",
-          publicGeometry: POLYGON,
-        }),
-      ).toEqual([]);
-    });
-
-    it("ignora o recorte quando a categoria não tem cobertura", async () => {
-      expect(
-        await errorsFor({ category: "software", coverageMode: "custom" }),
-      ).toEqual([]);
-    });
-  });
 
   describe("localidades de atendimento", () => {
     const POINT = { longitude: -38.5, latitude: -3.7 };
-    const connectivity = {
-      category: "connectivity",
-      coverageVersionId: "version-1",
-    };
+    const connectivity = { category: "connectivity" };
     const withLocations = (...locations: Record<string, unknown>[]) => ({
       ...connectivity,
       locations,
@@ -126,20 +76,23 @@ describe("sellerOfferCoverageSchema (etapa Cobertura / KMZ)", () => {
       );
     });
 
-    it("com o endereço escolhido, exige o raio entre 0 e 500 km", async () => {
+    it("com o endereço escolhido, exige o raio entre 1 e 80 km", async () => {
       const located = { ...POINT, label: "Av. Dom Luís, Fortaleza" };
 
       expect(await errorsFor(withLocations(located))).toEqual([
         "SellerOfferCreate.errors.radiusRequired",
       ]);
       expect(
-        await errorsFor(withLocations({ ...located, radiusKm: "0" })),
+        await errorsFor(withLocations({ ...located, radiusKm: "0,5" })),
       ).toEqual(["SellerOfferCreate.errors.radiusRange"]);
       expect(
-        await errorsFor(withLocations({ ...located, radiusKm: "500,5" })),
+        await errorsFor(withLocations({ ...located, radiusKm: "80,5" })),
       ).toEqual(["SellerOfferCreate.errors.radiusRange"]);
       expect(
-        await errorsFor(withLocations({ ...located, radiusKm: "2,5" })),
+        await errorsFor(withLocations({ ...located, radiusKm: "1" })),
+      ).toEqual([]);
+      expect(
+        await errorsFor(withLocations({ ...located, radiusKm: "80" })),
       ).toEqual([]);
     });
 
@@ -183,7 +136,6 @@ describe("sellerOfferCoverageSchema (etapa Cobertura / KMZ)", () => {
 
 describe("sellerOfferBasicInfoSchema (etapa Informações básicas)", () => {
   const VALID = {
-    image: null,
     name: "Bloco IPv6 /48",
     shortDescription: "Bloco /48 via LACNIC",
     description: "x".repeat(50),
@@ -228,20 +180,34 @@ describe("sellerOfferBasicInfoSchema (etapa Informações básicas)", () => {
       "SellerOfferCreate.errors.descriptionTooShort",
     ]);
   });
+});
 
-  it("aceita só JPG ou PNG de até 5 MB", async () => {
-    const png = new File(["png"], "oferta.png", { type: "image/png" });
-    const gif = new File(["gif"], "oferta.gif", { type: "image/gif" });
+describe("offerImageErrorKey (fotos da oferta)", () => {
+  const added = (file: File) => ({ kind: "new" as const, file });
+
+  it("aceita JPG, PNG ou WEBP de até 5 MB", () => {
     const huge = new File(["png"], "grande.png", { type: "image/png" });
     Object.defineProperty(huge, "size", { value: OFFER_IMAGE_MAX_BYTES + 1 });
 
-    expect(await basicErrors({ image: png })).toEqual([]);
-    expect(await basicErrors({ image: gif })).toEqual([
-      "SellerOfferCreate.errors.imageType",
-    ]);
-    expect(await basicErrors({ image: huge })).toEqual([
+    expect(
+      offerImageErrorKey(
+        added(new File(["webp"], "a.webp", { type: "image/webp" })),
+      ),
+    ).toBeUndefined();
+    expect(
+      offerImageErrorKey(
+        added(new File(["gif"], "a.gif", { type: "image/gif" })),
+      ),
+    ).toBe("SellerOfferCreate.errors.imageType");
+    expect(offerImageErrorKey(added(huge))).toBe(
       "SellerOfferCreate.errors.imageSize",
-    ]);
+    );
+  });
+
+  it("não revalida as fotos já salvas", () => {
+    expect(
+      offerImageErrorKey({ kind: "saved", id: "image-1", url: null }),
+    ).toBeUndefined();
   });
 });
 
@@ -318,22 +284,66 @@ describe("sellerOfferTechnicalSpecsSchema · Hardware / CPE", () => {
   const hardwareErrors = (values: Record<string, unknown>) =>
     validate(sellerOfferTechnicalSpecsSchema, { ...BASE, ...values });
 
-  it("exige fabricante, modelo e condição só para Hardware", async () => {
+  const DEVICE = {
+    hardwareManufacturer: "Mikrotik",
+    hardwareModel: "RB4011",
+    hardwareCondition: "refurbished",
+  };
+  const SHIPPING = {
+    shippingWeightKg: "1,25",
+    shippingHeightCm: "10",
+    shippingWidthCm: "25",
+    shippingLengthCm: "30",
+    shippingOriginPostalCode: "01310-100",
+  };
+
+  it("exige fabricante, modelo, condição e o envio só para Hardware", async () => {
     expect(await hardwareErrors({ category: "hardware" })).toEqual([
       "SellerOfferCreate.errors.manufacturerRequired",
       "SellerOfferCreate.errors.modelRequired",
       "SellerOfferCreate.errors.conditionRequired",
+      "SellerOfferCreate.errors.weightRequired",
+      "SellerOfferCreate.errors.heightRequired",
+      "SellerOfferCreate.errors.widthRequired",
+      "SellerOfferCreate.errors.lengthRequired",
+      "SellerOfferCreate.errors.postalCodeRequired",
     ]);
     expect(await hardwareErrors({ category: "software" })).toEqual([]);
   });
 
-  it("aceita Hardware completo, com garantia e serialização opcionais", async () => {
+  it("aceita Hardware completo, com garantia, serialização e seguro opcionais", async () => {
+    expect(
+      await hardwareErrors({ category: "hardware", ...DEVICE, ...SHIPPING }),
+    ).toEqual([]);
+  });
+
+  it("aplica os limites do pacote de envio da marketplace-api", async () => {
     expect(
       await hardwareErrors({
         category: "hardware",
-        hardwareManufacturer: "Mikrotik",
-        hardwareModel: "RB4011",
-        hardwareCondition: "refurbished",
+        ...DEVICE,
+        ...SHIPPING,
+        shippingWeightKg: "1000,5",
+        shippingHeightCm: "0",
+        shippingLengthCm: "401",
+        shippingOriginPostalCode: "00000-000",
+        shippingInsuranceValue: "0",
+      }),
+    ).toEqual([
+      "SellerOfferCreate.errors.weightRange",
+      "SellerOfferCreate.errors.sideRange",
+      "SellerOfferCreate.errors.sideRange",
+      "SellerOfferCreate.errors.postalCodeInvalid",
+      "SellerOfferCreate.errors.insuranceInvalid",
+    ]);
+  });
+
+  it("na edição vale o tipo salvo: Hardware criado como serviço não exige envio", async () => {
+    expect(
+      await hardwareErrors({
+        category: "hardware",
+        productType: "service",
+        ...DEVICE,
       }),
     ).toEqual([]);
   });

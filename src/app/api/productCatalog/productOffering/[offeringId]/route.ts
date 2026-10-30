@@ -17,6 +17,8 @@ const UPDATE_FIELDS = [
   "stateCode",
   "isCapital",
   "metadata",
+  // Produto físico: troca o pacote de envio inteiro. `productType` não muda.
+  "shipping",
 ] as const;
 
 const invalidId = () =>
@@ -55,5 +57,7 @@ export async function PATCH(
     path: `/productCatalog/productOffering/${offeringId}`,
     body: pickBody(await readJsonBody(request), UPDATE_FIELDS),
     authenticated: true,
+    // A marketplace-api confere o perfil Seller na edição.
+    profileSession: true,
   });
 }

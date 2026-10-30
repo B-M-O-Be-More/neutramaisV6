@@ -1,11 +1,15 @@
 import type { SellerOfferValues } from "@/schemas/sellerOffer";
 
 export type PublishOfferingOutcome =
-  /** Criada, vinculada e publicada. */
+  /** Criada e publicada. */
   | { status: "published"; offeringId: string; warnings: string[] }
   /**
-   * Criada, mas não publicada (vínculo da cobertura ou publicação falharam):
-   * fica como rascunho em Minhas Ofertas.
+   * Criada como rascunho de propósito: a categoria exige cobertura (KMZ), que
+   * só é vinculada depois, na edição da oferta.
+   */
+  | { status: "needsCoverage"; offeringId: string; warnings: string[] }
+  /**
+   * Criada, mas a publicação falhou: fica como rascunho em Minhas Ofertas.
    */
   | {
       status: "draft";

@@ -137,6 +137,47 @@ export function toPublicGeometry(shapes: LngLat[][]): PublicGeometry | null {
   };
 }
 
+const isPosition = (value: unknown) =>
+  Array.isArray(value) &&
+  value.length === 2 &&
+  value.every((n) => typeof n === "number" && Number.isFinite(n));
+
+/** Anel fechado com pelo menos 4 posições: o último repete o primeiro. */
+function isClosedRing(ring: unknown): boolean {
+  if (!Array.isArray(ring) || ring.length < 4 || !ring.every(isPosition)) {
+    return false;
+  }
+  const [firstX, firstY] = ring[0] as number[];
+  const [lastX, lastY] = ring[ring.length - 1] as number[];
+  return firstX === lastX && firstY === lastY;
+}
+
+const isRings = (value: unknown): value is unknown[][] =>
+  Array.isArray(value) && value.length > 0 && value.every(isClosedRing);
+
+/**
+ * GeoJSON é um recorte público válido: Polygon ou MultiPolygon com anéis
+ * fechados de [longitude, latitude].
+ */
+export function isPublicGeometry(value: unknown): value is PublicGeometry {
+  if (!value || typeof value !== "object") return false;
+  const { type, coordinates } = value as Record<string, unknown>;
+  const polygons =
+    type === "Polygon"
+      ? [coordinates]
+      : type === "MultiPolygon" && Array.isArray(coordinates)
+        ? coordinates
+        : null;
+  return !!polygons?.length && polygons.every(isRings);
+}
+
+/** Quantidade de vértices de um recorte público (todos os anéis). */
+export function vertexCount(geometry: PublicGeometry): number {
+  const polygons =
+    geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
+  return polygons.flat().flat().length;
+}
+
 /** Formas (vértices sem o ponto de fechamento) de um recorte público. */
 export function shapesOf(geometry: PublicGeometry | null): LngLat[][] {
   if (!geometry) return [];
@@ -165,6 +206,21 @@ export function shapeAreaKm2(shape: LngLat[]): number {
       Math.sin(toRadians(current[1]));
   }
   return Math.abs((total * EARTH_RADIUS_M * EARTH_RADIUS_M) / 2) / 1e6;
+}
+
+/**
+ * Área em km² de todos os polígonos do GeoJSON (Polygon, MultiPolygon,
+ * Feature, coleções), descontando os furos. O anel fechado (último ponto
+ * repetindo o primeiro) não altera a conta.
+ */
+export function geometryAreaKm2(geometry: unknown): number {
+  return polygonsOf(geometry).reduce(
+    (total, [outer = [], ...holes]) =>
+      total +
+      shapeAreaKm2(outer) -
+      holes.reduce((sum, hole) => sum + shapeAreaKm2(hole), 0),
+    0,
+  );
 }
 
 // ---------------------------------------------------------------------------

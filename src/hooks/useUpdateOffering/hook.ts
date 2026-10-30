@@ -37,10 +37,12 @@ function updateErrorKey(error: unknown): string {
 
 /**
  * Salva a edição de uma oferta (marketplace-api), sem mudar o status:
- * 1. plano da categoria (encontra ou cria, se a categoria mudou);
- * 2. `PATCH` com nome, preços, velocidade e `metadata`;
- * 3. vínculo do KMZ, quando a versão ou o recorte mudaram;
- * 4. patrocínio, quando mudou (falha vira aviso).
+ * 1. plano da categoria (encontra ou cria, só se a categoria mudou);
+ * 2. `PATCH /productOffering/{id}` com nome, preços, velocidade e `metadata`;
+ * 3. patrocínio, quando mudou (falha vira aviso).
+ *
+ * Fotos e cobertura têm botão próprio nas suas áreas
+ * (`useOfferingImagesEditor`, `useOfferingCoverageEditor`).
  */
 export function useUpdateOffering(): UseUpdateOfferingReturn {
   const [isSaving, setIsSaving] = React.useState(false);
@@ -49,6 +51,7 @@ export function useUpdateOffering(): UseUpdateOfferingReturn {
     async (
       offering: ProductOffering,
       values: SellerOfferValues,
+      initialValues?: SellerOfferValues,
     ): Promise<UpdateOfferingOutcome> => {
       const category = offerCategory(values.category);
       if (!category) {
@@ -62,40 +65,18 @@ export function useUpdateOffering(): UseUpdateOfferingReturn {
       const warnings: string[] = [];
       try {
         try {
-          const specificationId = await resolveOfferSpecification(
-            category.specificationName,
-          );
+          // Mesma categoria, mesmo plano: o PATCH sai sem ler os planos antes.
+          const specificationId =
+            initialValues?.category &&
+            values.category === initialValues.category
+              ? offering.specificationId
+              : await resolveOfferSpecification(category.specificationName);
           await productCatalogService.updateOffering(
             offering.id,
             buildOfferingUpdate(values, specificationId, offering),
           );
         } catch (error) {
           return { status: "failed", errorKey: updateErrorKey(error) };
-        }
-
-        const coverageChanged =
-          values.coverageVersionId !== (offering.coverageVersionId ?? "") ||
-          values.coverageMode === "custom";
-        if (
-          category.requiresCoverage &&
-          values.coverageVersionId &&
-          coverageChanged
-        ) {
-          try {
-            await productCatalogService.bindCoverage(
-              offering.id,
-              values.coverageVersionId,
-              values.coverageMode === "custom" ? values.publicGeometry : null,
-            );
-          } catch (error) {
-            return {
-              status: "failed",
-              errorKey:
-                error instanceof ForbiddenError
-                  ? "SellerOfferCreate.publish.errors.coveragePermission"
-                  : "SellerOfferEdit.errors.coverageFailed",
-            };
-          }
         }
 
         if (values.sponsored !== !!offering.isPromoted) {
