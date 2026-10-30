@@ -19,6 +19,18 @@ export function isAdminRole(roles: string[]): boolean {
   return hasRole(roles, ADMIN_ROLE) || isSuperAdmin(roles);
 }
 
+/**
+ * Pode subir KMZ: só o Dono da organização (`org_owner` ou `seller_owner`,
+ * como exige a geo-api) — e o `super_admin`.
+ */
+export function canUploadCoverage(roles: string[]): boolean {
+  return (
+    hasRole(roles, "org_owner") ||
+    hasRole(roles, "seller_owner") ||
+    isSuperAdmin(roles)
+  );
+}
+
 const ALL_PERSONAS: SidebarPersona[] = ["admin", "buyer", "seller"];
 
 /**

@@ -58,6 +58,46 @@ export function clearAuthCookies(res: NextResponse): void {
   res.cookies.set(ACCESS_TOKEN_COOKIE, "", { ...baseOptions, maxAge: 0 });
   res.cookies.set(REFRESH_TOKEN_COOKIE, "", { ...baseOptions, maxAge: 0 });
   res.cookies.set(REMEMBER_COOKIE, "", { ...baseOptions, maxAge: 0 });
+  // A sessão de perfil nasce do login: sem ele, não sobrevive.
+  clearProfileCookies(res);
+}
+
+// ---------------------------------------------------------------------------
+// Sessão de perfil (POST /auth/context)
+//
+// O login não basta para a geo-api: o usuário escolhe o perfil (seller) e a
+// identity-api emite um par próprio, com refresh isolado — só o
+// /auth/context/refresh o aceita. Fica em cookies separados para que renovar
+// ou encerrar um não mexa no outro. Segue o "manter conectado" do login.
+// ---------------------------------------------------------------------------
+export const PROFILE_ACCESS_TOKEN_COOKIE = "profile_access_token";
+export const PROFILE_REFRESH_TOKEN_COOKIE = "profile_refresh_token";
+
+export function setProfileCookies(
+  res: NextResponse,
+  tokens: { accessToken: string; refreshToken: string },
+  persistent: boolean,
+): void {
+  const maxAge = persistent ? { maxAge: REMEMBER_MAX_AGE } : {};
+  res.cookies.set(PROFILE_ACCESS_TOKEN_COOKIE, tokens.accessToken, {
+    ...baseOptions,
+    ...maxAge,
+  });
+  res.cookies.set(PROFILE_REFRESH_TOKEN_COOKIE, tokens.refreshToken, {
+    ...baseOptions,
+    ...maxAge,
+  });
+}
+
+export function clearProfileCookies(res: NextResponse): void {
+  res.cookies.set(PROFILE_ACCESS_TOKEN_COOKIE, "", {
+    ...baseOptions,
+    maxAge: 0,
+  });
+  res.cookies.set(PROFILE_REFRESH_TOKEN_COOKIE, "", {
+    ...baseOptions,
+    maxAge: 0,
+  });
 }
 
 // ---------------------------------------------------------------------------

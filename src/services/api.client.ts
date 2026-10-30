@@ -7,6 +7,7 @@ import type { PaginationMetadata, ResponseEnvelope } from "@/types/api.types";
 import { NetworkError, TimeoutError, apiErrorFromResponse } from "./errors";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
+const CORRELATION_ID_HEADER = "X-Correlation-ID";
 
 type QueryValue = string | number | boolean | null | undefined;
 type QueryParams = Record<string, QueryValue | QueryValue[]>;
@@ -18,6 +19,8 @@ export interface RequestOptions {
   signal?: AbortSignal;
   /** Timeout em ms (default 30s). */
   timeoutMs?: number;
+  /** "blob": sucesso volta como arquivo (download), sem envelope. */
+  responseType?: "json" | "blob";
 }
 
 /** Resultado bruto de uma request: dado desembrulhado + metadados do envelope. */
@@ -79,13 +82,19 @@ export function createApiClient(config: ApiClientConfig) {
     body?: Body,
     options: RequestOptions = {},
   ): Promise<ApiResult<T>> {
-    const { params, headers: extraHeaders, signal, timeoutMs } = options;
+    const {
+      params,
+      headers: extraHeaders,
+      signal,
+      timeoutMs,
+      responseType = "json",
+    } = options;
 
     const isFormData =
       typeof FormData !== "undefined" && body instanceof FormData;
 
     const headers: Record<string, string> = {
-      Accept: "application/json",
+      Accept: responseType === "blob" ? "*/*" : "application/json",
       "X-Request-ID": generateRequestId(),
       ...(isFormData
         ? {}
@@ -124,26 +133,59 @@ export function createApiClient(config: ApiClientConfig) {
 
     const url = `${baseUrl}${path}${buildQueryString(params)}`;
 
+    const failure = (error: unknown) =>
+      controller.signal.aborted && !signal?.aborted
+        ? new TimeoutError("A requisição expirou.", { cause: error })
+        : new NetworkError("Falha de conexão com o servidor.", {
+            cause: error,
+          });
+
     let response: Response;
     try {
       response = await fetch(url, init);
     } catch (error) {
-      if (controller.signal.aborted && !signal?.aborted) {
-        throw new TimeoutError("A requisição expirou.", { cause: error });
-      }
-      throw new NetworkError("Falha de conexão com o servidor.", {
-        cause: error,
-      });
-    } finally {
       clearTimeout(timeout);
+      throw failure(error);
     }
+
+    // Download: o timeout vale até o último byte. Erro segue para o envelope.
+    if (responseType === "blob" && response.ok) {
+      try {
+        const blob = await response.blob();
+        return { data: blob as T, message: "", metadata: null };
+      } catch (error) {
+        throw failure(error);
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+    clearTimeout(timeout);
+
+    // Identificador da chamada no upstream: vai no erro e no log, para o
+    // suporte localizar a falha.
+    const correlationId =
+      response.headers.get(CORRELATION_ID_HEADER) ?? undefined;
+    const fail = (envelope?: ResponseEnvelope<T> | null) => {
+      if (correlationId) {
+        console.warn(
+          `[api] ${method} ${path} → HTTP ${response.status} (${CORRELATION_ID_HEADER}: ${correlationId})`,
+        );
+      }
+      return apiErrorFromResponse(
+        response.status,
+        envelope?.errors ?? [],
+        envelope?.message,
+        envelope ?? undefined,
+        correlationId,
+      );
+    };
 
     // 204 No Content (logout/revoke) — sem envelope.
     if (
       response.status === 204 ||
       response.headers.get("Content-Length") === "0"
     ) {
-      if (!response.ok) throw apiErrorFromResponse(response.status);
+      if (!response.ok) throw fail();
       return { data: undefined as T, message: "", metadata: null };
     }
 
@@ -152,18 +194,13 @@ export function createApiClient(config: ApiClientConfig) {
       envelope = (await response.json()) as ResponseEnvelope<T>;
     } catch {
       // Corpo não-JSON ou vazio.
-      if (!response.ok) throw apiErrorFromResponse(response.status);
+      if (!response.ok) throw fail();
       return { data: undefined as T, message: "", metadata: null };
     }
 
     if (!response.ok) {
       if (response.status === 401) onUnauthorized?.();
-      throw apiErrorFromResponse(
-        response.status,
-        envelope?.errors ?? [],
-        envelope?.message,
-        envelope,
-      );
+      throw fail(envelope);
     }
 
     return {
@@ -177,6 +214,12 @@ export function createApiClient(config: ApiClientConfig) {
     request,
     get: <T>(path: string, options?: RequestOptions) =>
       request<T>("GET", path, null, options).then((r) => r.data),
+    /** GET de arquivo: o corpo de sucesso como Blob. */
+    getBlob: (path: string, options?: Omit<RequestOptions, "responseType">) =>
+      request<Blob>("GET", path, null, {
+        ...options,
+        responseType: "blob",
+      }).then((r) => r.data),
     post: <T>(path: string, body?: Body, options?: RequestOptions) =>
       request<T>("POST", path, body ?? null, options).then((r) => r.data),
     put: <T>(path: string, body?: Body, options?: RequestOptions) =>
