@@ -2521,6 +2521,11 @@
     "error": "We couldn't load your data.",
     "retry": "Try again"
   },
+  "Forbidden": {
+    "title": "Restricted access",
+    "description": "This area is only for Neutra+ platform administrators. If you need access, talk to a super admin.",
+    "cta": "Back to start"
+  },
   "Admin": {
     "title": "Admin Panel",
     "subtitle": "KYC/KYB · users · fee schedule · audit · compliance · 2FA required",

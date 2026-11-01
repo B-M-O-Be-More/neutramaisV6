@@ -2500,6 +2500,11 @@
     "error": "Não foi possível carregar seus dados.",
     "retry": "Tentar novamente"
   },
+  "Forbidden": {
+    "title": "Acesso restrito",
+    "description": "Esta área é exclusiva para os administradores da plataforma Neutra+. Se você precisa de acesso, fale com um super admin.",
+    "cta": "Voltar para o início"
+  },
   "Admin": {
     "title": "Painel Administrativo",
     "subtitle": "KYC/KYB · usuários · fee schedule · auditoria · compliance · 2FA obrigatório",
