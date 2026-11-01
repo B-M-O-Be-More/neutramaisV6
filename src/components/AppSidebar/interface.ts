@@ -44,4 +44,8 @@ export interface AppSidebarProps {
   badges?: Partial<Record<string, number>>;
   // Chamado ao escolher um item — o layout mobile usa para fechar o drawer.
   onNavigate?: () => void;
+  // Recolhida: só a marca fica visível e a página ocupa a largura toda.
+  collapsed?: boolean;
+  // Alterna o recolhimento. Sem ele (drawer mobile), a seta é só decorativa.
+  onToggleCollapse?: () => void;
 }

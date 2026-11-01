@@ -1,12 +1,16 @@
 "use client";
 
-import { Stack, Text } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import AdminKycQueue from "@/components/AdminKycQueue";
-import AdminStats from "@/components/AdminStats";
-import AdminTabs, { type AdminTabKey } from "@/components/AdminTabs";
+import AdminPanelHeader, {
+  ADMIN_AVAILABLE_TABS,
+} from "@/components/AdminPanelHeader";
+import type { AdminTabKey } from "@/components/AdminTabs";
+import AdminUsersTab from "@/components/AdminUsersTab";
 import AuthenticatedLayout from "@/components/Layouts/Authenticated";
 import RequirePermission from "@/components/RequirePermission";
 import {
@@ -16,17 +20,6 @@ import {
 } from "@/hooks/useAdminKycQueue";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
-// Valores do design, usados até existirem os endpoints de sellers ativos,
-// volume e disputas. A fila de KYC e seus indicadores já vêm da API.
-const PLACEHOLDER_STATS = {
-  activeSellers: "2.418",
-  volume30d: "R$ 12,4M",
-  openDisputes: "7",
-};
-
-// Abas com conteúdo pronto; as demais aparecem desabilitadas.
-const AVAILABLE_TABS: AdminTabKey[] = ["kyc"];
-
 const INITIAL_FILTERS: AdminKycQueueFilters = {
   search: "",
   status: "",
@@ -35,16 +28,34 @@ const INITIAL_FILTERS: AdminKycQueueFilters = {
   dateTo: "",
 };
 
+interface AdminPageProps {
+  searchParams: Promise<{ tab?: string }>;
+}
+
 interface AdminContentProps {
+  initialTab: AdminTabKey;
   filters: AdminKycQueueFilters;
   onFiltersChange: (filters: AdminKycQueueFilters) => void;
   queue: UseAdminKycQueueReturn;
 }
 
-function AdminContent({ filters, onFiltersChange, queue }: AdminContentProps) {
-  const { t } = useTranslation();
-  const [tab, setTab] = React.useState<AdminTabKey>("kyc");
-  const pending = queue.indicators?.pending ?? null;
+function AdminContent({
+  initialTab,
+  filters,
+  onFiltersChange,
+  queue,
+}: AdminContentProps) {
+  const { i18n } = useTranslation();
+  const router = useRouter();
+  const [tab, setTab] = React.useState<AdminTabKey>(initialTab);
+
+  // A aba fica na URL: voltar da página de uma organização reabre Usuários.
+  const changeTab = (next: AdminTabKey) => {
+    setTab(next);
+    router.replace(next === "kyc" ? "/admin" : `/admin?tab=${next}`, {
+      scroll: false,
+    });
+  };
 
   return (
     <Stack
@@ -53,28 +64,10 @@ function AdminContent({ filters, onFiltersChange, queue }: AdminContentProps) {
       py={{ base: 6, md: "32px" }}
       gap="24px"
     >
-      <Stack gap="4px">
-        <Text
-          as="h1"
-          color="#0F1729"
-          fontSize="24px"
-          fontWeight={800}
-          lineHeight="34px"
-        >
-          {t("Admin.title")}
-        </Text>
-        <Text color="#8A9AB5" fontSize="13px" lineHeight="20px">
-          {t("Admin.subtitle")}
-        </Text>
-      </Stack>
-
-      <AdminStats data={{ ...PLACEHOLDER_STATS, kycQueue: pending }} />
-
-      <AdminTabs
+      <AdminPanelHeader
+        pendingKyc={queue.indicators?.pending ?? null}
         active={tab}
-        available={AVAILABLE_TABS}
-        onChange={setTab}
-        kycCount={pending}
+        onTabChange={changeTab}
       />
 
       {tab === "kyc" && (
@@ -84,18 +77,22 @@ function AdminContent({ filters, onFiltersChange, queue }: AdminContentProps) {
           queue={queue}
         />
       )}
+
+      {tab === "users" && <AdminUsersTab locale={i18n.language} />}
     </Stack>
   );
 }
 
 interface AdminAreaProps {
+  /** Aba aberta ao entrar (vem do `?tab=`). */
+  initialTab: AdminTabKey;
   /** Pendentes da fila, para o contador da sidebar (fora desta árvore). */
   onPendingChange: (pending: number | undefined) => void;
 }
 
 // A fila só é consultada aqui dentro, depois do RequirePermission: quem não é
 // admin não chega a disparar o GET /admin/kyc/queue.
-function AdminArea({ onPendingChange }: AdminAreaProps) {
+function AdminArea({ initialTab, onPendingChange }: AdminAreaProps) {
   const [filters, setFilters] =
     React.useState<AdminKycQueueFilters>(INITIAL_FILTERS);
   // A busca só vai para a API depois de uma pausa na digitação.
@@ -109,6 +106,7 @@ function AdminArea({ onPendingChange }: AdminAreaProps) {
 
   return (
     <AdminContent
+      initialTab={initialTab}
       filters={filters}
       onFiltersChange={setFilters}
       queue={queue}
@@ -118,14 +116,16 @@ function AdminArea({ onPendingChange }: AdminAreaProps) {
 
 // Painel administrativo: destino do login para `admin_neutra` e `super_admin`,
 // e só para eles. Os indicadores da fila alimentam também o card "KYC em
-// fila", a aba e o contador da sidebar.
-export default function AdminPage() {
+// fila", a aba e o contador da sidebar. `?tab=` abre uma aba.
+export default function AdminPage({ searchParams }: AdminPageProps) {
+  const { tab } = React.use(searchParams);
+  const initialTab = ADMIN_AVAILABLE_TABS.find((key) => key === tab) ?? "kyc";
   const [pending, setPending] = React.useState<number | undefined>();
 
   return (
     <AuthenticatedLayout badges={{ kyc: pending }}>
       <RequirePermission role="admin">
-        <AdminArea onPendingChange={setPending} />
+        <AdminArea initialTab={initialTab} onPendingChange={setPending} />
       </RequirePermission>
     </AuthenticatedLayout>
   );

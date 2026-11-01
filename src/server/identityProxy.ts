@@ -8,9 +8,13 @@ import "server-only";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { apiBaseUrl, missingApiUrlMessage } from "./apiBaseUrl";
 import { ACCESS_TOKEN_COOKIE } from "./authCookies";
 
-const IDENTITY_API_URL = process.env.IDENTITY_API_URL;
+const IDENTITY_API_URL = apiBaseUrl("identity");
+
+/** Identificador da chamada nos logs do upstream — repassado ao browser. */
+export const CORRELATION_ID_HEADER = "X-Correlation-ID";
 
 export interface ForwardOptions {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -46,6 +50,8 @@ export interface IdentityCallResult {
   status: number;
   text: string;
   contentType: string;
+  /** `X-Correlation-ID` da resposta, para o suporte rastrear a chamada. */
+  correlationId?: string;
   /** Presente quando a chamada falhou por infraestrutura (não chegou ao upstream). */
   infraError?: IdentityInfraError;
 }
@@ -95,7 +101,7 @@ export async function callIdentity({
       infraError: {
         status: 500,
         code: "IDENTITY_API_URL_MISSING",
-        detail: "IDENTITY_API_URL não configurada no ambiente.",
+        detail: missingApiUrlMessage("identity"),
       },
     };
   }
@@ -128,6 +134,7 @@ export async function callIdentity({
       status: upstream.status,
       text: await upstream.text(),
       contentType: upstream.headers.get("Content-Type") ?? "application/json",
+      correlationId: upstream.headers.get(CORRELATION_ID_HEADER) ?? undefined,
     };
   } catch (error) {
     return {

@@ -9,6 +9,7 @@ import {
   type KycReviewRequest,
 } from "@/services/adminKycReview.service";
 import { apiErrorFromResponse } from "@/services/errors";
+import { geoStorageService } from "@/services/geoStorage.service";
 
 import { fireEvent, renderWithProviders, screen, waitFor } from "../test-utils";
 
@@ -17,8 +18,11 @@ const ORGANIZATION = "018f4c2a-9b31-7d64-a0e5-2f7c1b8d3e90";
 const REQUEST = "018f6a10-2c4e-7b31-9d5a-3e8f1c7a4b20";
 const DECISION = "018f6a10-5555-7a01-9a01-000000000001";
 
+// Papéis do revisor: o bloco de cota de cobertura é só do super_admin.
+const session = vi.hoisted(() => ({ roles: [] as string[] }));
+
 vi.mock("@/contexts/SessionContext", () => ({
-  useSession: () => ({ profile: { id: REVIEWER } }),
+  useSession: () => ({ profile: { id: REVIEWER, roles: session.roles } }),
 }));
 
 function document(overrides: Partial<KycReviewDocument>): KycReviewDocument {
@@ -119,8 +123,67 @@ function decisionResult(
 const service = adminKycReviewService;
 
 describe("AdminKycReview", () => {
-  beforeEach(() => window.localStorage.clear());
+  beforeEach(() => {
+    window.localStorage.clear();
+    session.roles = [];
+  });
   afterEach(() => vi.restoreAllMocks());
+
+  describe("cota de armazenamento de cobertura", () => {
+    const storage = {
+      organizationId: ORGANIZATION,
+      quotaMb: 200,
+      usedMb: 120,
+      availableMb: 80,
+      overQuota: false,
+      originalsMb: 80,
+      geometriesMb: 30,
+      metadataMb: 10,
+      defaultQuotaMb: 200,
+      maxQuotaMb: 1000,
+    };
+
+    it("super_admin vê a cota do Seller e pode alterá-la", async () => {
+      session.roles = ["super_admin"];
+      vi.spyOn(service, "openRequest").mockResolvedValue(detail());
+      const read = vi
+        .spyOn(geoStorageService, "getStorage")
+        .mockResolvedValue(storage);
+
+      renderWithProviders(<AdminKycReview organizationId={ORGANIZATION} />);
+
+      expect(
+        await screen.findByText("CoverageStorage.title"),
+      ).toBeInTheDocument();
+      expect(read).toHaveBeenCalledWith(ORGANIZATION, expect.anything());
+      expect(
+        await screen.findByRole("button", {
+          name: /CoverageStorage.quota.edit/,
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it.each([
+      ["admin_neutra num Seller", ["admin_neutra"], "seller"],
+      ["super_admin num Buyer", ["super_admin"], "buyer"],
+    ] as const)("%s não vê a cota", async (_case, roles, type) => {
+      session.roles = [...roles];
+      vi.spyOn(service, "openRequest").mockResolvedValue(
+        detail({
+          organization: { ...detail().organization, organization_type: type },
+        }),
+      );
+      const read = vi.spyOn(geoStorageService, "getStorage");
+
+      renderWithProviders(<AdminKycReview organizationId={ORGANIZATION} />);
+
+      expect(await screen.findByText("Acme Telecom Ltda")).toBeInTheDocument();
+      expect(
+        screen.queryByText("CoverageStorage.title"),
+      ).not.toBeInTheDocument();
+      expect(read).not.toHaveBeenCalled();
+    });
+  });
 
   it("abre a solicitação pelo organization_id e inicia a revisão com o version recebido", async () => {
     const open = vi

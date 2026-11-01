@@ -26,6 +26,8 @@ export class ApiError extends AppError {
     public readonly errors: ApiErrorItem[] = [],
     message?: string,
     public readonly payload?: unknown,
+    /** `X-Correlation-ID` da resposta — o suporte rastreia a chamada por ele. */
+    public readonly correlationId?: string,
   ) {
     super(message || `Erro da API (HTTP ${status})`);
   }
@@ -149,23 +151,24 @@ export function apiErrorFromResponse(
   errors: ApiErrorItem[] = [],
   message?: string,
   payload?: unknown,
+  correlationId?: string,
 ): ApiError {
+  const args = [status, errors, message, payload, correlationId] as const;
   switch (status) {
     case 401:
-      return new AuthError(status, errors, message, payload);
+      return new AuthError(...args);
     case 403:
-      return new ForbiddenError(status, errors, message, payload);
+      return new ForbiddenError(...args);
     case 404:
-      return new NotFoundError(status, errors, message, payload);
+      return new NotFoundError(...args);
     case 409:
-      return new ConflictError(status, errors, message, payload);
+      return new ConflictError(...args);
     case 422:
-      return new ValidationError(status, errors, message, payload);
+      return new ValidationError(...args);
     case 429:
-      return new RateLimitError(status, errors, message, payload);
+      return new RateLimitError(...args);
     default:
-      if (status >= 500)
-        return new ServerError(status, errors, message, payload);
-      return new ApiError(status, errors, message, payload);
+      if (status >= 500) return new ServerError(...args);
+      return new ApiError(...args);
   }
 }

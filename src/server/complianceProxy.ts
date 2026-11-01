@@ -14,10 +14,11 @@ import { NextResponse } from "next/server";
 
 import type { ApiErrorItem } from "@/types/api.types";
 
+import { apiBaseUrl, missingApiUrlMessage } from "./apiBaseUrl";
 import { ACCESS_TOKEN_COOKIE } from "./authCookies";
 import { envelopeError } from "./identityProxy";
 
-const COMPLIANCE_API_URL = process.env.COMPLIANCE_API_URL;
+const COMPLIANCE_API_URL = apiBaseUrl("compliance");
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -95,7 +96,7 @@ export async function forwardToCompliance({
     return envelopeError(
       500,
       "COMPLIANCE_API_URL_MISSING",
-      "COMPLIANCE_API_URL não configurada no ambiente.",
+      missingApiUrlMessage("compliance"),
     );
   }
 

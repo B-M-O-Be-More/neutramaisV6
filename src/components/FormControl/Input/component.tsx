@@ -40,6 +40,7 @@ const MaskedInput = IMaskMixin(
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   {
     label,
+    labelProps,
     labelEnd,
     error,
     helperText,
@@ -77,8 +78,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
               fontSize="13px"
               fontWeight={600}
               color="fg.default"
-              htmlFor={fieldId}
               mb={0}
+              {...labelProps}
+              htmlFor={fieldId}
             >
               {label}
               <Field.RequiredIndicator />

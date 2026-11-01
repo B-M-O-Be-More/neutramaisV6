@@ -4,7 +4,9 @@ node_modules
 .pnp.js
 
 # testing
-coverage
+# Só a saída do `vitest --coverage` na raiz: sem a barra, a regra escondia
+# também src/app/seller/coverage/.
+/coverage
 
 # next.js
 .next/
