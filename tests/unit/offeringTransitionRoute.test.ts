@@ -2,10 +2,17 @@ import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+// Cookies do teste: o do login sempre; o do perfil quando `profileToken`.
+let profileToken: string | undefined;
 vi.mock("next/headers", () => ({
   cookies: async () => ({
-    get: (name: string) =>
-      name === "access_token" ? { value: "seller-token" } : undefined,
+    get: (name: string) => {
+      if (name === "access_token") return { value: "seller-token" };
+      if (name === "profile_access_token" && profileToken) {
+        return { value: profileToken };
+      }
+      return undefined;
+    },
   }),
 }));
 
@@ -39,7 +46,20 @@ describe("BFF POST /api/productCatalog/productOffering/{id}/{action}", () => {
     vi.stubGlobal("fetch", fetchMock);
   });
 
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    profileToken = undefined;
+  });
+
+  it("publica com o token do perfil Seller quando há sessão de perfil", async () => {
+    profileToken = "seller-profile-token";
+
+    await call("publish");
+
+    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe(
+      "Bearer seller-profile-token",
+    );
+  });
 
   it.each(["publish", "pause", "unpublish", "archive"])(
     "repassa %s sem body e com o Bearer",

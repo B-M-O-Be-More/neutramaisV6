@@ -30,7 +30,7 @@ import { downloadTextFile } from "@/functions/downloadTextFile";
 import { todayIso } from "@/functions/todayIso";
 import {
   describeTransaction,
-  formatMinorAmount,
+  formatTransactionAmount,
   formatTransactionDate,
   matchesFilter,
   matchesSearch,
@@ -81,9 +81,9 @@ function periodBounds(from: string, to: string) {
 }
 
 /**
- * Histórico de transações da carteira (Figma 2208-35170): busca, filtros
- * rápidos, período, indicadores e a lista paginada por cursor. Exporta em CSV
- * o que está filtrado na tela.
+ * Histórico de transações da carteira (Figma 2208-35170 e 2208-36551):
+ * busca, filtros rápidos, período, indicadores e a lista paginada por cursor.
+ * Exporta em CSV o que está filtrado na tela.
  */
 export function WalletTransactions({
   backHref,
@@ -180,12 +180,7 @@ export function WalletTransactions({
           date={formatTransactionDate(transaction.createdAt, locale)}
           reference={transaction.orderId}
           status="completed"
-          amount={formatMinorAmount(
-            transaction.amountMinor,
-            transaction.currency,
-            locale,
-            { sign: isCredit ? "+" : "-" },
-          )}
+          amount={formatTransactionAmount(transaction, locale)}
           isLast={index === visible.length - 1 && !statement.hasMore}
         />
       );
@@ -216,7 +211,13 @@ export function WalletTransactions({
         <Text color="#C4CDD8" fontSize="16px" lineHeight="24px" aria-hidden>
           /
         </Text>
-        <Text color="#0F1729" fontSize="13px" lineHeight="19.5px">
+        <Text
+          color="#0F1729"
+          fontSize="13px"
+          fontWeight={600}
+          lineHeight="19.5px"
+          aria-current="page"
+        >
           {t("Wallet.transactions.title")}
         </Text>
       </Flex>
@@ -304,7 +305,7 @@ export function WalletTransactions({
                   borderWidth="1px"
                   borderColor={isActive ? "#1F5AFF" : "#E5E8EE"}
                   color={isActive ? "white" : "#5A6478"}
-                  fontWeight={isActive ? 600 : 400}
+                  fontWeight={isActive ? 700 : 400}
                   onClick={() => setFilter(key)}
                 >
                   {t(`Wallet.transactions.filter.${key}`)}
@@ -367,7 +368,7 @@ export function WalletTransactions({
             <Text
               color="#A0ABB8"
               fontSize="9.5px"
-              fontWeight={600}
+              fontWeight={700}
               lineHeight="14.25px"
               letterSpacing="0.5px"
               textTransform="uppercase"
@@ -404,12 +405,12 @@ export function WalletTransactions({
           <Text
             color="#0F1729"
             fontSize="14px"
-            fontWeight={600}
+            fontWeight={700}
             lineHeight="21px"
           >
             {t("Wallet.transactions.results", { count: visible.length })}
           </Text>
-          <Flex gap="12px" wrap="wrap">
+          <Flex gap="8px" wrap="wrap">
             {LEGEND.map((item) => (
               <Flex key={item.key} align="center" gap="6px">
                 <Box boxSize="8px" rounded="full" bg={item.color} />

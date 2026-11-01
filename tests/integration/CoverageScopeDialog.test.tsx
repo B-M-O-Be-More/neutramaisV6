@@ -1,10 +1,11 @@
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { CoverageGeoJson } from "@/components/CoverageMap";
 import CoverageScopeDialog, {
   type CoverageScope,
 } from "@/components/CoverageScopeDialog";
+import { geoCoverageService } from "@/services/geoCoverage.service";
 
 import { renderWithProviders, screen, within } from "../test-utils";
 
@@ -14,6 +15,12 @@ vi.mock("@/services/mapboxGeocoding.service", () => ({
     search: vi.fn().mockResolvedValue([]),
   },
 }));
+
+vi.mock("@/services/geoCoverage.service", () => ({
+  geoCoverageService: { listElements: vi.fn() },
+}));
+
+const VERSION = "0193f1e2-7a6b-7c8d-9e0f-1a2b3c4d5e6f";
 
 // Área do KMZ: quadrado 0..10.
 const KMZ = {
@@ -46,6 +53,7 @@ function renderDialog(
     <CoverageScopeDialog
       open
       coverage={coverage}
+      versionId={VERSION}
       value={value}
       onConfirm={onConfirm}
       onClose={onClose}
@@ -60,6 +68,41 @@ const confirmButton = () =>
   });
 
 describe("CoverageScopeDialog (Escolher cobertura)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Duas áreas (Centro e Norte) e um ponto, que não entra na lista.
+    vi.mocked(geoCoverageService.listElements).mockResolvedValue({
+      items: [
+        {
+          placemarkIndex: 0,
+          name: "Centro",
+          folderPath: ["Fortaleza"],
+          geometry: polygon([
+            [1, 1],
+            [4, 1],
+            [4, 4],
+          ]),
+        },
+        {
+          placemarkIndex: 1,
+          name: "POP",
+          geometry: { type: "Point", coordinates: [5, 5] },
+        },
+        {
+          placemarkIndex: 2,
+          name: "Norte",
+          geometry: polygon([
+            [6, 6],
+            [9, 6],
+            [9, 9],
+          ]),
+        },
+      ],
+      hasMore: false,
+      nextCursor: null,
+    });
+  });
+
   it("confirma a cobertura completa sem polígono", async () => {
     const user = userEvent.setup();
     const { onConfirm } = renderDialog();
@@ -324,6 +367,124 @@ describe("CoverageScopeDialog (Escolher cobertura)", () => {
       screen.getByText("SellerOfferCreate.coverageScope.status.drawing"),
     ).toBeInTheDocument();
     expect(confirmButton()).toBeDisabled();
+  });
+
+  describe("áreas do KMZ", () => {
+    const areasMode = () =>
+      screen.findByRole("radio", {
+        name: /SellerOfferCreate.coverageScope.mode.areas/,
+      });
+
+    it("lista as áreas com polígono e confirma os índices escolhidos", async () => {
+      const user = userEvent.setup();
+      const { onConfirm } = renderDialog();
+
+      // Só busca as áreas ao abrir o modo.
+      expect(geoCoverageService.listElements).not.toHaveBeenCalled();
+      await user.click(await areasMode());
+
+      expect(
+        await screen.findByRole("checkbox", { name: "Centro" }),
+      ).toBeInTheDocument();
+      expect(geoCoverageService.listElements).toHaveBeenCalledWith(
+        VERSION,
+        expect.objectContaining({ afterIndex: -1, limit: 500 }),
+        expect.anything(),
+      );
+      expect(
+        screen.queryByRole("checkbox", { name: "POP" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText("SellerOfferCreate.coverageScope.status.areasEmpty"),
+      ).toBeInTheDocument();
+      expect(confirmButton()).toBeDisabled();
+
+      await user.click(screen.getByRole("checkbox", { name: "Norte" }));
+      expect(
+        screen.getByText("SellerOfferCreate.coverageScope.status.areas"),
+      ).toBeInTheDocument();
+
+      await user.click(confirmButton());
+      expect(onConfirm).toHaveBeenCalledWith({
+        mode: "areas",
+        areaIndexes: [2],
+        publicGeometry: polygon([
+          [6, 6],
+          [9, 6],
+          [9, 9],
+        ]),
+      });
+    });
+
+    it("reabre com as áreas salvas marcadas; selecionar todas e limpar", async () => {
+      const user = userEvent.setup();
+      const { onConfirm } = renderDialog({
+        mode: "areas",
+        publicGeometry: null,
+        areaIndexes: [0],
+      });
+
+      expect(
+        await screen.findByRole("checkbox", { name: "Centro" }),
+      ).toBeChecked();
+      expect(screen.getByRole("checkbox", { name: "Norte" })).not.toBeChecked();
+
+      await user.click(
+        screen.getByRole("button", {
+          name: "SellerOfferCreate.coverageScope.areas.selectAll",
+        }),
+      );
+      expect(screen.getByRole("checkbox", { name: "Norte" })).toBeChecked();
+
+      await user.click(
+        screen.getByRole("button", {
+          name: "SellerOfferCreate.coverageScope.areas.clear",
+        }),
+      );
+      expect(
+        screen.getByRole("checkbox", { name: "Centro" }),
+      ).not.toBeChecked();
+      expect(confirmButton()).toBeDisabled();
+      expect(onConfirm).not.toHaveBeenCalled();
+    });
+
+    it("falha ao ler as áreas avisa e bloqueia o confirmar", async () => {
+      vi.mocked(geoCoverageService.listElements).mockRejectedValue(
+        new Error("503"),
+      );
+      const user = userEvent.setup();
+      renderDialog();
+
+      await user.click(await areasMode());
+
+      expect(
+        await screen.findByText(
+          "SellerOfferCreate.coverageScope.areas.loadError",
+        ),
+      ).toBeInTheDocument();
+      expect(confirmButton()).toBeDisabled();
+    });
+
+    it("KMZ sem polígonos avisa que não há áreas para escolher", async () => {
+      vi.mocked(geoCoverageService.listElements).mockResolvedValue({
+        items: [
+          {
+            placemarkIndex: 0,
+            geometry: { type: "Point", coordinates: [5, 5] },
+          },
+        ],
+        hasMore: false,
+        nextCursor: null,
+      });
+      const user = userEvent.setup();
+      renderDialog();
+
+      await user.click(await areasMode());
+
+      expect(
+        await screen.findByText("SellerOfferCreate.coverageScope.areas.empty"),
+      ).toBeInTheDocument();
+    });
   });
 
   it("cancelar fecha sem confirmar", async () => {

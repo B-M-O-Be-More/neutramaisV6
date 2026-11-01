@@ -8,6 +8,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { LuMap, LuMinus, LuPlus } from "react-icons/lu";
 
+import type { CoverageArea } from "@/functions/coverageAreas";
 import { boundsOf, closedPolygon, type LngLat } from "@/functions/geoShapes";
 import { addKmzLayers, setKmzData } from "@/functions/kmzLayers";
 
@@ -25,11 +26,27 @@ const CLOSE_TOLERANCE_PX = 12;
 const SHAPE_COLOR = "#1F5AFF";
 
 const KMZ = "draw-kmz";
+const AREAS = "draw-areas";
 const SHAPES = "draw-shapes";
 const DRAFT = "draw-draft";
 const VERTICES = "draw-vertices";
 
 const EMPTY = { type: "FeatureCollection", features: [] } as const;
+const NO_AREAS: CoverageArea[] = [];
+const NO_INDEXES: number[] = [];
+
+/** Áreas do KMZ, cada uma com o índice e se está escolhida. */
+function areasCollection(areas: CoverageArea[], selected: number[]) {
+  const chosen = new Set(selected);
+  return {
+    type: "FeatureCollection",
+    features: areas.map((area) => ({
+      type: "Feature",
+      properties: { index: area.index, selected: chosen.has(area.index) },
+      geometry: area.geometry,
+    })),
+  } as const;
+}
 
 /** Polígonos fechados, cada um com o índice para o clique o identificar. */
 function shapesCollection(shapes: LngLat[][], selected: number | null) {
@@ -77,7 +94,8 @@ const controlButton = {
  * linhas em laranja, pontos em verde) e, no
  * modo editado, os polígonos públicos (azul). Cada clique adiciona um ponto;
  * clicar no primeiro (com 3 ou mais) fecha o polígono. Fora de um desenho,
- * clicar num polígono o seleciona.
+ * clicar num polígono o seleciona. No modo por áreas, as áreas do KMZ ficam
+ * contornadas e o clique numa delas a marca (azul) ou desmarca.
  */
 export function CoverageDrawMap({
   coverage,
@@ -90,6 +108,9 @@ export function CoverageDrawMap({
   onSelect,
   onCancelDraft,
   onClear,
+  areas = NO_AREAS,
+  selectedAreas = NO_INDEXES,
+  onToggleArea,
   focus = null,
   label,
 }: CoverageDrawMapProps) {
@@ -106,6 +127,7 @@ export function CoverageDrawMap({
     onAddPoint,
     onCloseShape,
     onSelect,
+    onToggleArea,
   });
   React.useEffect(() => {
     latest.current = {
@@ -115,6 +137,7 @@ export function CoverageDrawMap({
       onAddPoint,
       onCloseShape,
       onSelect,
+      onToggleArea,
     };
   });
 
@@ -141,6 +164,26 @@ export function CoverageDrawMap({
       map.on("load", () => {
         // Sem expandir grupos no clique: o clique desenha.
         addKmzLayers(map, KMZ);
+
+        map.addSource(AREAS, { type: "geojson", data: EMPTY as never });
+        map.addLayer({
+          id: `${AREAS}-fill`,
+          type: "fill",
+          source: AREAS,
+          paint: {
+            "fill-color": ["case", ["get", "selected"], SHAPE_COLOR, "#FFFFFF"],
+            "fill-opacity": ["case", ["get", "selected"], 0.45, 0.06],
+          },
+        });
+        map.addLayer({
+          id: `${AREAS}-line`,
+          type: "line",
+          source: AREAS,
+          paint: {
+            "line-color": ["case", ["get", "selected"], SHAPE_COLOR, "#C4CDD8"],
+            "line-width": ["case", ["get", "selected"], 2, 1],
+          },
+        });
 
         map.addSource(SHAPES, { type: "geojson", data: EMPTY as never });
         map.addLayer({
@@ -191,6 +234,15 @@ export function CoverageDrawMap({
 
       map.on("click", (event: MapMouseEvent) => {
         const state = latest.current;
+        if (state.mode === "areas") {
+          const [hit] = map.queryRenderedFeatures(event.point, {
+            layers: [`${AREAS}-fill`],
+          });
+          const index = (hit as { properties?: Record<string, unknown> })
+            ?.properties?.index;
+          if (typeof index === "number") state.onToggleArea?.(index);
+          return;
+        }
         if (state.mode !== "custom") return;
 
         if (!state.draft.length) {
@@ -229,6 +281,13 @@ export function CoverageDrawMap({
       // Mãozinha sobre os polígonos quando o clique os seleciona.
       map.on("mousemove", (event: MapMouseEvent) => {
         const state = latest.current;
+        if (state.mode === "areas") {
+          const over = map.queryRenderedFeatures(event.point, {
+            layers: [`${AREAS}-fill`],
+          }).length;
+          map.getCanvas().style.cursor = over ? "pointer" : "";
+          return;
+        }
         if (state.mode !== "custom" || state.draft.length) return;
         const over = map.queryRenderedFeatures(event.point, {
           layers: [`${SHAPES}-fill`],
@@ -260,6 +319,26 @@ export function CoverageDrawMap({
     if (bounds)
       map.fitBounds(bounds, { padding: 32, maxZoom: 14, duration: 0 });
   }, [coverage, isReady]);
+
+  // Áreas do KMZ (modo por áreas), com as escolhidas em destaque.
+  React.useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isReady) return;
+    (map.getSource(AREAS) as GeoJSONSource | undefined)?.setData(
+      (mode === "areas"
+        ? areasCollection(areas, selectedAreas)
+        : EMPTY) as never,
+    );
+  }, [mode, areas, selectedAreas, isReady]);
+
+  // Sem a geometria do KMZ, enquadra as áreas quando chegam.
+  React.useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isReady || coverage || !areas.length) return;
+    const bounds = boundsOf(...areas.map((area) => area.geometry));
+    if (bounds)
+      map.fitBounds(bounds, { padding: 32, maxZoom: 14, duration: 0 });
+  }, [areas, coverage, isReady]);
 
   // Desenho: polígonos fechados, linha em andamento e vértices.
   React.useEffect(() => {

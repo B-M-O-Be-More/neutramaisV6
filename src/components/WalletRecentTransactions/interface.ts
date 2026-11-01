@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import type { WalletTransaction } from "@/services/wallet.service";
 
 export interface WalletRecentTransactionsProps {
@@ -11,4 +13,9 @@ export interface WalletRecentTransactionsProps {
   historyHref: string;
   /** Idioma dos valores e datas (ex.: "pt-BR"). */
   locale: string;
+  /**
+   * À direita do título, no lugar do "Ver tudo" (ex.: a moeda do histórico
+   * na carteira do seller, Figma 3084-45032).
+   */
+  headerEnd?: ReactNode;
 }

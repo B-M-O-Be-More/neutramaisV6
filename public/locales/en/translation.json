@@ -2349,19 +2349,28 @@
       "marketplace": "Marketplace",
       "finance": "Finance",
       "catalog": "Catalog",
+      "sales": "Sales",
       "sellerFinance": "Seller Finance",
       "onboarding": "Onboarding",
       "account": "Account",
-      "platform": "Platform"
+      "platform": "Platform",
+      "management": "Management",
+      "support": "Support"
     },
     "items": {
       "searchNetwork": "Search Network",
       "myNetworks": "My networks",
       "wallet": "Wallet",
       "sellerOffers": "My Offers",
+      "receivedOrders": "Received Orders",
       "profile": "My profile",
       "kyc": "KYC",
-      "platformInvites": "Operators"
+      "platformInvites": "Operators",
+      "contracts": "Contracts",
+      "returns": "Returns",
+      "tickets": "Tickets",
+      "questions": "Questions",
+      "serviceOrders": "Service Orders"
     },
     "user": {
       "menu": "User menu",
@@ -3249,12 +3258,475 @@
       "shippingRequired": "Fill in shipping (weight, dimensions and origin postal code) in Edit offer before publishing."
     }
   },
+  "SellerOrders": {
+    "info": {
+      "title": "Seller Inbox",
+      "description": "Manage paid orders awaiting acceptance and quotes (RFQ) from eligible buyers. Orders in escrow have an SLA of 1h to 72h. RFQs must be answered within 72 business hours.",
+      "collapse": "Collapse explanation",
+      "expand": "Expand explanation",
+      "dismiss": "Close explanation"
+    },
+    "title": "Inbox",
+    "subtitle": "Received orders · buyer RFQs · acceptance and proposals",
+    "tabs": {
+      "label": "Inbox",
+      "orders": "Received Orders",
+      "rfq": "Received RFQs"
+    },
+    "slaAlert": {
+      "title_one": "{{count}} order with a critical SLA — less than 8h to respond!",
+      "title_other": "{{count}} orders with a critical SLA — less than 8h to respond!",
+      "description": "An SLA that expires without a response leads to automatic rejection and lowers your seller score."
+    },
+    "stats": {
+      "monthTotal": "Total (month)",
+      "awaiting": "Awaiting",
+      "accepted": "Accepted",
+      "withIssue": "With issues"
+    },
+    "filters": {
+      "search": "Search orders",
+      "searchPlaceholder": "Search by order, product, CNPJ...",
+      "category": "Category",
+      "filterBy": "Filter by",
+      "statusLabel": "Order status",
+      "statuses": {
+        "all": "All",
+        "awaiting": "Awaiting",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "expired": "Expired"
+      }
+    },
+    "empty": "No items in the order queue",
+    "emptyFiltered": "No orders match these filters",
+    "rfq": {
+      "empty": "No RFQs received",
+      "stats": {
+        "monthReceived": "Received (month)",
+        "pending": "Pending",
+        "withProposal": "With proposal",
+        "converted": "Converted",
+        "closed": "Rej. / Exp."
+      },
+      "rules": {
+        "title": "Proposal rules",
+        "description": "A proposal must include: price, currency, validity, delivery time, SLA and cancellation terms. Declining with a justification does not affect your public score."
+      },
+      "statuses": {
+        "awaiting": "Awaiting proposal",
+        "proposalSent": "Proposal sent",
+        "converted": "Converted to order",
+        "declined": "Declined",
+        "expired": "Expired"
+      },
+      "siteSurvey": "SITE SURVEY",
+      "version": "V{{version}}",
+      "locationDeadline": "{{location}} · Deadline: {{deadline}}",
+      "hoursLeft_one": "{{count}}h left",
+      "hoursLeft_other": "{{count}}h left",
+      "request": "Buyer request",
+      "proposal": {
+        "price": "Proposed price",
+        "sla": "Proposed SLA",
+        "delivery": "Lead time",
+        "version": "Version"
+      },
+      "daysValue_one": "{{count}} day",
+      "daysValue_other": "{{count}} days",
+      "updateProposal": "Update proposal (creates a new version)",
+      "orderCreated": "Order Created",
+      "decline": "Decline (with justification)",
+      "declineForm": {
+        "title": "Decline justification (required)",
+        "placeholder": "Explain why you will not send a proposal (e.g. outside coverage, no capacity in time)...",
+        "confirm": "Confirm decline"
+      },
+      "showDetails": "View details",
+      "footer": {
+        "declined": "RFQ declined with justification.",
+        "declinedReason": "RFQ declined: {{reason}}",
+        "expired": "Response deadline expired without a proposal."
+      },
+      "form": {
+        "title": "Send proposal",
+        "close": "Close proposal",
+        "price": "Price ({{currency}})",
+        "sla": "Technical SLA",
+        "slaPlaceholder": "E.g. 99.5%",
+        "delivery": "Delivery time",
+        "days": "days",
+        "validity": "Proposal validity",
+        "siteSurvey": "Requires a prior technical site survey",
+        "notes": "Proposal notes",
+        "notesPlaceholder": "Proposal validity, special conditions, technical scope...",
+        "submit": "Send proposal"
+      },
+      "toasts": {
+        "proposalSent": "Proposal V{{version}} sent for {{id}}.",
+        "declined": "{{id}} declined. The buyer was notified.",
+        "notOpen": "This RFQ is no longer open."
+      }
+    },
+    "retry": "Try again",
+    "errors": {
+      "forbidden": "Your Seller profile is not allowed to view orders yet (order:read). Ask the organization Owner.",
+      "failed": "Could not load the orders. Try again.",
+      "required": "Required field",
+      "tooLong": "Text too long",
+      "priceInvalid": "Enter a price greater than zero",
+      "daysInvalid": "Enter a lead time between 1 and 730 days",
+      "reasonRequired": "Enter the rejection reason",
+      "reasonTooShort": "Describe the reason with at least 10 characters",
+      "complementRequired": "Describe what is missing",
+      "complementTooShort": "Write at least 20 characters"
+    },
+    "card": {
+      "number": "Order #{{id}}",
+      "monthly": "{{value}}/month",
+      "more_one": "+{{count}} offer",
+      "more_other": "+{{count}} offers",
+      "noItems": "Order without offers",
+      "issue": "With issues",
+      "receivedAt": "Received: {{date}}",
+      "accepted": "Accepted",
+      "statuses": {
+        "awaiting": "Awaiting acceptance",
+        "awaitingPayment": "Awaiting payment",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "expired": "Expired"
+      },
+      "footer": {
+        "rejected": "Order rejected, the buyer was notified.",
+        "rejectedCredited": "Order rejected, the buyer was notified, Neutra+ credit refunded.",
+        "expired": "Deadline expired, closure recorded in the history."
+      }
+    },
+    "actions": {
+      "accept": "Accept order",
+      "reject": "Reject (with reason)",
+      "complement": "Request more info",
+      "cancel": "Cancel",
+      "viewOrder": "View SO"
+    },
+    "reject": {
+      "title": "Rejection reason (required · audited)",
+      "placeholder": "Describe the rejection reason (e.g. outside coverage area, insufficient capacity)...",
+      "confirm": "Confirm rejection"
+    },
+    "details": {
+      "show": "View details and actions",
+      "hide": "Hide details",
+      "open": "Open full order",
+      "order": "Order",
+      "payment": "Payment",
+      "shipping": "Shipping",
+      "contract": "Contract",
+      "invoiceAttached": "Invoice attached",
+      "invoicePending": "Awaiting invoice",
+      "contractSigned": "Signed, execution released",
+      "contractPending": "Awaiting signature",
+      "quantity_one": "Quantity: {{count}} unit",
+      "quantity_other": "Quantity: {{count}} units",
+      "fee": "Informative fee",
+      "installation": "Installation",
+      "total": "Total",
+      "timeline": {
+        "title": "Timeline",
+        "escrow": "Payment in escrow",
+        "received": "Order received",
+        "acceptance": "Awaiting acceptance",
+        "accepted": "Order accepted",
+        "invoice": "Invoice upload",
+        "contract": "Contract signed"
+      }
+    },
+    "complement": {
+      "title": "Request more info",
+      "close": "Close",
+      "notice": "The buyer will be notified by email and on the dashboard. The acceptance SLA is paused while waiting.",
+      "suggestionsTitle": "Quick suggestions",
+      "suggestions": {
+        "address": "Provide the full technical address with ZIP code, landmark and on-site contact.",
+        "duct": "Confirm whether duct infrastructure is available for fiber routing.",
+        "floorPlan": "Send the floor plan or sketch of the installation site.",
+        "visit": "Indicate the preferred time for a technical visit."
+      },
+      "label": "Or write your request",
+      "placeholder": "Describe what is missing to process this order...",
+      "counter_one": "{{count}} character · minimum {{min}}",
+      "counter_other": "{{count}} characters · minimum {{min}}",
+      "submit": "Send request"
+    },
+    "toasts": {
+      "awaitingPayment": "The buyer has not paid yet: acceptance becomes available after payment.",
+      "acceptUnavailable": "Manual acceptance for this order is not available yet. Service orders follow the contract.",
+      "accepted": "{{number}} accepted. Attach the invoice to release shipping.",
+      "accept": {
+        "forbidden": "Your Seller profile is not allowed to accept orders (order:accept).",
+        "conflict": "The order cannot be accepted now (payment not confirmed or cancellation in progress).",
+        "failed": "Could not accept the order. Try again."
+      },
+      "comingSoon": "Coming soon: this action is not available on the platform yet."
+    }
+  },
+  "OrderDetail": {
+    "back": {
+      "seller": "Back to orders",
+      "buyer": "Back to home"
+    },
+    "number": "Order {{number}}",
+    "createdAt": "Created on {{date}}",
+    "more_one": "+{{count}} offer",
+    "more_other": "+{{count}} offers",
+    "noItems": "Order without offers",
+    "monthly": "{{value}}/month",
+    "retry": "Try again",
+    "stages": {
+      "awaitingPayment": "Awaiting payment",
+      "awaitingAcceptance": "Awaiting acceptance",
+      "awaitingContract": "Awaiting contract",
+      "inExecution": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "rejected": "Rejected"
+    },
+    "progress": {
+      "title": "Order progress",
+      "steps": {
+        "created": "Created",
+        "paid": "Paid · In escrow",
+        "accepted": "Accepted",
+        "inExecution": "In progress"
+      }
+    },
+    "status": {
+      "title": "Current status"
+    },
+    "captions": {
+      "cancellationPending": "Cancellation in progress.",
+      "cancellationRejected": "The cancellation request was rejected.",
+      "buyer": {
+        "awaitingPayment": "Complete the payment so the order can move on.",
+        "awaitingAcceptance": "Waiting for the seller to accept.",
+        "awaitingContract": "Payment confirmed. Sign the contract to release the work.",
+        "inExecution": "Payment confirmed; the seller is working on the order.",
+        "completed": "Order completed.",
+        "cancelled": "The order was cancelled.",
+        "rejected": "The seller rejected the order."
+      },
+      "seller": {
+        "awaitingPayment": "The buyer has not paid yet.",
+        "awaitingAcceptance": "The order is waiting for your acceptance.",
+        "awaitingContract": "Payment confirmed. Waiting for the contract signature.",
+        "inExecution": "Work released. The payment stays in escrow until confirmation.",
+        "completed": "Order completed.",
+        "cancelled": "The order was cancelled.",
+        "rejected": "You rejected the order."
+      }
+    },
+    "counterparty": {
+      "title": {
+        "buyer": "Service provider",
+        "seller": "Buyer"
+      },
+      "organization": "Organization (ID)",
+      "note": "Buyer's note"
+    },
+    "payment": {
+      "title": "Payment and escrow",
+      "method": "Method",
+      "total": "Total amount",
+      "currency": "Currency",
+      "escrow": "Escrow status",
+      "contract": "Contract",
+      "monthly": "Monthly fee",
+      "installation": "Installation",
+      "note": "Payment held in Neutra+ escrow until the work is confirmed. Automatic release under the contract rules.",
+      "methods": {
+        "split": "Wallet {{wallet}} + card {{card}}",
+        "wallet": "Neutra+ wallet",
+        "card": "Credit card"
+      }
+    },
+    "escrow": {
+      "awaitingPayment": "Awaiting payment",
+      "held": "Held in Neutra+ escrow",
+      "cancelled": "Order cancelled",
+      "refundPending": "Refund to wallet in progress",
+      "refunded": "Refunded to the buyer's wallet"
+    },
+    "invoice": {
+      "title": "Invoice",
+      "key": "Access key",
+      "status": "Status",
+      "attached": "Attached by the seller",
+      "pending": "Waiting for the seller to attach it",
+      "tracking": "Tracking",
+      "received": "Delivery",
+      "receivedYes": "Confirmed by the buyer",
+      "receivedNo": "Not confirmed yet",
+      "download": "Download invoice (PDF)"
+    },
+    "contract": {
+      "title": "Contracts",
+      "reference": "Contract for this order",
+      "pending": "Awaiting signature",
+      "goTo": "Go to contracts",
+      "valueWithFee": "{{total}} · Neutra+ fee {{fee}}",
+      "fields": {
+        "object": "Subject",
+        "value": "Contract value",
+        "payment": "Payment"
+      }
+    },
+    "summary": {
+      "title": "Order summary",
+      "id": "Order ID",
+      "product": "Product",
+      "category": "Category",
+      "counterparty": {
+        "buyer": "Seller",
+        "seller": "Buyer"
+      },
+      "created": "Created",
+      "updated": "Updated"
+    },
+    "value": {
+      "title": "Order value",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "orderTotal": "Order total",
+      "fee": "Neutra+ fee",
+      "feeRate": "Neutra+ fee ({{rate}}%)",
+      "net": "You receive",
+      "credited": "Refunded to wallet"
+    },
+    "errors": {
+      "notFound": "Order not found.",
+      "forbidden": "Your profile cannot access this order (order:read).",
+      "failed": "Could not load the order. Try again.",
+      "invoiceMissing": "The invoice has not been attached yet.",
+      "invoiceFailed": "Could not download the invoice. Try again."
+    }
+  },
+  "CopyValue": {
+    "copy": "Copy {{label}}",
+    "copied": "{{label}} copied"
+  },
+  "Cart": {
+    "title": "Cart",
+    "subtitle": "{{items}} from {{sellers}} · each seller becomes an order",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "sellerCount_one": "{{count}} seller",
+    "sellerCount_other": "{{count}} sellers",
+    "empty": {
+      "title": "Your cart is empty",
+      "description": "Add offers from Search Network. Offers from different sellers become one order per seller.",
+      "action": "Search networks"
+    },
+    "group": {
+      "seller": "Seller #{{id}}",
+      "order": "Order {{number}}",
+      "items_one": "{{count}} item in this order",
+      "items_other": "{{count}} items in this order",
+      "subtotal": "Subtotal: {{value}}"
+    },
+    "item": {
+      "shipping_one": "Ships within {{count}} business day",
+      "shipping_other": "Ships within {{count}} business days",
+      "activation_one": "Estimated activation in {{count}} day",
+      "activation_other": "Estimated activation in {{count}} days",
+      "perMonth": "{{price}} / month",
+      "perUnit": "{{price}} / unit",
+      "remove": "Remove {{name}}",
+      "quantity": "Quantity of {{name}}",
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity",
+      "problems": {
+        "rfq": "Quote-only offer: request a proposal from the seller. It cannot go in the cart.",
+        "noPrice": "The seller has no price for this quantity. Adjust the quantity.",
+        "overLimit": "Available up to {{max}} units. Reduce the quantity."
+      }
+    },
+    "unavailable": {
+      "title": "Unavailable items",
+      "unavailable": "This offer is no longer for sale.",
+      "ownOffer": "This offer belongs to your own organization and cannot be bought.",
+      "failed": "Could not load this offer.",
+      "retry": "Try again",
+      "remove": "Remove from cart"
+    },
+    "blocked": {
+      "rejected": {
+        "title": "Checkout blocked · KYC rejected",
+        "description": "Your company verification was rejected. Fix the flagged documents and resubmit to unlock checkout.",
+        "action": "Fix and resubmit documents"
+      },
+      "notStarted": {
+        "title": "Checkout blocked · KYC not started",
+        "description": "Marketplace purchases require your company verification (KYC/KYB). Send the documents to unlock checkout.",
+        "action": "Start verification"
+      },
+      "inReview": {
+        "title": "Checkout blocked · KYC under review",
+        "description": "Your company documents are under review. Checkout unlocks as soon as the verification is approved."
+      },
+      "suspended": {
+        "title": "Checkout blocked · KYC suspended",
+        "description": "Your company verification is suspended. Contact Neutra+ support."
+      },
+      "ineligible": {
+        "title": "Checkout blocked",
+        "description": "Your Buyer profile is not allowed to purchase yet. Contact the organization Owner."
+      }
+    },
+    "address": {
+      "title": "Choose an address",
+      "currentLocation": "Use current location",
+      "add": "Add a new address",
+      "comingSoon": "Saving addresses is not available yet.",
+      "status": {
+        "locating": "Getting your location…",
+        "located": "Current location found.",
+        "denied": "Could not get your location. Allow access in the browser.",
+        "unsupported": "This browser does not provide location."
+      }
+    },
+    "summary": {
+      "title": "Order summary",
+      "subtotal": "Subtotal",
+      "subtotalIn": "Subtotal ({{currency}})",
+      "shipping": "Shipping",
+      "atPayment": "Calculated at payment",
+      "credit": "Neutra+ credit",
+      "total": "Total to pay",
+      "checkout": "Go to payment",
+      "disclaimer": "Next, you will review contracts and payment before the orders are created.",
+      "mixedCurrencies": "Checkout accepts one currency at a time ({{currencies}}). Remove the items in another currency to continue.",
+      "fixItems": "Fix the flagged items to continue.",
+      "comingSoon": "The payment step is not available yet."
+    },
+    "credit": {
+      "title": "Use Neutra+ credit",
+      "available": "{{value}} available",
+      "none": "No credit available"
+    },
+    "trust": {
+      "escrow": "Payment protected in escrow",
+      "payment": "PIX or corporate card",
+      "tracking": "Tracking in My Orders"
+    }
+  },
   "SellerOfferCreate": {
     "title": "New Offer",
     "steps": {
       "coverage": "Category & coverage",
       "basicInfo": "Basic information",
       "technicalSpecs": "Technical specifications",
+      "logistics": "Logistics",
       "pricing": "Price and availability",
       "review": "Final review"
     },
@@ -3360,15 +3832,115 @@
       "serializationLabel": "Serialization",
       "serializationPlaceholder": "Serial number required"
     },
+    "attributes": {
+      "title": "Attributes",
+      "rowLabel": "Attribute {{number}}",
+      "nameLabel": "Attribute name",
+      "namePlaceholder": "E.g.: Speed",
+      "typeLabel": "Data type",
+      "typePlaceholder": "Select the data type",
+      "types": {
+        "text": "Text",
+        "number": "Number",
+        "mbps": "Mbps",
+        "gbps": "Gbps",
+        "ms": "ms",
+        "percent": "%"
+      },
+      "valuesLabel": "Values",
+      "valuesPlaceholder": "E.g.: 100mbps, 500mbps",
+      "valuesHint": "Separate the values with commas.",
+      "clearName": "Clear the name of attribute {{number}}",
+      "clearValues": "Clear the values of attribute {{number}}",
+      "add": "Add attribute",
+      "remove": "Remove attribute {{number}}",
+      "max": "Limit of {{max}} attributes."
+    },
     "shipping": {
-      "title": "Shipping",
-      "description": "One packed unit of the product. Shipping is quoted with this data from the origin postal code.",
-      "weightLabel": "Weight (kg)",
+      "weightLabel": "Weight (g)",
       "heightLabel": "Height (cm)",
       "widthLabel": "Width (cm)",
       "lengthLabel": "Length (cm)",
       "postalCodeLabel": "Origin postal code (CEP)",
       "insuranceLabel": "Declared value (insurance)"
+    },
+    "logistics": {
+      "rulesTitle": "Rules RN-LOG-01",
+      "rulesText": "Dimensions, origin and dispatch time feed the shipping quote on the product page, at checkout and the label purchase after the sale.",
+      "originTitle": "Origin address",
+      "originCapital": "Nearest capital: {{capital}}",
+      "insuranceHelper": "Optional. Without it, insurance uses the offer price.",
+      "dispatchTitle": "After the sale, how soon do you hand the package to the carrier?",
+      "dispatch": {
+        "sameDay": "Same day",
+        "oneDay": "1 business day",
+        "twoDays": "2 business days",
+        "threeDays": "3 business days",
+        "onDemand": "Made to order"
+      },
+      "recommended": "Recommended",
+      "packageTitle": "Packaging and weight",
+      "packageCaption": "External package dimensions",
+      "presetsLabel": "Package size",
+      "presets": {
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large",
+        "cargo": "Cargo",
+        "custom": "Custom"
+      },
+      "modeTitle": "Shipping method",
+      "modes": {
+        "integration": {
+          "title": "Neutra+ integration",
+          "description": "Automatic quote and label"
+        },
+        "freeShipping": {
+          "title": "Free shipping",
+          "description": "The seller covers the cost"
+        },
+        "pickup": {
+          "title": "Local pickup",
+          "description": "Buyer schedules the pickup"
+        },
+        "cargo": {
+          "title": "Cargo freight",
+          "description": "Quoted by the integration or at your price"
+        },
+        "toBeAgreed": {
+          "title": "Freight to be agreed",
+          "description": "Negotiated with the buyer via RFQ"
+        }
+      },
+      "extraFeeLabel": "Optional shipping surcharge",
+      "trackingTitle": "Automatic tracking",
+      "trackingDescription": "Updates the buyer and timeline via integration.",
+      "simulationTitle": "Simulation to the nearest capital · {{capital}}",
+      "simulationTitlePending": "Shipping simulation",
+      "simulationPending": "Enter the origin postal code to simulate shipping to the nearest capital.",
+      "simulationDisclaimer": "Example values, surcharge included. The real quote happens on the product page and at checkout.",
+      "simulationFreeShipping": "Example values of the shipping you cover. The buyer sees free shipping.",
+      "cheapest": "Cheapest",
+      "businessDays_one": "{{count}} business day",
+      "businessDays_other": "{{count}} business days",
+      "pickupNote": "No shipping: the buyer schedules the pickup at the informed address.",
+      "onDemandDaysLabel": "Business days to ship",
+      "onDemandDaysHelper": "Made to order: {{min}} to {{max}} business days.",
+      "presetHints": {
+        "small": "Up to 1 kg · 15 × 15 × 15 cm, 500 g (ONU, ONT, router, SFP)",
+        "medium": "Up to 5 kg · 30 × 30 × 30 cm, 3 kg (CTO, switch, DIO)",
+        "large": "5 to 30 kg · 40 × 50 × 60 cm, 15 kg (chassis OLT, UPS)",
+        "cargo": "Above 30 kg, 100 cm on one side or 200 cm in the sum of the sides. You enter the dimensions.",
+        "custom": "You enter the dimensions and weight."
+      },
+      "outOfLimitNote": "The package exceeds the market limit (30 kg, 100 cm on one side or 200 cm in the sum of the sides): shipping is cargo freight or freight to be agreed.",
+      "cargoPriceLabel": "Cargo freight price",
+      "cargoDaysLabel": "Cargo freight time (business days)",
+      "cargoHelper": "Used when the integration can't quote the package. Fill in both price and time, or leave both blank.",
+      "pickupAddressLabel": "Pickup address",
+      "pickupHoursLabel": "Pickup hours",
+      "extraFeeCarrierOnly": "Neutra+ integration and cargo freight only.",
+      "toBeAgreedNote": "Freight is agreed with the buyer through the RFQ flow, with no automatic quote."
     },
     "numbering": {
       "title": "Numbering Resources — LACNIC/ANATEL documentation",
@@ -3551,16 +4123,33 @@
       "radiusRequired": "Enter the service radius.",
       "radiusRange": "Use a radius between 1 and 80 km.",
       "publicGeometryRequired": "Draw the custom coverage polygon or choose full coverage.",
+      "coverageAreasRequired": "Select at least one KMZ area.",
       "locationsMax": "Enter at most 10 locations.",
       "weightRequired": "Enter the packed weight.",
-      "weightRange": "Weight must be greater than zero and up to 1000 kg.",
+      "weightRange": "Weight must be greater than zero and up to 1,000,000 g (1000 kg).",
       "heightRequired": "Enter the height.",
       "widthRequired": "Enter the width.",
       "lengthRequired": "Enter the length.",
       "sideRange": "Each measure must be greater than zero and up to 400 cm.",
       "postalCodeRequired": "Enter the postal code the product ships from.",
       "postalCodeInvalid": "Enter a valid 8-digit postal code (CEP).",
-      "insuranceInvalid": "Enter a value greater than zero or leave it blank."
+      "insuranceInvalid": "Enter a value greater than zero or leave it blank.",
+      "extraFeeInvalid": "Enter a valid amount or leave it blank.",
+      "onDemandDaysRange": "Enter 4 to 30 business days.",
+      "packageSizeMismatch": "The package doesn't fit the chosen size. Use Custom or Cargo.",
+      "cargoWithinLimit": "Cargo applies only above 30 kg, 100 cm on one side or 200 cm in the sum of the sides.",
+      "shippingModeInvalid": "This shipping method doesn't apply to the package size.",
+      "pickupTooLong": "Use at most 1000 characters.",
+      "cargoPriceInvalid": "Enter an amount greater than zero.",
+      "cargoPriceRequired": "Enter the price along with the time.",
+      "cargoDaysRange": "Enter 1 to 90 business days.",
+      "cargoDaysRequired": "Enter the time along with the price.",
+      "attributeNameRequired": "Enter the attribute name.",
+      "attributeNameTooLong": "Use up to 60 characters.",
+      "attributeTypeRequired": "Select the data type.",
+      "attributeValuesRequired": "Enter at least one value.",
+      "attributeValuesTooLong": "Use up to 500 characters.",
+      "attributesMax": "Limit of 20 attributes."
     },
     "categories": {
       "connectivity": {
@@ -3594,14 +4183,35 @@
       "typeLabel": "Coverage type",
       "mode": {
         "full": "Full coverage",
+        "areas": "KMZ areas",
         "custom": "Custom coverage"
       },
       "modeDescription": {
         "full": "Use the entire coverage of the selected KMZ.",
+        "areas": "Choose regions of the KMZ for this offer.",
         "custom": "Define a specific area for this offer."
       },
       "fullInfoTitle": "The entire KMZ coverage",
       "fullInfoText": "No cropping will be applied. To choose only part of the area, select Custom coverage.",
+      "areasTitle": "Choose the KMZ areas",
+      "areasText": "Check them in the list or click the areas on the map. The offer coverage is the union of the chosen areas.",
+      "areas": {
+        "title_one": "1 area in the KMZ",
+        "title_other": "{{count}} areas in the KMZ",
+        "selectedCount_zero": "None selected",
+        "selectedCount_one": "1 selected",
+        "selectedCount_other": "{{count}} selected",
+        "search": "Search area by name or folder",
+        "selectAll": "Select all",
+        "clear": "Clear selection",
+        "unnamed": "Area {{number}}",
+        "loading": "Loading the KMZ areas…",
+        "loadError": "Could not load the KMZ areas. Try again later or use another coverage type.",
+        "empty": "This KMZ has no areas (polygons) to choose. Use the full coverage or draw on the map.",
+        "noMatch": "No area found.",
+        "tooMany": "Choose at most {{max}} areas.",
+        "truncated": "The KMZ is too large to list every area: only the first ones are shown."
+      },
       "locationLabel": "Type the coverage location",
       "locationPlaceholder": "Type a location",
       "locationHint": "Enter an address, neighborhood or city.",
@@ -3610,6 +4220,7 @@
       "mapTitle": "Coverage Map",
       "mapMode": {
         "full": "Full coverage",
+        "areas": "Area selection",
         "custom": "Manual selection"
       },
       "zoomIn": "Zoom in",
@@ -3617,12 +4228,16 @@
       "redo": "Clear all",
       "legend": {
         "full": "Coverage area of the selected KMZ",
+        "areas": "Areas chosen for this offer",
         "custom": "Polygons drawn for this offer",
         "lines": "KMZ lines",
         "points": "KMZ points"
       },
       "status": {
         "full": "Full coverage selected",
+        "areas_one": "1 area selected",
+        "areas_other": "{{count}} areas selected",
+        "areasEmpty": "Select the areas in the list or on the map",
         "custom_one": "1 polygon selected",
         "custom_other": "{{count}} polygons selected",
         "drawing": "Click the map to draw a polygon",
@@ -3630,6 +4245,7 @@
       },
       "selected": {
         "full": "Full coverage: the entire KMZ area is public.",
+        "areas": "KMZ areas: only the chosen areas are public.",
         "custom": "Edited coverage: only the drawn polygons are public."
       },
       "cancel": "Cancel",
@@ -3924,8 +4540,32 @@
         "dismiss": "Close notice"
       },
       "advance": "Advance",
-      "payout": "Request Payout",
-      "comingSoon": "Advance and payout become available once the receivables service is integrated."
+      "payout": "Withdraw",
+      "comingSoon": "Advances become available once the payouts service has this route.",
+      "balance": {
+        "toReceive": {
+          "label": "Balance to receive",
+          "help": "Net amount of paid orders not yet included in a payout.",
+          "caption_one": "{{count}} order",
+          "caption_other": "{{count}} orders"
+        },
+        "dispute": {
+          "label": "In dispute"
+        },
+        "fees": {
+          "label": "Fees deducted",
+          "caption": "total"
+        }
+      },
+      "errors": {
+        "receivablesForbidden": "No access to this organization's receivables.",
+        "receivablesFailed": "Couldn't load the receivables."
+      },
+      "debt": {
+        "message": "You have a debt of {{amount}}, settle it now!",
+        "action": "settle now",
+        "soon": "Settling through the platform isn't available yet. Contact Support."
+      }
     },
     "errors": {
       "forbidden": "Your profile has no access to the organization wallet.",
@@ -4028,7 +4668,8 @@
         "payment": "Payment · Order {{order}}",
         "cancellationCredit": "Neutra+ credit · Order {{order}} cancelled",
         "credit": "Neutra+ credit · Order {{order}}"
-      }
+      },
+      "currency": "History currency"
     },
     "addMethod": {
       "title": "Add payment method",
@@ -4090,6 +4731,127 @@
         "cardExpiryInvalid": "Invalid or expired date.",
         "cardCvvRequired": "Enter the CVV.",
         "cardCvvInvalid": "The CVV has 3 or 4 digits."
+      }
+    },
+    "accounts": {
+      "default": "Default",
+      "status": {
+        "active": "Active",
+        "pending": "Pending"
+      },
+      "changeTitle": "Add or change an account",
+      "changeDescription": "withdrawals are blocked until the new account is verified"
+    },
+    "withdraw": {
+      "header": {
+        "back": "Back to wallet",
+        "title": "Request withdrawal",
+        "protected": "Protected transaction"
+      },
+      "steps": {
+        "amount": "Amount",
+        "destination": "Destination",
+        "review": "Review",
+        "confirmation": "Confirmation"
+      },
+      "nav": {
+        "back": "← Back",
+        "next": "Next →"
+      },
+      "amount": {
+        "title": "How much do you want to withdraw?",
+        "available": "Available balance:",
+        "label": "Withdrawal amount",
+        "symbol": "R$",
+        "all": "All",
+        "modeTitle": "Withdrawal type",
+        "fee": "Fee: {{rate}}",
+        "errors": {
+          "required": "Enter the withdrawal amount.",
+          "exceeds": "The amount exceeds the available balance.",
+          "balance": "Couldn't read the available balance."
+        }
+      },
+      "modes": {
+        "normal": {
+          "title": "Standard (next business day)",
+          "badge": "Default",
+          "review": "Standard — Next business day",
+          "processing": "Up to 1 business day",
+          "forecast": "Next business day"
+        },
+        "express": {
+          "title": "Express (today, by 5 pm)",
+          "badge": "Urgent",
+          "review": "Express — Today, by 5 pm",
+          "processing": "Today, by 5 pm",
+          "forecast": "Today, by 5 pm"
+        }
+      },
+      "destination": {
+        "title": "Withdrawal destination",
+        "subtitle": "Select the destination account",
+        "empty": "No payout account registered. Register an account under the organization's CNPJ to withdraw.",
+        "pending": "Awaiting verification · withdrawals blocked",
+        "add": "Add new account",
+        "hint": "Neutra+ credit can only be transferred to accounts under the organization's CNPJ. Third-party accounts are blocked automatically."
+      },
+      "review": {
+        "title": "Review your withdrawal",
+        "subtitle": "Confirm the details before continuing",
+        "rows": {
+          "gross": "Gross amount",
+          "fee": "Fee",
+          "net": "Net amount",
+          "destination": "Destination",
+          "account": "Account",
+          "mode": "Type",
+          "processing": "Processing"
+        },
+        "youReceive": "You'll receive",
+        "hint": "The withdrawal is confirmed with a security PIN in the next step. Once confirmed, it can't be cancelled.",
+        "confirm": "Confirm →"
+      },
+      "pin": {
+        "title": "Confirm your identity",
+        "subtitle": "Enter the 6-digit authenticator (TOTP) code to authorize",
+        "label": "Financial PIN",
+        "show": "Show code",
+        "hide": "Hide code",
+        "helper": "Use the 6-digit authenticator (TOTP) code for financial transactions",
+        "toReceive": "Amount to receive",
+        "authorize": "Authorize withdrawal",
+        "errors": {
+          "unavailable": "Withdrawals aren't available yet: the payments service doesn't have the withdrawal route. No money was moved.",
+          "invalidCode": "Invalid or expired code. Check your authenticator and try again.",
+          "forbidden": "Only Finance or the Owner can withdraw.",
+          "failed": "Couldn't authorize the withdrawal. Try again."
+        }
+      },
+      "processing": {
+        "title": "Processing withdrawal...",
+        "subtitle": "Authorizing with the financial system",
+        "checks": {
+          "pin": "Validating PIN",
+          "balance": "Checking balance",
+          "transfer": "Starting transfer"
+        }
+      },
+      "receipt": {
+        "title": "Withdrawal requested!",
+        "subtitle": "{{amount}} being transferred to {{destination}}",
+        "rows": {
+          "protocol": "Protocol",
+          "amount": "Amount",
+          "destination": "Destination",
+          "forecast": "Expected",
+          "status": "Status"
+        },
+        "processing": "Processing",
+        "copy": "Copy protocol",
+        "copied": "Protocol copied.",
+        "hint": "Keep protocol <strong>{{protocol}}</strong> for tracking. If you don't receive the money, contact Support with this code.",
+        "back": "Back to wallet"
       }
     }
   },
@@ -4276,7 +5038,8 @@
         "follow": "Track progress",
         "cancel": "Cancel RFQ",
         "viewOrder": "View generated order",
-        "newRfq": "New RFQ for this product"
+        "newRfq": "New RFQ for this product",
+        "export": "Export"
       },
       "empty": "You haven't opened any RFQs yet.",
       "emptyFiltered": "No RFQs with this status.",
@@ -4363,6 +5126,1041 @@
           "notify": "You'll be notified when proposals arrive"
         }
       }
+    }
+  },
+  "BuyerSession": {
+    "loading": "Opening the Buyer profile",
+    "forbidden": "Your user doesn't have the Buyer profile enabled in this organization.",
+    "unavailable": "The authentication service is temporarily unavailable. Try again shortly.",
+    "error": "Couldn't open the Buyer profile.",
+    "retry": "Try again"
+  },
+  "Contracts": {
+    "title": "My Contracts",
+    "subtitle": "My active contracts, automatic renewals, amendments and lock-in / penalty management",
+    "empty": "You don't have any contracts yet.",
+    "renewalNotice": {
+      "title_one": "{{count}} contract renewing soon",
+      "title_other": "{{count}} contracts renewing soon",
+      "description": "Automatic renewal happens in 60 days. You'll be notified 7 days before. To avoid renewing, turn off automatic renewal before the deadline. Price adjustments above IPCA+5pp allow exit without penalty.",
+      "manage": "Manage"
+    },
+    "stats": {
+      "active": "Active contracts",
+      "renewing": "Renewing in 60D",
+      "suspended": "Suspended",
+      "changeRequests": "Change Requests"
+    },
+    "statuses": {
+      "active": "Active",
+      "renewing": "Renewing",
+      "suspended": "Suspended"
+    },
+    "card": {
+      "startDate": "Start: {{date}}",
+      "nextBilling": "Next billing: {{date}}",
+      "autoRenew": "Auto-renewal:",
+      "autoRenewOn": "on",
+      "autoRenewOff": "off",
+      "renewsIn": "⚠ RENEWS IN {{count}}d",
+      "overdueInvoices_one": "{{count}} OVERDUE INVOICE",
+      "overdueInvoices_other": "{{count}} OVERDUE INVOICES",
+      "per": {
+        "monthly": "/mo",
+        "yearly": "/yr"
+      },
+      "expand": "Show contract terms",
+      "collapse": "Hide contract terms"
+    },
+    "comingSoon": "This feature is coming soon.",
+    "months_one": "{{count}} month",
+    "months_other": "{{count}} months",
+    "errors": {
+      "required": "Describe the change you want.",
+      "tooLong": "Use at most 2000 characters."
+    },
+    "details": {
+      "renewsAt": "Renews on",
+      "renewsAtValue": "{{date}} ({{count}}d)",
+      "sla": "Contractual SLA",
+      "loyalty": "Lock-in",
+      "exitFee": "Exit fee",
+      "noExitFee": "No fee",
+      "adjustment": "Adjustment: {{value}}",
+      "adjustmentNote": "The seller can't change the adjustment index on an active contract — only in the next cycle."
+    },
+    "amendment": {
+      "title": "Request Amendment (Change Request)",
+      "description": "The seller will review and send an amendment proposal. The seller may decline without charging a change fee.",
+      "sectionDescription": "Describe the change. The seller will review and send an amendment proposal. They may decline at no charge.",
+      "placeholder": "Describe the requested change (speed, term, location, SLA...)",
+      "sectionPlaceholder": "E.g.: Increase speed to 1 Gbps, change installation address...",
+      "label": "Requested change",
+      "cancel": "Cancel",
+      "submit": "Send change request",
+      "sectionSubmit": "Send amendment"
+    },
+    "actions": {
+      "title": "Actions",
+      "amendment": "Request amendment",
+      "disableAutoRenew": "Turn off auto-renewal",
+      "enableAutoRenew": "Turn on auto-renewal",
+      "cancel": "Request cancellation",
+      "cancellationRequested": "Cancellation requested",
+      "viewFull": "View full contract",
+      "back": "← Back"
+    },
+    "cancel": {
+      "title": "Confirm cancellation?",
+      "fee": "Applicable fee: {{value}}",
+      "noFee": "No fee applies.",
+      "back": "Back",
+      "confirm": "Confirm"
+    },
+    "toasts": {
+      "autoRenewOn": "Auto-renewal turned on.",
+      "autoRenewOff": "Auto-renewal turned off.",
+      "amendmentSent": "Amendment sent to the seller.",
+      "amendmentSentDescription": "Request {{id}}. You'll be notified when the seller replies.",
+      "cancellationRequested": "Cancellation requested.",
+      "cancellationRequestedDescription": "The seller has been notified. The contract stays active until it ends.",
+      "actionFailed": "We couldn't complete the action. Try again."
+    },
+    "summary": {
+      "title": "Contract details",
+      "startDate": "Start",
+      "nextBilling": "Next billing",
+      "renewsAt": "Renewal",
+      "price": "Price",
+      "sla": "SLA",
+      "loyalty": "Lock-in",
+      "exitFee": "Termination fee",
+      "adjustment": "Adjustment"
+    },
+    "detail": {
+      "breadcrumb": "Contracts",
+      "breadcrumbLabel": "Breadcrumb",
+      "order": "Order {{id}}",
+      "downloadPdf": "Download PDF",
+      "clauses": "Contract clauses",
+      "payments": "Payment history",
+      "paymentDue": "Due {{date}} · {{invoice}}",
+      "invoice": "Invoice",
+      "downloadInvoice": "Download invoice {{invoice}}",
+      "noPayments": "No invoices issued yet.",
+      "changeRequests": "Change Requests",
+      "newAmendment": "New amendment",
+      "changeRequestMeta": "{{id}} · Requested on {{date}}",
+      "noChangeRequests": "No amendments requested.",
+      "notFound": "Contract not found."
+    },
+    "paymentStatuses": {
+      "paid": "Paid",
+      "pending": "Open",
+      "overdue": "Overdue"
+    },
+    "changeRequestStatuses": {
+      "pending": "Awaiting seller",
+      "accepted": "Accepted",
+      "rejected": "Declined"
+    }
+  },
+  "Returns": {
+    "title": "Returns and exchanges",
+    "subtitle": "Request, send evidence and track the seller's deadline.",
+    "searchPlaceholder": "Search by return, order, product or company...",
+    "searchLabel": "Search returns",
+    "empty": "You don't have any returns or exchanges yet.",
+    "emptyFiltered": "No returns match this search.",
+    "productWithQuantity": "{{name}} · {{count}} units",
+    "slaLeft": "{{count}}h left",
+    "stats": {
+      "total": "Total",
+      "awaitingAction": "Awaiting action",
+      "contested": "Contested",
+      "returning": "Returning"
+    },
+    "statuses": {
+      "awaitingSeller": "Awaiting seller",
+      "receivedBySeller": "Received by seller",
+      "contested": "Contested",
+      "rejected": "Declined",
+      "inMediation": "In mediation",
+      "returning": "Being returned",
+      "returnInTransit": "Return in transit"
+    },
+    "types": {
+      "return": {
+        "label": "Return",
+        "description": "Send the item back and request a refund.",
+        "note": "Get the amount as Neutra credit (within 7 days).",
+        "submit": "Send return request"
+      },
+      "exchange": {
+        "label": "Exchange",
+        "description": "Get another item after review.",
+        "note": "The seller ships the new item after receiving and reviewing the returned one.",
+        "submit": "Send exchange request"
+      }
+    },
+    "reasons": {
+      "defect": "Defect",
+      "wrongProduct": "Wrong product",
+      "notAsDescribed": "Not as described",
+      "transportDamage": "Damaged in transit",
+      "regret": "Changed my mind",
+      "other": "Other"
+    },
+    "freight": {
+      "summary": "{{payer}} · {{reason}}",
+      "payers": {
+        "seller": "Seller",
+        "carrier": "Carrier",
+        "buyer": "Buyer",
+        "toBeDefined": "To be defined"
+      },
+      "reasons": {
+        "defect": "product defect",
+        "wrongProduct": "wrong product",
+        "notAsDescribed": "not as described",
+        "transportDamage": "damaged in transit",
+        "regret": "change of mind",
+        "other": "per the seller's review"
+      }
+    },
+    "timeline": {
+      "requested": "Request sent",
+      "sellerReview": "Seller deadline running",
+      "shipping": "Shipping after approval"
+    },
+    "detail": {
+      "back": "Back to queue",
+      "notFound": "Return not found.",
+      "sla": "Response SLA · {{count}}h left",
+      "request": "Buyer request",
+      "buyer": "Buyer",
+      "seller": "Seller",
+      "reason": "Reason",
+      "amount": "Amount",
+      "attachments": "Photos and evidence",
+      "noAttachments": "No files sent.",
+      "freight": "Return shipping",
+      "timeline": "Tracking",
+      "mediation": "Request Neutra+ mediation",
+      "mediationHint": "Mediation becomes available if the seller contests or declines."
+    },
+    "form": {
+      "back": "Back to returns",
+      "title": "Request a return or exchange",
+      "subtitle": "Order {{orderId}} · {{product}} · received on {{date}}",
+      "orderNotFound": "Order not found or outside the return window.",
+      "typeLabel": "Request type",
+      "reason": "Reason",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the problem, when you noticed it and the packaging condition...",
+      "evidenceTitle": "Add photos and evidence",
+      "evidenceHint": "JPG, PNG, PDF or MP4 · up to {{count}} files",
+      "removeFile": "Remove {{name}}",
+      "freightTitle": "Who pays for return shipping?",
+      "freightPending": "Responsibility is shown once you pick a reason."
+    },
+    "errors": {
+      "reasonRequired": "Pick a reason.",
+      "descriptionRequired": "Describe the problem.",
+      "tooLong": "Use at most 2000 characters.",
+      "tooManyFiles": "Send at most 10 files."
+    },
+    "toasts": {
+      "created": {
+        "return": "Return request sent.",
+        "exchange": "Exchange request sent."
+      },
+      "createdDescription": "{{id}}. The seller was notified and the response deadline has started.",
+      "mediationRequested": "Mediation requested.",
+      "mediationRequestedDescription": "The Neutra+ team will review the case with the buyer and the seller.",
+      "actionFailed": "We couldn't complete the action. Try again."
+    }
+  },
+  "SellerQuestions": {
+    "title": "Questions received",
+    "subtitle": "Public answers on offers · RN-RFQ-02",
+    "stats": {
+      "unanswered": "Unanswered",
+      "answered": "Answered",
+      "responseRate": "Response rate"
+    },
+    "whoCanAnswer": {
+      "title": "Who can answer",
+      "description": "Owner, Sales, Operations and Support. Answers are public and go through the same filter for contacts, external links and sensitive data."
+    },
+    "filters": {
+      "search": "Search questions",
+      "searchPlaceholder": "Search by offer or content",
+      "offering": "Offer",
+      "filterBy": "Filter by",
+      "statusLabel": "Question status",
+      "statuses": {
+        "all": "All",
+        "unanswered": "Unanswered",
+        "answered": "Answered"
+      }
+    },
+    "status": {
+      "unanswered": "Unanswered",
+      "answered": "Answered"
+    },
+    "verifiedBuyer": "verified buyer",
+    "empty": "No questions",
+    "emptyFiltered": "No questions match these filters.",
+    "answer": {
+      "label": "Public answer",
+      "placeholder": "Answer objectively. This answer will be visible to everyone...",
+      "hint": "No contacts, external links or sensitive data.",
+      "publish": "Publish answer",
+      "publicTitle": "Seller's public answer",
+      "answeredIn": "Answered in {{hours}}h",
+      "errors": {
+        "required": "Write the answer before publishing.",
+        "blocked": "Remove contacts, external links or sensitive data from the answer.",
+        "unavailable": "The answer can't be published yet: public questions have no backend route. Nothing was published.",
+        "forbidden": "Only Owner, Sales, Operations and Support can answer.",
+        "failed": "Couldn't publish the answer. Try again."
+      }
+    }
+  },
+  "Tickets": {
+    "title": "Customer Support",
+    "subtitle": "Centralized Neutra+ support · SLA by priority · structured communication",
+    "open": "Open ticket",
+    "comingSoon": "Opening tickets is coming soon.",
+    "empty": "You don't have any tickets yet.",
+    "emptyFiltered": "No tickets match these filters.",
+    "searchPlaceholder": "Search by title or ID...",
+    "searchLabel": "Search tickets",
+    "slaHours": "SLA: {{count}}h",
+    "notice": {
+      "title": "Support Center · Tickets",
+      "description": "P1 (4h) · P2 (24h) · P3 (48h) · P4 (72h). Questions about offers are now public on the product page itself.",
+      "collapse": "Collapse explanation",
+      "expand": "Expand explanation",
+      "dismiss": "Close explanation"
+    },
+    "priorities": {
+      "label": "Priorities and SLA",
+      "P1": {
+        "label": "Critical",
+        "description": "Full production impact"
+      },
+      "P2": {
+        "label": "High",
+        "description": "Severe service degradation"
+      },
+      "P3": {
+        "label": "Medium",
+        "description": "Partial impact / technical question"
+      },
+      "P4": {
+        "label": "Low",
+        "description": "General question / information"
+      }
+    },
+    "stats": {
+      "open": "Open",
+      "critical": "Critical (P1)",
+      "resolvedThisMonth": "Resolved (month)",
+      "presale": "Pre-sale (P4)"
+    },
+    "filters": {
+      "label": "Filter tickets",
+      "all": "All",
+      "open": "Open",
+      "inProgress": "In progress",
+      "resolved": "Resolved",
+      "mine": "My Tickets"
+    },
+    "statuses": {
+      "open": "Open",
+      "inProgress": "In progress",
+      "awaitingSeller": "Awaiting seller",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "categories": {
+      "provisioning": "Provisioning",
+      "generalQuestion": "General question",
+      "slaQuality": "SLA / Quality",
+      "contracts": "Contracts",
+      "fiscal": "Tax / Invoice"
+    },
+    "references": {
+      "order": "Order {{id}}",
+      "offer": "Offer {{id}}",
+      "contract": "Contract {{id}}"
+    },
+    "card": {
+      "presale": "PRE-SALE P4",
+      "dates": "Opened: {{opened}} · Updated: {{updated}}",
+      "sla": "SLA: {{count}}h",
+      "comments_one": "{{count}} comment",
+      "comments_other": "{{count}} comments",
+      "description": "Description",
+      "assignee": "Assignee:",
+      "closedNote": "Ticket finished. If the problem comes back, open a new ticket."
+    },
+    "comment": {
+      "label": "Add comment",
+      "placeholder": "Describe progress, evidence or request information...",
+      "submit": "Send"
+    },
+    "errors": {
+      "commentRequired": "Write the comment.",
+      "tooLong": "Use at most 2000 characters."
+    },
+    "toasts": {
+      "commentSent": "Comment sent.",
+      "actionFailed": "We couldn't complete the action. Try again."
+    }
+  },
+  "ServiceOrders": {
+    "title": "Service Order",
+    "subtitle": "Track the status of all orders",
+    "search": "Search by product or name...",
+    "filters": "Filters",
+    "filterAll": "All",
+    "filterLabel": "Filter orders by status",
+    "empty": "No service orders here yet.",
+    "emptyFiltered": "Nothing matches this search or filter.",
+    "notFound": "Service order not found.",
+    "breadcrumb": "Service orders navigation",
+    "stats": {
+      "total": "Total orders",
+      "inProgress": "In progress",
+      "awaiting": "Awaiting acceptance",
+      "withIssue": "With issues",
+      "hints": {
+        "orders": {
+          "total": "Service orders for all your received orders.",
+          "inProgress": "Orders with a service order in progress.",
+          "awaiting": "Orders on hold, awaiting your response.",
+          "withIssue": "Orders on hold, rejected or at SLA risk."
+        },
+        "items": {
+          "total": "Demands (service orders) in this order.",
+          "inProgress": "Service orders in progress.",
+          "awaiting": "Pending service orders, awaiting a technician or start.",
+          "withIssue": "Service orders on hold or at SLA risk (jeopardy)."
+        }
+      }
+    },
+    "card": {
+      "details": "View details"
+    },
+    "order": {
+      "meta": "{{buyer}} · {{id}} · Created on {{date}}",
+      "status": {
+        "acknowledged": "Accepted",
+        "pending": "Waiting",
+        "inProgress": "In progress",
+        "held": "On hold",
+        "completed": "Completed",
+        "rejected": "Rejected",
+        "cancelled": "Cancelled",
+        "credited": "Credited"
+      },
+      "responseLeft": "{{count}}h to respond",
+      "caption": {
+        "acknowledged": "Order accepted — creating service order",
+        "pending_one": "✓ Received · {{count}} day ago",
+        "pending_other": "✓ Received · {{count}} days ago",
+        "inProgress": "Service order created",
+        "held_one": "✓ Received · {{count}} day ago",
+        "held_other": "✓ Received · {{count}} days ago",
+        "completed": "All service orders completed",
+        "rejected": "Order rejected · Credit issued",
+        "cancelled": "Order cancelled",
+        "credited": "Amount returned as Neutra+ credit"
+      },
+      "cancel": "Cancel order",
+      "viewCredit": "View Neutra+ credit"
+    },
+    "items": {
+      "title": "Order demands",
+      "subtitle": "Track the demands of order: {{id}}",
+      "filterLabel": "Filter demands by status",
+      "empty": "This order has no demands yet."
+    },
+    "item": {
+      "status": {
+        "pending": "Pending",
+        "inProgress": "In progress",
+        "held": "On hold",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "summaryStatus": {
+        "pending": "Pending",
+        "inProgress": "In progress",
+        "held": "On hold",
+        "postponed": "Postponed",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "summaryMeta": "{{buyer}} · {{id}} · Updated on {{date}}",
+      "postponedTo": "Postponed to {{date}}",
+      "slaLeft": "SLA: {{count}}h left",
+      "slaLeft_zero": "SLA overdue",
+      "caption": {
+        "inProgress": "Service order created",
+        "pending": "✓ Received · awaiting technician",
+        "pendingWithTechnician": "✓ Technician {{name}} assigned",
+        "held": "✓ Received · on hold",
+        "postponed_one": "✓ Postponed to {{date}} · {{count}} day",
+        "postponed_other": "✓ Postponed to {{date}} · {{count}} days",
+        "completed": "Completed on {{date}}",
+        "cancelled": "Service order cancelled · Credit issued"
+      },
+      "expand": "View SO",
+      "collapse": "Collapse SO",
+      "jeopardy": "JEOPARDY",
+      "meta": "{{id}} · {{seller}} → {{buyer}}",
+      "remoteSchedule": "Digital / No visit",
+      "evidenceCount": "{{done}}/{{total}} evidence",
+      "noShowTitle_one": "{{count}} no-show recorded",
+      "noShowTitle_other": "{{count}} no-shows recorded",
+      "noShowText": "A no-show requires a photo + attendance record + structured reason. A buyer no-show is charged with the seller's evidence. Reschedules: {{used}}/{{allowed}} allowed.",
+      "tiles": {
+        "orderId": "Order ID",
+        "schedule": "Schedule",
+        "sla": "SLA deadline",
+        "updatedAt": "Last update"
+      },
+      "notes": "Notes",
+      "evidences": "Completion evidence ({{done}}/{{total}})",
+      "evidenceRegistered": "Evidence {{index}} recorded",
+      "evidencePending": "Evidence {{index}} pending",
+      "openDispute": "Open dispute",
+      "completedChip": "SO completed",
+      "reschedule_zero": "Reschedule (none left)",
+      "reschedule_one": "Reschedule ({{count}} left)",
+      "reschedule_other": "Reschedule ({{count}} left)"
+    },
+    "detail": {
+      "subtitle": "{{seller}} → {{buyer}} · {{id}} · Order {{orderId}}",
+      "progress": "TMF641 progress",
+      "steps": {
+        "acknowledged": "Acknowledged",
+        "pending": "Pending",
+        "inProgress": "In progress",
+        "completed": "Completed"
+      },
+      "slaDeadline": "SLA deadline: {{date}} · {{count}}h left",
+      "slaDeadline_zero": "SLA deadline: {{date}} · overdue",
+      "completedOn": "Completed on {{date}}",
+      "cancelled": "Service order cancelled",
+      "currentStatus": "Current status",
+      "map": "Service location: {{address}}",
+      "info": {
+        "title": "Service order details",
+        "address": "Address / Location",
+        "technician": "Responsible technician",
+        "schedule": "Schedule",
+        "sla": "SLA deadline",
+        "updatedAt": "Last update",
+        "reschedules": "Reschedules",
+        "reschedulesValue": "{{used}}/{{allowed}} used",
+        "notes": "Notes",
+        "remote": "Digital / No on-site visit"
+      },
+      "technicians": {
+        "title": "Technicians",
+        "change": "Change technician",
+        "empty": "No technicians assigned to this service order yet.",
+        "pendingNotice": "The service order stays pending until a technician is added. Once confirmed, the status automatically changes to In progress."
+      },
+      "evidences": {
+        "title": "Completion evidence",
+        "slot": "Evidence {{index}}",
+        "registered": "Recorded",
+        "pending": "Pending",
+        "view": "View file",
+        "register": "Upload"
+      },
+      "parties": {
+        "company": "Company",
+        "technician": "Technician",
+        "seller": "Seller"
+      },
+      "actions": {
+        "start": "Start now",
+        "addTechnician": "Add technician",
+        "complete": "Complete SO",
+        "completeBlocked": "Completion blocked: record all {{total}} required pieces of evidence ({{done}}/{{total}}).",
+        "postpone": "Postpone service",
+        "back": "Back to list"
+      }
+    },
+    "chat": {
+      "title": "Service order messages",
+      "participants": "Buyer · Seller · Neutra+",
+      "empty": "No messages yet.",
+      "placeholder": "Send a message...",
+      "send": "Send message",
+      "system": "Neutra+ (System)",
+      "technicianAssigned": "Technician {{name}} added to the service order.",
+      "technicianStarted": "Technician {{name}} added. Execution started.",
+      "started": "Service order execution started by the seller.",
+      "completed": "Seller completed the execution. Awaiting the buyer's technical acceptance.",
+      "postponed": "Service postponed to {{date}}. Reason: {{reason}}",
+      "evidence": "Evidence {{done}}/{{total}} recorded by the seller at {{time}}."
+    },
+    "postpone": {
+      "title": "Postpone service order",
+      "subtitle": "Set the new service forecast.",
+      "date": "New date",
+      "time": "Time",
+      "reason": "Reason for postponing",
+      "reasonPlaceholder": "Explain why the service needs to be postponed...",
+      "reschedule": "Reschedule",
+      "rescheduleHint": "Turn on when the postponement formally changes the service order schedule.",
+      "rescheduleExhausted": "This service order reached its reschedule limit.",
+      "rescheduleType": "Reschedule type",
+      "rescheduleTypes": {
+        "internal": "Internal reschedule",
+        "buyerRequest": "Requested by the buyer",
+        "buyerNoShow": "Buyer no-show"
+      },
+      "rescheduleReason": "Reschedule reason",
+      "rescheduleReasonPlaceholder": "Required reason",
+      "confirm": "Confirm postponement"
+    },
+    "technician": {
+      "title": "Add technician",
+      "changeTitle": "Change technician",
+      "subtitle": "Select a registered professional or create a new one.",
+      "tabs": {
+        "existing": "Select registered",
+        "new": "Register new"
+      },
+      "noneRegistered": "No technicians registered. Register a new one.",
+      "confirmAdd": "Add or start execution",
+      "confirmChange": "Save technician",
+      "name": "Full name",
+      "namePlaceholder": "e.g. Pedro Ortega",
+      "email": "Email",
+      "emailPlaceholder": "technician-email@neutramais.com.br",
+      "phone": "Phone",
+      "specialty": "Specialty",
+      "specialtyPlaceholder": "Fiber, networks, datacenter..."
+    },
+    "startPrompt": {
+      "title": "Actions",
+      "question": "Start now?",
+      "onlyAdd": "Just add",
+      "start": "Start now"
+    },
+    "dialog": {
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "required": "Required field",
+      "tooLong": "Text too long",
+      "dateInvalid": "Invalid date",
+      "datePast": "The new date can't be in the past",
+      "timeInvalid": "Invalid time",
+      "emailInvalid": "Invalid email",
+      "phoneInvalid": "Invalid phone"
+    },
+    "toasts": {
+      "comingSoon": "Coming soon",
+      "actionFailed": "Couldn't complete the action.",
+      "postponed": "Service postponed",
+      "technicianAssigned": "Technician added",
+      "started": "Execution started",
+      "completed": "Service order completed — awaiting buyer acceptance",
+      "evidenceRegistered": "Evidence recorded",
+      "evidenceTooLarge": "The file is larger than 25 MB"
+    }
+  },
+  "Profile": {
+    "unknown": "—",
+    "roles": {
+      "org_owner": "Organization owner",
+      "seller_owner": "Owner · Seller",
+      "buyer_owner": "Owner · Buyer",
+      "org_admin": "Administrator",
+      "super_admin": "Super administrator",
+      "seller_commercial": "Sales",
+      "buyer_purchaser": "Purchasing",
+      "seller_finance": "Finance · Seller",
+      "buyer_finance": "Finance · Buyer",
+      "seller_operations": "Operations",
+      "seller_technical": "Technical · Seller",
+      "buyer_technical": "Technical · Buyer",
+      "seller_support": "Support · Seller",
+      "buyer_support": "Support · Buyer"
+    },
+    "notice": {
+      "title": "User Profile",
+      "description": "Manage your personal data, company, roles (Buyer/Seller), security and notification preferences.",
+      "collapse": "Collapse explanation",
+      "expand": "Expand explanation",
+      "dismiss": "Close explanation"
+    },
+    "header": {
+      "edit": "Edit profile",
+      "photo": "Change photo"
+    },
+    "tabs": {
+      "label": "Profile sections",
+      "personal": "Personal data",
+      "company": "My company",
+      "access": "Roles & access",
+      "security": "Security",
+      "preferences": "Preferences",
+      "support": "Support"
+    },
+    "actions": {
+      "save": "Save changes",
+      "cancel": "Cancel",
+      "back": "Back",
+      "retry": "Try again"
+    },
+    "errors": {
+      "unavailable": "This feature isn't available yet. Nothing was changed.",
+      "failed": "We couldn't complete the action. Try again.",
+      "loadFailed": "We couldn't load your profile.",
+      "nameRequired": "Enter your name.",
+      "nameTooShort": "Use at least 3 characters.",
+      "phoneInvalid": "Enter a valid phone number.",
+      "tooLong": "Text is too long.",
+      "currentPasswordRequired": "Enter your current password.",
+      "newPasswordRequired": "Enter the new password.",
+      "passwordTooShort": "Use at least 8 characters.",
+      "passwordUppercase": "Include at least one uppercase letter.",
+      "passwordDigit": "Include at least one number.",
+      "passwordSymbol": "Include at least one special character.",
+      "passwordSame": "The new password must differ from the current one.",
+      "confirmRequired": "Confirm the new password.",
+      "confirmMismatch": "Passwords don't match.",
+      "codeRequired": "Enter the code.",
+      "codeInvalid": "The code has 6 digits."
+    },
+    "personal": {
+      "title": "Personal information",
+      "fields": {
+        "name": "Full name",
+        "email": "Email",
+        "phone": "Phone",
+        "jobTitle": "Job title"
+      },
+      "bio": "Bio",
+      "bioEmpty": "No bio yet.",
+      "bioPlaceholder": "Tell a bit about yourself and your experience.",
+      "identification": "Identification",
+      "cpf": "CPF",
+      "organization": "Organization",
+      "cnpj": "CNPJ",
+      "memberSince": "Member since"
+    },
+    "company": {
+      "title": "Company details",
+      "fields": {
+        "legalName": "Legal name",
+        "taxId": "CNPJ",
+        "type": "Type",
+        "sector": "Sector",
+        "foundedAt": "Founded",
+        "headOffice": "Head office",
+        "kyc": "KYC status",
+        "scmLicense": "SCM license"
+      },
+      "types": {
+        "buyer": "Buyer",
+        "seller": "Seller",
+        "platform_operator": "Platform operator"
+      },
+      "kycStates": {
+        "pending": "Pending",
+        "basic": "Basic",
+        "verified": "Verified",
+        "complete": "Complete",
+        "pending_documents": "Documents pending",
+        "under_review": "Under review",
+        "rejected": "Rejected",
+        "suspended": "Suspended"
+      }
+    },
+    "access": {
+      "kycTitle": "Account verification (KYC)",
+      "kycSubtitle": "Each level unlocks new features on the platform.",
+      "currentLevel": {
+        "pending": "Current level: pending",
+        "basic": "Current level: basic",
+        "verified": "Current level: verified",
+        "complete": "Current level: complete"
+      },
+      "levels": {
+        "basic": {
+          "title": "Basic",
+          "description": "Company registration confirmed."
+        },
+        "verified": {
+          "title": "Verified",
+          "description": "Legal representative and bank account confirmed."
+        },
+        "complete": {
+          "title": "Complete",
+          "description": "Full operating documentation."
+        }
+      },
+      "stepStates": {
+        "done": "Done",
+        "next": "Next step",
+        "locked": "Locked"
+      },
+      "features": {
+        "viewMarketplace": "Browse marketplace",
+        "accessPanel": "Access the dashboard",
+        "buyOrders": "Place orders",
+        "transact": "Transact",
+        "withdraw": "Withdraw",
+        "highValue": "High-value orders",
+        "publishOffers": "Publish offers"
+      },
+      "sendDocuments": "Documents to send",
+      "send": "Send",
+      "soon": "Coming soon",
+      "optional": {
+        "title": "Optional documents",
+        "description": "They expand what your company can do on the platform.",
+        "features": {
+          "numberResources": "Numbering resources",
+          "sales": "More sales",
+          "extraVerification": "Extra verification badge"
+        },
+        "documents": {
+          "numberResources": "Numbering resources authorization",
+          "legalOperation": "Proof of regular operation"
+        }
+      },
+      "personas": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "buyer": {
+          "title": "Buyer",
+          "items": {
+            "0": "Search and compare network offers",
+            "1": "Send RFQs and direct proposals",
+            "2": "Track orders and contracts"
+          }
+        },
+        "seller": {
+          "title": "Seller",
+          "items": {
+            "0": "Publish offers and coverage",
+            "1": "Answer RFQs and questions",
+            "2": "Receive payments in the wallet"
+          }
+        }
+      }
+    },
+    "security": {
+      "password": {
+        "title": "Change password",
+        "currentPassword": "Current password",
+        "newPassword": "New password",
+        "confirmPassword": "Confirm new password",
+        "submit": "Update password",
+        "show": "Show password",
+        "hide": "Hide password"
+      },
+      "sessions": {
+        "title": "Active sessions",
+        "thisBrowser": "This browser",
+        "now": "Now",
+        "current": "Current",
+        "othersUnavailable": "The list of sessions on other devices isn't available yet.",
+        "revokeOthers": "Sign out other sessions"
+      },
+      "twoFactor": {
+        "title": "Two-factor authentication",
+        "active": "Active",
+        "inactive": "Inactive",
+        "missing": "Your account doesn't have 2FA yet. Enable it to protect access.",
+        "enable": "Enable 2FA now",
+        "disable": "Disable 2FA",
+        "enabledTitle": "2FA active",
+        "enabledMethod": "Authenticator app code at every sign-in.",
+        "since": "Active since {{date}}",
+        "methods": {
+          "soon": "coming soon",
+          "totp": {
+            "title": "Authenticator app",
+            "description": "Google Authenticator, Authy or similar"
+          },
+          "email": {
+            "title": "Email"
+          },
+          "sms": {
+            "title": "SMS"
+          }
+        },
+        "dialog": {
+          "required": "Two-factor authentication protects your account's transactions.",
+          "chooseMethod": "Choose the method",
+          "continue": "Continue",
+          "confirm": "Confirm and enable",
+          "password": "Current password",
+          "passwordDescription": "Confirm your password to generate the QR code.",
+          "scan": "Scan the QR code with your authenticator app.",
+          "qrLabel": "QR code for the authenticator app",
+          "manualKey": "Or type the key manually:",
+          "recovery": "Keep these recovery codes somewhere safe. Each one can be used once if you lose access to the app.",
+          "saved": "I saved the recovery codes",
+          "codeApp": "Authenticator app code",
+          "disableDescription": "To disable it, confirm your password and an authenticator app code."
+        },
+        "errors": {
+          "statusFailed": "We couldn't check your 2FA.",
+          "wrongPassword": "Wrong password.",
+          "invalidCode": "Invalid code. Check the app and try again.",
+          "wrongPasswordOrCode": "Wrong password or code.",
+          "alreadyEnrolled": "2FA is already active on this account.",
+          "requiredByRole": "Your role requires 2FA: it can't be disabled.",
+          "rateLimited": "Too many attempts. Wait a moment and try again.",
+          "failed": "We couldn't complete it. Try again."
+        }
+      },
+      "danger": {
+        "title": "Danger zone",
+        "description": "Closing the account removes access for every user in the organization. Support reviews the request.",
+        "closeAccount": "Close account"
+      }
+    },
+    "preferences": {
+      "save": "Save",
+      "notifications": {
+        "title": "Notifications",
+        "email": {
+          "title": "Email notifications",
+          "description": "Important account notices in your inbox."
+        },
+        "sms": {
+          "title": "SMS notifications",
+          "description": "Coming soon."
+        },
+        "orders": {
+          "title": "Orders",
+          "description": "New orders, status changes and deliveries."
+        },
+        "rfq": {
+          "title": "RFQs and proposals",
+          "description": "New RFQs, received proposals and replies."
+        },
+        "marketing": {
+          "title": "News and offers",
+          "description": "Neutra+ launches and content."
+        }
+      },
+      "sales": {
+        "title": "Sales",
+        "autoSale": "Automatic sale",
+        "autoSaleDescription": "Accepts orders for your offers without manual approval."
+      },
+      "currency": {
+        "title": "Currency",
+        "choose": "Display currency",
+        "description": "Used to show amounts on the platform.",
+        "options": {
+          "BRL": "Real (BRL)",
+          "USD": "Dollar (USD)",
+          "EUR": "Euro (EUR)"
+        }
+      },
+      "language": {
+        "title": "Language",
+        "system": "System default",
+        "systemDescription": "Uses your browser's language.",
+        "choose": "Platform language",
+        "chooseDescription": "Applies to this browser.",
+        "options": {
+          "pt": "Português",
+          "en": "English",
+          "es": "Español"
+        },
+        "saved": "Language updated."
+      }
+    },
+    "support": {
+      "ticketsLabel": "Your open tickets",
+      "empty": "You have no open tickets.",
+      "helpTitle": "Need help?",
+      "openTicket": "Open ticket"
+    }
+  },
+  "TicketNew": {
+    "breadcrumb": "Page path",
+    "back": "Tickets",
+    "heading": "Open new ticket",
+    "pageTitle": "Open a support ticket",
+    "subtitle": "Describe the issue. Our team replies within the priority's SLA.",
+    "category": "Category",
+    "categories": {
+      "provisioning": {
+        "title": "Provisioning",
+        "description": "Activation, installation, setup"
+      },
+      "slaQuality": {
+        "title": "SLA / Quality",
+        "description": "Availability, latency, stability"
+      },
+      "fiscal": {
+        "title": "Billing / Invoice",
+        "description": "Charges, invoices, refunds"
+      },
+      "contracts": {
+        "title": "Contracts",
+        "description": "Renewal, cancellation, change request"
+      },
+      "generalQuestion": {
+        "title": "General question (P4)",
+        "description": "Help with the account and platform"
+      },
+      "other": {
+        "title": "Other",
+        "description": "Request not listed"
+      }
+    },
+    "priority": "Priority",
+    "priorityOption": "{{code}} · {{label}}",
+    "title": "Title",
+    "titlePlaceholder": "Clear summary of the issue (e.g. Fiber down since 07/07)",
+    "description": "Detailed description",
+    "descriptionHint": "(min. {{count}} characters)",
+    "descriptionPlaceholder": "Describe the issue in detail: what happens, since when, impact, error messages, logs...",
+    "characters_one": "{{count}} character",
+    "characters_other": "{{count}} characters",
+    "reference": "Related order or offer",
+    "referencePlaceholder": "E.g. ORD-2026-001 or OFR-CTS-002",
+    "optional": "(optional)",
+    "attachments": "Attachments",
+    "dropzone": "Drag files or click to select",
+    "dropzoneHint": "Images, PDFs, logs · max 10 MB each",
+    "removeFile": "Remove {{name}}",
+    "submit": "Open ticket",
+    "errors": {
+      "unavailable": "Opening tickets isn't available yet. No ticket was opened.",
+      "failed": "We couldn't open the ticket. Try again.",
+      "categoryRequired": "Choose the category.",
+      "priorityRequired": "Choose the priority.",
+      "titleRequired": "Enter the title.",
+      "titleTooLong": "Use at most 120 characters.",
+      "descriptionRequired": "Describe the issue.",
+      "descriptionTooShort": "Use at least 20 characters.",
+      "descriptionTooLong": "Use at most 2000 characters.",
+      "referenceTooLong": "Use at most 40 characters.",
+      "tooManyFiles": "Attach at most 5 files.",
+      "fileTooLarge": "Each file can be at most 10 MB."
     }
   }
 }

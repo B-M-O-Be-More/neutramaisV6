@@ -51,8 +51,9 @@ function buildQueryString(params?: Record<string, QueryValue>): string {
 }
 
 /**
- * Bearer da wallet-api: a carteira é a da organização do token (`org`). Vale
- * o da sessão de perfil quando há uma (seller); senão, o do login.
+ * Bearer da wallet-api: a carteira é a da organização do token (`org`), com
+ * as permissões do perfil selecionado (POST /auth/context) — Buyer em
+ * /wallet, Seller em /seller/wallet. Sem perfil selecionado, vale o do login.
  */
 async function resolveWalletBearer(): Promise<string | undefined> {
   const store = await cookies();

@@ -1,30 +1,18 @@
-import type { ProfileContext } from "@/services/profileSession.service";
+import type {
+  ProfileSessionContextProps,
+  ProfileSessionStatus,
+} from "@/contexts/ProfileSessionContext/interface";
 
-/**
- * loading: abrindo (ou reaproveitando) a sessão de perfil Seller.
- * ready: contexto Seller validado, com `geo:coverage:read`.
- * forbidden: a identity-api não libera o perfil Seller (ou a permissão).
- * unavailable: identity-api temporariamente indisponível (503).
- * error: outra falha (rede, 5xx) — dá para tentar de novo.
- * Sessão perdida (refresh recusado) não vira estado: redireciona para /login.
- */
-export type SellerSessionStatus =
-  | "loading"
-  | "ready"
-  | "forbidden"
-  | "unavailable"
-  | "error";
+/** Estados da sessão de perfil Seller (ver ProfileSessionContext). */
+export type SellerSessionStatus = ProfileSessionStatus;
 
-export interface SellerSessionContextProps {
-  status: SellerSessionStatus;
-  /** Contexto atual (`GET /auth/context`). null até ficar pronto. */
-  context: ProfileContext | null;
-  /** Organização das chamadas da geo-api: a do contexto, não a do /me. */
-  organizationId: string | null;
-  /** Abre a sessão de novo (ex.: após erro). */
-  reload: () => void;
-}
+export type SellerSessionContextProps = ProfileSessionContextProps;
 
 export interface SellerSessionProviderProps {
+  /**
+   * Permissão exigida para liberar a página. Padrão `geo:coverage:read`, a
+   * da geo-api; `null` libera só pelo perfil (ex.: carteira).
+   */
+  requiredPermission?: string | null;
   children: React.ReactNode;
 }

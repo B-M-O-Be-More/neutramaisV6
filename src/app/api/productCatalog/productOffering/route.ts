@@ -55,12 +55,14 @@ const CREATE_FIELDS = [
 // BFF: POST /api/productCatalog/productOffering
 //   → marketplace-api POST /productCatalog/productOffering
 // Cria a oferta como rascunho. 403 `MKT_SELLER_NOT_APPROVED` com a
-// organização não ativa.
+// organização não ativa. Vai com o token do perfil Seller (POST
+// /auth/context): a marketplace-api lê as permissões do perfil.
 export async function POST(request: NextRequest) {
   return forwardToMarketplace({
     method: "POST",
     path: "/productCatalog/productOffering",
     body: pickBody(await readJsonBody(request), CREATE_FIELDS),
     authenticated: true,
+    profileSession: true,
   });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Flex, Icon, Stack, Text } from "@chakra-ui/react";
+import { Box, Flex, Icon, Stack, Text } from "@chakra-ui/react";
 import type { IconType } from "react-icons";
 import { LuCircleAlert, LuCircleCheck, LuInfo } from "react-icons/lu";
 
@@ -38,6 +38,14 @@ const TONES: Record<
     text: "#065F46",
     icon: LuCircleCheck,
   },
+  // Regras da caixa de entrada do seller (Figma 2948-52374).
+  seller: {
+    bg: "#F3EEFF",
+    border: "#D3BFFD",
+    accent: "#8B5CF6",
+    text: "#5B21B6",
+    icon: LuInfo,
+  },
 };
 
 /**
@@ -49,11 +57,16 @@ export function ProposalsNotice({
   title,
   children,
   size = "dialog",
+  icon,
+  action,
 }: ProposalsNoticeProps) {
   const colors = TONES[tone];
   const isPage = size === "page";
-  // Com título o ícone acompanha o título (16px); só texto, 13px.
-  const iconSize = isPage ? "15px" : title ? "16px" : "13px";
+  // A faixa informativa da página (Figma 2073-38612) tem texto azul claro e
+  // ícone de 15px. Nos demais, com título o ícone acompanha o título (16px);
+  // só texto, 13px.
+  const isInfoPage = isPage && tone === "info";
+  const iconSize = isInfoPage ? "15px" : title ? "16px" : "13px";
 
   return (
     <Flex
@@ -67,14 +80,14 @@ export function ProposalsNotice({
       rounded="14px"
     >
       <Icon
-        as={colors.icon}
+        as={icon ?? colors.icon}
         boxSize={iconSize}
         mt={title ? "2px" : "2.5px"}
         flexShrink={0}
         color={colors.accent}
         aria-hidden
       />
-      <Stack gap="2px" minW={0}>
+      <Stack gap="2px" flex="1" minW={0}>
         {title && (
           <Text
             color={colors.accent}
@@ -86,13 +99,14 @@ export function ProposalsNotice({
           </Text>
         )}
         <Text
-          color={isPage ? "#5A7CE0" : colors.text}
+          color={isInfoPage ? "#5A7CE0" : colors.text}
           fontSize="12px"
           lineHeight="18px"
         >
           {children}
         </Text>
       </Stack>
+      {action && <Box flexShrink={0}>{action}</Box>}
     </Flex>
   );
 }

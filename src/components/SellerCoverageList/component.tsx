@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Flex, Icon, Spinner, Stack, Text } from "@chakra-ui/react";
+import NextLink from "next/link";
 import { useTranslation } from "react-i18next";
 import { LuArrowRight, LuMap } from "react-icons/lu";
 
@@ -17,8 +18,8 @@ function formatDate(iso: string, locale: string): string {
 
 /**
  * "Coberturas cadastradas" (Figma 2664-56660): uma linha por arquivo de KMZ
- * da organização (versão ativa), com as ofertas vinculadas e o acesso aos
- * detalhes.
+ * da organização (versão ativa), com as ofertas vinculadas e o link para o
+ * detalhe da cobertura.
  */
 export function SellerCoverageList({
   versions,
@@ -27,7 +28,7 @@ export function SellerCoverageList({
   onRetry,
   offerCounts,
   locale,
-  onDetails,
+  detailsHref,
 }: SellerCoverageListProps) {
   const { t } = useTranslation();
 
@@ -152,6 +153,7 @@ export function SellerCoverageList({
                 </Flex>
               </Stack>
               <Button
+                asChild
                 variant="plain"
                 h="32px"
                 px="8px"
@@ -160,13 +162,16 @@ export function SellerCoverageList({
                 color="#1F5AFF"
                 fontSize="11px"
                 fontWeight={700}
-                aria-label={t("SellerCoverage.list.detailsOf", {
-                  name: label,
-                })}
-                onClick={() => onDetails(version)}
               >
-                {t("SellerCoverage.list.details")}
-                <Icon as={LuArrowRight} boxSize="15px" />
+                <NextLink
+                  href={detailsHref(version)}
+                  aria-label={t("SellerCoverage.list.detailsOf", {
+                    name: label,
+                  })}
+                >
+                  {t("SellerCoverage.list.details")}
+                  <Icon as={LuArrowRight} boxSize="15px" />
+                </NextLink>
               </Button>
             </Flex>
           );

@@ -171,6 +171,7 @@ export function SellerOfferCoverageSection({
       <CoverageScopeDialog
         open={isScopeOpen}
         coverage={geometry}
+        versionId={versionId || null}
         value={scope}
         onClose={() => setIsScopeOpen(false)}
         onConfirm={(next) => {

@@ -1,4 +1,5 @@
 import type { CoverageGeoJson } from "@/components/CoverageMap";
+import type { CoverageArea } from "@/functions/coverageAreas";
 import type { LngLat } from "@/functions/geoShapes";
 import type { CoverageScopeMode } from "@/schemas/sellerOffer";
 
@@ -20,6 +21,12 @@ export interface CoverageDrawMapProps {
   onCancelDraft: () => void;
   /** Apaga todos os polígonos. */
   onClear: () => void;
+  /** Áreas do KMZ que podem ser escolhidas (modo `areas`). */
+  areas?: CoverageArea[];
+  /** Índices das áreas escolhidas. */
+  selectedAreas?: number[];
+  /** Clique numa área (modo `areas`): marca ou desmarca. */
+  onToggleArea?: (index: number) => void;
   /** Leva o mapa até um ponto (ex.: localização buscada). */
   focus?: { longitude: number; latitude: number } | null;
   /** Rótulo acessível do mapa. */

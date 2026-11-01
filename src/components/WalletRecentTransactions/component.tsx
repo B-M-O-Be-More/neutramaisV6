@@ -17,7 +17,7 @@ import { LuArrowRight, LuRefreshCw } from "react-icons/lu";
 import WalletTransactionRow from "@/components/WalletTransactionRow";
 import {
   describeTransaction,
-  formatMinorAmount,
+  formatTransactionAmount,
   formatTransactionDate,
 } from "@/functions/walletTransactions";
 
@@ -39,6 +39,7 @@ export function WalletRecentTransactions({
   onRetry,
   historyHref,
   locale,
+  headerEnd,
 }: WalletRecentTransactionsProps) {
   const { t } = useTranslation();
 
@@ -87,12 +88,7 @@ export function WalletRecentTransactions({
           title={describeTransaction(transaction, t)}
           date={formatTransactionDate(transaction.createdAt, locale)}
           reference={transaction.orderId}
-          amount={formatMinorAmount(
-            transaction.amountMinor,
-            transaction.currency,
-            locale,
-            { sign: isCredit ? "+" : "-" },
-          )}
+          amount={formatTransactionAmount(transaction, locale)}
           isLast={index === transactions.length - 1}
         />
       );
@@ -126,12 +122,14 @@ export function WalletRecentTransactions({
         >
           {t("Wallet.transactions.title")}
         </Text>
-        <Link asChild {...LINK}>
-          <NextLink href={historyHref}>
-            {t("Wallet.transactions.viewAll")}
-            <Icon as={LuArrowRight} boxSize="13px" />
-          </NextLink>
-        </Link>
+        {headerEnd ?? (
+          <Link asChild {...LINK}>
+            <NextLink href={historyHref}>
+              {t("Wallet.transactions.viewAll")}
+              <Icon as={LuArrowRight} boxSize="13px" />
+            </NextLink>
+          </Link>
+        )}
       </Flex>
 
       <Stack gap="0" px="20px">

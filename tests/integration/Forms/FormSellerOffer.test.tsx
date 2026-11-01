@@ -275,6 +275,29 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
   });
 
   describe("etapa Especificações técnicas", () => {
+    async function fillHardware(
+      user: Awaited<ReturnType<typeof renderForm>>["user"],
+    ) {
+      await user.click(
+        screen.getByLabelText(
+          /SellerOfferCreate.technicalSpecs.deliveryTimeLabel/,
+        ),
+      );
+      await user.paste("30 dias após o aceite");
+      await user.click(
+        screen.getByLabelText(/SellerOfferCreate.hardware.manufacturerLabel/),
+      );
+      await user.paste("Mikrotik");
+      await user.click(
+        screen.getByLabelText(/SellerOfferCreate.hardware.modelLabel/),
+      );
+      await user.paste("RB4011");
+      await user.selectOptions(
+        screen.getByLabelText(/SellerOfferCreate.hardware.conditionLabel/),
+        "new",
+      );
+    }
+
     async function goToTechnicalSpecs(categoryKey = "hardware") {
       const rendered = renderForm();
       const { user } = rendered;
@@ -402,17 +425,12 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       ).toBeInTheDocument();
     });
 
-    it("Hardware exige fabricante, modelo, condição e o envio", async () => {
+    it("Hardware exige fabricante, modelo e condição", async () => {
       const { user } = await goToTechnicalSpecs();
 
       expect(
         screen.getByRole("group", {
           name: "SellerOfferCreate.hardware.title",
-        }),
-      ).toBeVisible();
-      expect(
-        screen.getByRole("group", {
-          name: "SellerOfferCreate.shipping.title",
         }),
       ).toBeVisible();
 
@@ -429,15 +447,13 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       expect(
         screen.getByText("SellerOfferCreate.errors.conditionRequired"),
       ).toBeInTheDocument();
+      // O envio é da etapa Logística, ainda não validada.
       expect(
-        screen.getByText("SellerOfferCreate.errors.weightRequired"),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText("SellerOfferCreate.errors.postalCodeRequired"),
-      ).toBeInTheDocument();
+        screen.queryByText("SellerOfferCreate.errors.weightRequired"),
+      ).not.toBeInTheDocument();
     });
 
-    it("não mostra os blocos de Hardware e de envio nas outras categorias", async () => {
+    it("não mostra o bloco de Hardware nem a etapa Logística nas outras categorias", async () => {
       await goToTechnicalSpecs("software");
 
       expect(
@@ -446,15 +462,23 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
         }),
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByRole("group", {
-          name: "SellerOfferCreate.shipping.title",
-        }),
+        screen.queryByText("SellerOfferCreate.steps.logistics"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("SellerOfferCreate.logistics.rulesTitle"),
       ).not.toBeInTheDocument();
     });
 
-    it("mostra os SLAs no preview e avança", async () => {
-      const { user } = await goToTechnicalSpecs();
+    it("Atributos: linha começada exige os três campos; + e − somam e tiram linhas", async () => {
+      const { user } = await goToTechnicalSpecs("software");
+      const names = () =>
+        screen.getAllByLabelText("SellerOfferCreate.attributes.nameLabel");
 
+      expect(
+        screen.getByRole("group", {
+          name: "SellerOfferCreate.attributes.title",
+        }),
+      ).toBeInTheDocument();
       await user.type(
         screen.getByLabelText(
           /SellerOfferCreate.technicalSpecs.technicalSlaLabel/,
@@ -466,43 +490,276 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
           /SellerOfferCreate.technicalSpecs.deliveryTimeLabel/,
         ),
       );
-      await user.paste("30 dias após o aceite");
-      await user.click(
-        screen.getByLabelText(/SellerOfferCreate.hardware.manufacturerLabel/),
-      );
-      await user.paste("Mikrotik");
-      await user.click(
-        screen.getByLabelText(/SellerOfferCreate.hardware.modelLabel/),
-      );
-      await user.paste("RB4011");
-      await user.selectOptions(
-        screen.getByLabelText(/SellerOfferCreate.hardware.conditionLabel/),
-        "new",
-      );
-      for (const [label, value] of [
-        [/SellerOfferCreate.shipping.weightLabel/, "1,25"],
-        [/SellerOfferCreate.shipping.heightLabel/, "10"],
-        [/SellerOfferCreate.shipping.widthLabel/, "25"],
-        [/SellerOfferCreate.shipping.lengthLabel/, "30"],
-        [/SellerOfferCreate.shipping.postalCodeLabel/, "01310100"],
-      ] as const) {
-        await user.type(screen.getByLabelText(label), value);
-      }
-      // A máscara põe o hífen do CEP.
+      await user.paste("5 dias úteis");
+
+      await user.click(names()[0]);
+      await user.paste("Velocidade");
+      await user.click(continueButton());
+
       expect(
-        screen.getByLabelText(/SellerOfferCreate.shipping.postalCodeLabel/),
-      ).toHaveValue("01310-100");
+        await screen.findByText(
+          "SellerOfferCreate.errors.attributeTypeRequired",
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("SellerOfferCreate.errors.attributeValuesRequired"),
+      ).toBeInTheDocument();
 
-      expect(screen.getByText("98,5%")).toBeInTheDocument();
-      expect(screen.getByText("48h")).toBeInTheDocument();
+      // O "+" acrescenta outra linha; o "−" a remove.
+      await user.click(
+        screen.getByRole("button", {
+          name: "SellerOfferCreate.attributes.add",
+        }),
+      );
+      expect(names()).toHaveLength(2);
+      await user.click(
+        screen.getAllByRole("button", {
+          name: "SellerOfferCreate.attributes.remove",
+        })[1],
+      );
+      expect(names()).toHaveLength(1);
 
+      // O "×" limpa o campo: linha vazia não bloqueia o avanço.
+      await user.click(
+        screen.getByRole("button", {
+          name: "SellerOfferCreate.attributes.clearName",
+        }),
+      );
+      expect(names()[0]).toHaveValue("");
       await user.click(continueButton());
 
       expect(
         await screen.findByLabelText(
           /SellerOfferCreate.pricing.pricingModelLabel/,
         ),
+      ).toBeInTheDocument();
+    });
+
+    it("mostra os SLAs no preview e avança para a Logística", async () => {
+      const { user } = await goToTechnicalSpecs();
+
+      expect(
+        screen.getByText("SellerOfferCreate.steps.logistics"),
+      ).toBeInTheDocument();
+      await user.type(
+        screen.getByLabelText(
+          /SellerOfferCreate.technicalSpecs.technicalSlaLabel/,
+        ),
+        "98,5",
+      );
+      expect(screen.getByText("98,5%")).toBeInTheDocument();
+      expect(screen.getByText("48h")).toBeInTheDocument();
+
+      await fillHardware(user);
+      await user.click(continueButton());
+
+      expect(
+        await screen.findByText("SellerOfferCreate.logistics.rulesTitle"),
       ).toBeVisible();
+    });
+
+    // Percorre três etapas antes de chegar à Logística: mais lento no jsdom.
+    describe("etapa Logística (Hardware)", { timeout: 40_000 }, () => {
+      async function goToLogistics() {
+        const rendered = await goToTechnicalSpecs();
+        const { user } = rendered;
+        await user.click(
+          screen.getByLabelText(
+            /SellerOfferCreate.technicalSpecs.technicalSlaLabel/,
+          ),
+        );
+        await user.paste("99,5");
+        await fillHardware(user);
+        await user.click(continueButton());
+        await screen.findByText("SellerOfferCreate.logistics.rulesTitle");
+        return rendered;
+      }
+
+      const weightInput = () =>
+        screen.getByLabelText(/SellerOfferCreate.shipping.weightLabel/);
+      const radio = (name: string) => screen.getByRole("radio", { name });
+
+      it("começa com 1 dia útil e a Integração Neutra+ e exige origem e pacote", async () => {
+        const { user } = await goToLogistics();
+
+        expect(
+          radio("SellerOfferCreate.logistics.dispatch.oneDay"),
+        ).toBeChecked();
+        expect(
+          radio("SellerOfferCreate.logistics.modes.integration.title"),
+        ).toBeChecked();
+        expect(
+          screen.getByText("SellerOfferCreate.logistics.recommended"),
+        ).toBeVisible();
+
+        await user.click(continueButton());
+
+        expect(
+          await screen.findByText(
+            "SellerOfferCreate.errors.postalCodeRequired",
+          ),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText("SellerOfferCreate.errors.heightRequired"),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByText("SellerOfferCreate.errors.weightRequired"),
+        ).toBeInTheDocument();
+      });
+
+      it("o tamanho pronto preenche as medidas e o peso em gramas; simula e avança", async () => {
+        const { user } = await goToLogistics();
+
+        expect(
+          radio("SellerOfferCreate.logistics.presets.custom"),
+        ).toBeChecked();
+        // Sem "Não sei o peso": a única caixa é o rastreio automático.
+        expect(screen.getAllByRole("checkbox")).toHaveLength(1);
+
+        await user.click(radio("SellerOfferCreate.logistics.presets.medium"));
+
+        for (const label of [
+          /SellerOfferCreate.shipping.heightLabel/,
+          /SellerOfferCreate.shipping.widthLabel/,
+          /SellerOfferCreate.shipping.lengthLabel/,
+        ]) {
+          expect(screen.getByLabelText(label)).toHaveValue("30");
+        }
+        expect(weightInput()).toHaveValue("3000");
+        expect(
+          screen.getByText("SellerOfferCreate.logistics.presetHints.medium"),
+        ).toBeVisible();
+
+        // Sem CEP, a simulação pede a origem.
+        expect(
+          screen.getByText("SellerOfferCreate.logistics.simulationPending"),
+        ).toBeVisible();
+
+        await user.type(
+          screen.getByLabelText(/SellerOfferCreate.shipping.postalCodeLabel/),
+          "60150161",
+        );
+        // A máscara põe o hífen do CEP.
+        expect(
+          screen.getByLabelText(/SellerOfferCreate.shipping.postalCodeLabel/),
+        ).toHaveValue("60150-161");
+        expect(
+          screen.getByText("SellerOfferCreate.logistics.simulationTitle"),
+        ).toBeVisible();
+        expect(screen.getByText("Jadlog Package")).toBeVisible();
+        expect(screen.getByText("R$ 28,40")).toBeVisible();
+
+        // Ajuste dentro do tamanho: continua Médio.
+        await user.clear(weightInput());
+        await user.type(weightInput(), "4200");
+        expect(
+          radio("SellerOfferCreate.logistics.presets.medium"),
+        ).toBeChecked();
+
+        await user.click(continueButton());
+
+        expect(
+          await screen.findByLabelText(
+            /SellerOfferCreate.pricing.pricingModelLabel/,
+          ),
+        ).toBeVisible();
+      });
+
+      it("sob encomenda pede de 4 a 30 dias úteis", async () => {
+        const { user } = await goToLogistics();
+
+        expect(
+          screen.queryByLabelText(
+            /SellerOfferCreate.logistics.onDemandDaysLabel/,
+          ),
+        ).not.toBeInTheDocument();
+
+        await user.click(
+          radio("SellerOfferCreate.logistics.dispatch.onDemand"),
+        );
+        await user.click(continueButton());
+
+        expect(
+          await screen.findByText("SellerOfferCreate.errors.onDemandDaysRange"),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByLabelText(
+            /SellerOfferCreate.logistics.onDemandDaysLabel/,
+          ),
+        ).toBeVisible();
+      });
+
+      it("pacote acima do limite de mercado troca as modalidades por carga e a combinar", async () => {
+        const { user } = await goToLogistics();
+
+        await user.click(radio("SellerOfferCreate.logistics.presets.cargo"));
+        for (const [label, value] of [
+          [/SellerOfferCreate.shipping.heightLabel/, "120"],
+          [/SellerOfferCreate.shipping.widthLabel/, "60"],
+          [/SellerOfferCreate.shipping.lengthLabel/, "60"],
+          [/SellerOfferCreate.shipping.weightLabel/, "45000"],
+        ] as const) {
+          await user.type(screen.getByLabelText(label), value);
+        }
+
+        await waitFor(() =>
+          expect(
+            radio("SellerOfferCreate.logistics.modes.cargo.title"),
+          ).toBeChecked(),
+        );
+        expect(
+          radio("SellerOfferCreate.logistics.modes.toBeAgreed.title"),
+        ).toBeInTheDocument();
+        expect(
+          screen.queryByRole("radio", {
+            name: "SellerOfferCreate.logistics.modes.integration.title",
+          }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.getByText("SellerOfferCreate.logistics.outOfLimitNote"),
+        ).toBeVisible();
+        // Valor e prazo do seller, para quando a integração não cotar.
+        expect(
+          screen.getByLabelText(/SellerOfferCreate.logistics.cargoPriceLabel/),
+        ).toBeVisible();
+
+        await user.click(
+          radio("SellerOfferCreate.logistics.modes.toBeAgreed.title"),
+        );
+        expect(
+          screen.getByText("SellerOfferCreate.logistics.toBeAgreedNote"),
+        ).toBeVisible();
+        expect(screen.queryByText("Jadlog Package")).not.toBeInTheDocument();
+      });
+
+      it("retirada no local pede endereço e horário, desliga acréscimo e rastreio e troca a simulação pelo aviso", async () => {
+        const { user } = await goToLogistics();
+
+        await user.click(
+          radio("SellerOfferCreate.logistics.modes.pickup.title"),
+        );
+
+        expect(
+          screen.getByLabelText(
+            /SellerOfferCreate.logistics.pickupAddressLabel/,
+          ),
+        ).toBeVisible();
+        expect(
+          screen.getByLabelText(/SellerOfferCreate.logistics.pickupHoursLabel/),
+        ).toBeVisible();
+        expect(
+          screen.getByLabelText(/SellerOfferCreate.logistics.extraFeeLabel/),
+        ).toBeDisabled();
+        expect(
+          screen.getByRole("checkbox", {
+            name: /SellerOfferCreate.logistics.trackingTitle/,
+          }),
+        ).toBeDisabled();
+        expect(
+          screen.getByText("SellerOfferCreate.logistics.pickupNote"),
+        ).toBeVisible();
+        expect(screen.queryByText("Jadlog Package")).not.toBeInTheDocument();
+      });
     });
   });
 
@@ -536,10 +793,10 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
         /SellerOfferCreate.pricing.priceLabel/,
       );
 
-      await user.type(price, "1a890");
-      expect(price).toHaveValue("1.890");
+      // Caixa de banco: cada dígito entra pela direita; letras são ignoradas.
+      await user.type(price, "1a89000");
+      expect(price).toHaveValue("1.890,00");
 
-      // Ao sair do campo, as casas decimais são completadas.
       await user.tab();
       expect(price).toHaveValue("1.890,00");
     });

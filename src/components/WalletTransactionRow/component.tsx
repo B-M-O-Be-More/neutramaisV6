@@ -6,7 +6,7 @@ import type { IconType } from "react-icons";
 import {
   LuArrowDownLeft,
   LuArrowUpRight,
-  LuCircleCheck,
+  LuCircleCheckBig,
   LuClock,
 } from "react-icons/lu";
 
@@ -37,7 +37,7 @@ const TONES: Record<
     amount: "#D97706",
   },
   release: {
-    icon: LuCircleCheck,
+    icon: LuCircleCheckBig,
     color: "#8B5CF6",
     iconBg: "#F3EEFF",
     amount: "#1F5AFF",
@@ -122,7 +122,7 @@ export function WalletTransactionRow({
           rounded="8px"
           color={STATUS[status].color}
           fontSize="10px"
-          fontWeight={600}
+          fontWeight={700}
           lineHeight="15px"
         >
           {t(`Wallet.transactions.status.${status}`)}

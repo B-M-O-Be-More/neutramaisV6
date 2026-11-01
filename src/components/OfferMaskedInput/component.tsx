@@ -37,15 +37,13 @@ export const RADIUS_KM_MASK: FactoryOpts = {
   normalizeZeros: true,
 };
 
-/** Peso do pacote em kg com até 3 casas ("1,250"), até 1000. */
-export const WEIGHT_KG_MASK: FactoryOpts = {
+/** Peso do pacote em gramas, inteiro ("3000"), até 1.000.000 (1000 kg). */
+export const WEIGHT_G_MASK: FactoryOpts = {
   mask: Number,
-  scale: 3,
-  radix: ",",
-  mapToRadix: ["."],
+  scale: 0,
+  thousandsSeparator: "",
   min: 0,
-  max: 1000,
-  normalizeZeros: true,
+  max: 1_000_000,
 };
 
 /** Lado do pacote em cm com até 2 casas ("30,5"), até 400. */

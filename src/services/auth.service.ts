@@ -178,6 +178,8 @@ export interface LoginResponse {
  */
 export interface MeOrganization {
   id: string;
+  /** Tipo da conta (formato preferido da identity-api). */
+  organization_type?: "buyer" | "seller" | "platform_operator";
   status: OrganizationStatus;
   kyc_level: KycLevelSupported;
   kyc_state: KycState;

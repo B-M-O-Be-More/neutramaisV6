@@ -45,7 +45,8 @@ export type OfferingAction = (typeof OFFERING_ACTIONS)[number];
 
 /**
  * `service` chega pela rede (publicar exige cobertura); `physical` é enviado
- * (publicar exige o pacote de envio). Fixo depois de criada.
+ * (publicar exige o pacote de envio). A categoria escolhida na edição pode
+ * trocá-lo (PATCH com `productType`).
  */
 export type OfferingProductType = "service" | "physical";
 
@@ -59,6 +60,40 @@ export interface OfferingShipping {
   originPostalCode: string | null;
   /** Valor declarado para o seguro; ausente usa o preço. */
   insuranceValue: DecimalValue | null;
+  /** Dias úteis até a postagem (0 a 30). Padrão 1. */
+  postingDays?: number;
+  /** small | medium | large | cargo | custom. */
+  packageSize?: string;
+  /** Peso estimado ("Não sei o peso"). */
+  weightEstimated?: boolean;
+}
+
+/** Modalidade de frete da API (`metadata.shippingPolicy.mode`). */
+export type OfferingShippingMode =
+  | "integration"
+  | "free_shipping"
+  | "pickup"
+  | "cargo"
+  | "to_be_agreed";
+
+/**
+ * Política de frete da oferta física, em `metadata.shippingPolicy`
+ * (RN-LOG-01/02). Dinheiro em string decimal, BRL.
+ */
+export interface OfferingShippingPolicy {
+  mode: OfferingShippingMode;
+  /** Acréscimo somado ao frete da transportadora ("0.00"). */
+  sellerMarkup: string;
+  /** Acompanham o `mode` (a API recusa valor contraditório). */
+  freeShipping: boolean;
+  pickup: boolean;
+  pickupAddress: string | null;
+  pickupHours: string | null;
+  automaticTracking: boolean;
+  autoAccept: boolean;
+  /** Só no frete de carga, e juntos. */
+  cargoPrice: string | null;
+  cargoDeliveryDays: number | null;
 }
 
 /** `shipping` do POST/PATCH — o PATCH troca o pacote inteiro. */
@@ -69,8 +104,11 @@ export interface OfferingShippingInput {
   heightCm: number;
   widthCm: number;
   lengthCm: number;
-  /** CEP de origem, 8 dígitos. */
+  /** CEP de origem, só os 8 dígitos. */
   originPostalCode: string;
+  /** Dias úteis até entregar à transportadora: 0 a 30. */
+  postingDays: number;
+  packageSize: "small" | "medium" | "large" | "cargo" | "custom";
   insuranceValue?: number;
 }
 
@@ -175,7 +213,7 @@ export interface CreateOfferingInput {
   isCapital?: boolean;
   /** Atributos livres da oferta (guardados sem validação de esquema). */
   metadata?: Record<string, unknown> | null;
-  /** Default `service`. Fixo depois de criada. */
+  /** Default `service`. */
   productType?: OfferingProductType;
   /** Só produto físico (422 em serviço). */
   shipping?: OfferingShippingInput;
@@ -212,12 +250,20 @@ export interface ListOrganizationOfferingsParams {
 }
 
 /**
- * Corpo de `PATCH /productOffering/{id}` — só os campos alterados. O tipo do
- * produto não muda depois de criada.
+ * Corpo de `PATCH /productOffering/{id}` — só os campos alterados.
+ * `productType` só vai quando a categoria troca o tipo da oferta.
  */
-export type UpdateOfferingInput = Partial<
-  Omit<CreateOfferingInput, "productType">
->;
+export type UpdateOfferingInput = Partial<CreateOfferingInput>;
+
+/** Corpo de `PUT /productOffering/{id}/coverageVersion`. */
+export interface BindCoverageInput {
+  coverageVersionId: string;
+  /** Polígonos desenhados; null/ausente com o KMZ inteiro. */
+  publicGeometry?: PublicGeometry | null;
+  /** Índices das áreas escolhidas do KMZ (não vai com `publicGeometry`). */
+  coverageAreaIndexes?: number[];
+  coverageNetworkPoints?: CoverageNetworkPoint[];
+}
 
 /** Tipos aceitos nas imagens da oferta. */
 export type OfferingImageType = "image/jpeg" | "image/png" | "image/webp";
@@ -310,45 +356,63 @@ export const productCatalogService = {
       signal: options.signal,
     }),
 
-  /** Especificações de produto da organização do usuário logado (sem paginação). */
+  /**
+   * Especificações de produto da organização do usuário logado (sem
+   * paginação). Vai com a sessão de perfil Seller.
+   */
   listSpecifications: (options: Pick<RequestOptions, "signal"> = {}) =>
-    api.get<ProductSpecification[]>("/productCatalog/productSpecification", {
-      signal: options.signal,
-    }),
+    withProfileSession(() =>
+      api.get<ProductSpecification[]>("/productCatalog/productSpecification", {
+        signal: options.signal,
+      }),
+    ),
 
   /**
    * Catálogo da organização. A API cria um ("Default Catalog") na primeira
-   * leitura — criar especificação exige que ele exista.
+   * leitura — criar especificação exige que ele exista. Vai com a sessão de
+   * perfil Seller.
    */
-  getCatalog: () => api.get<ProductCatalog>("/productCatalog/catalog"),
+  getCatalog: () =>
+    withProfileSession(() =>
+      api.get<ProductCatalog>("/productCatalog/catalog"),
+    ),
 
-  /** Cria um plano (especificação) no catálogo da organização. */
+  /** Cria um plano (especificação) no catálogo, com a sessão de perfil Seller. */
   createSpecification: (input: CreateSpecificationInput) =>
-    api.post<ProductSpecification>(
-      "/productCatalog/productSpecification",
-      input,
+    withProfileSession(() =>
+      api.post<ProductSpecification>(
+        "/productCatalog/productSpecification",
+        input,
+      ),
     ),
 
   /**
    * Cria a oferta sempre como `draft`. 403 `MKT_SELLER_NOT_APPROVED` com a
-   * organização não ativa; 404 quando a especificação não existe.
+   * organização não ativa; 404 quando a especificação não existe. Vai com a
+   * sessão de perfil Seller (401 renova uma vez).
    */
   createOffering: (input: CreateOfferingInput) =>
-    api.post<ProductOffering>("/productCatalog/productOffering", input),
+    withProfileSession(() =>
+      api.post<ProductOffering>("/productCatalog/productOffering", input),
+    ),
 
   /**
    * Vincula uma versão de cobertura (KMZ) à oferta. Exige `coverage:change`;
-   * qualquer falha da geo-api volta como 503. `publicGeometry` restringe a
-   * área pública a polígonos dentro do KMZ ("Cobertura editada");
-   * `coverageNetworkPoints` são as localidades de atendimento (ponto + raio em
-   * metros) — sem ele, os pontos salvos não mudam; `[]` apaga. Vai com a
-   * sessão de perfil Seller.
+   * qualquer falha da geo-api volta como 503. Sem recorte, vale o KMZ
+   * inteiro; `publicGeometry` restringe a área pública a polígonos
+   * desenhados ("Cobertura editada") e `coverageAreaIndexes` às áreas
+   * escolhidas do KMZ — um ou outro. `coverageNetworkPoints` são as
+   * localidades de atendimento (ponto + raio em metros) — sem ele, os pontos
+   * salvos não mudam; `[]` apaga. Vai com a sessão de perfil Seller.
    */
   bindCoverage: (
     offeringId: string,
-    coverageVersionId: string,
-    publicGeometry?: PublicGeometry | null,
-    coverageNetworkPoints?: CoverageNetworkPoint[],
+    {
+      coverageVersionId,
+      publicGeometry,
+      coverageAreaIndexes,
+      coverageNetworkPoints,
+    }: BindCoverageInput,
   ) =>
     withProfileSession(() =>
       api.put<{ offeringId: string; coverageVersionId: string }>(
@@ -356,6 +420,7 @@ export const productCatalogService = {
         {
           coverageVersionId,
           ...(publicGeometry ? { publicGeometry } : {}),
+          ...(coverageAreaIndexes?.length ? { coverageAreaIndexes } : {}),
           ...(coverageNetworkPoints ? { coverageNetworkPoints } : {}),
         },
       ),
@@ -431,11 +496,14 @@ export const productCatalogService = {
   /**
    * Aplica uma transição do ciclo de vida e devolve a oferta atualizada.
    * 403 sem permissão ou sem aprovação/KYC; 409 quando o status atual não
-   * permite a transição ou falta cobertura para publicar.
+   * permite a transição ou falta cobertura para publicar. Vai com a sessão
+   * de perfil Seller (401 renova uma vez).
    */
   transitionOffering: (offeringId: string, action: OfferingAction) =>
-    api.post<ProductOffering>(
-      `/productCatalog/productOffering/${encodeURIComponent(offeringId)}/${action}`,
+    withProfileSession(() =>
+      api.post<ProductOffering>(
+        `/productCatalog/productOffering/${encodeURIComponent(offeringId)}/${action}`,
+      ),
     ),
 
   /**

@@ -20,15 +20,15 @@ import OfferMaskedInput, {
   DIGITS_MASK,
   PERCENT_MASK,
 } from "@/components/OfferMaskedInput";
+import SellerOfferAttributesFields from "@/components/SellerOfferAttributesFields";
 import SellerOfferHardwareFields from "@/components/SellerOfferHardwareFields";
 import SellerOfferNumberingFields from "@/components/SellerOfferNumberingFields";
-import SellerOfferShippingFields from "@/components/SellerOfferShippingFields";
+import { offerCategory } from "@/data/offerCategories";
 import {
   OFFER_ACCEPTANCE_SLA_MAX,
   OFFER_ACCEPTANCE_SLA_MIN,
   OFFER_DELIVERY_TIME_MAX,
   OFFER_SPEED_UNITS,
-  offerProductType,
 } from "@/schemas/sellerOffer";
 
 import { SellerOfferTechnicalSpecsStepProps } from "./interface";
@@ -40,10 +40,11 @@ import { SellerOfferTechnicalSpecsStepProps } from "./interface";
  *   para Conectividade.
  * - SLA técnico é um percentual (0–100, vírgula decimal, "%" fixo).
  * - Hardware / CPE ganha o bloco de fabricante, modelo e condição (Figma
- *   2074-56987) e o de envio (peso, medidas, CEP de origem e seguro) — é
- *   produto físico, entregue por frete.
+ *   2074-56987). O envio (peso, medidas, origem) fica na etapa Logística.
  * - Recursos Numéricos não têm banda nem latência: aparece a documentação
  *   LACNIC/ANATEL no lugar (Figma 2074-59682).
+ * - Todas as categorias terminam nos Atributos (metadados livres), nas cores
+ *   da categoria (Figma 3009-74313 e 2879-92995).
  */
 export function SellerOfferTechnicalSpecsStep({
   control,
@@ -51,14 +52,10 @@ export function SellerOfferTechnicalSpecsStep({
   errors,
 }: SellerOfferTechnicalSpecsStepProps) {
   const { t } = useTranslation();
-  const [category, productType] = useWatch({
-    control,
-    name: ["category", "productType"],
-  });
-  // Na edição vale o tipo salvo (fixo); na criação, o da categoria.
-  const isPhysical = offerProductType({ category, productType }) === "physical";
+  const category = useWatch({ control, name: "category" });
   const speedRequired = category === "connectivity";
   const showNetworkFields = category !== "numberingResources";
+  const tone = offerCategory(category)?.tone;
 
   const tError = (message?: string) => (message ? t(message) : undefined);
   const speedError = tError(errors.speedValue?.message);
@@ -297,15 +294,19 @@ export function SellerOfferTechnicalSpecsStep({
         </Flex>
       )}
 
-      {isPhysical && (
-        <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
-          <SellerOfferShippingFields control={control} errors={errors} />
-        </Flex>
-      )}
-
       {category === "numberingResources" && (
         <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
           <SellerOfferNumberingFields register={register} errors={errors} />
+        </Flex>
+      )}
+
+      {tone && (
+        <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
+          <SellerOfferAttributesFields
+            control={control}
+            errors={errors}
+            tone={tone}
+          />
         </Flex>
       )}
     </SimpleGrid>

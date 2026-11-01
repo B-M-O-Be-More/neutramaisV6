@@ -48,7 +48,7 @@ export function boundsOf(...geometries: unknown[]): LngLatBounds | null {
 }
 
 /** Anéis de todos os polígonos do GeoJSON (Polygon, MultiPolygon, coleções). */
-function polygonsOf(node: unknown): LngLat[][][] {
+export function polygonsOf(node: unknown): LngLat[][][] {
   if (!node || typeof node !== "object") return [];
   const object = node as Record<string, unknown>;
   switch (object.type) {

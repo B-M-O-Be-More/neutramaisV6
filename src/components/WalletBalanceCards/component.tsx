@@ -136,44 +136,49 @@ export function WalletBalanceCards({ data }: WalletBalanceCardsProps) {
   return (
     <Stack gap="16px">
       <SimpleGrid columns={{ base: 1, md: 3 }} gap="16px">
-        {MAIN.map(({ key, icon, tone }) => (
-          <Stack key={key} {...CARD} rounded="16px" gap="12px" p="20px">
-            <Flex align="flex-start" justify="space-between">
-              <Flex
-                align="center"
-                justify="center"
-                boxSize="40px"
-                bg={tone.iconBg}
-                borderWidth="1px"
-                borderColor={tone.iconBorder}
-                rounded="14px"
-              >
-                <Icon as={icon} boxSize="18px" color={tone.color} />
-              </Flex>
-              <Tooltip content={t(`Wallet.balance.${key}.help`)} showArrow>
-                <IconButton
-                  aria-label={t(`Wallet.balance.${key}.help`)}
-                  variant="plain"
-                  size="2xs"
-                  minW="auto"
-                  color="#C4CDD8"
-                  _hover={{ color: "#8A9AB5" }}
+        {MAIN.map(({ key, icon, tone: baseTone }) => {
+          const indicator = data[key];
+          const tone = indicator.negative ? RED : baseTone;
+          const help = indicator.help ?? t(`Wallet.balance.${key}.help`);
+          return (
+            <Stack key={key} {...CARD} rounded="16px" gap="12px" p="20px">
+              <Flex align="flex-start" justify="space-between">
+                <Flex
+                  align="center"
+                  justify="center"
+                  boxSize="40px"
+                  bg={tone.iconBg}
+                  borderWidth="1px"
+                  borderColor={tone.iconBorder}
+                  rounded="14px"
                 >
-                  <LuInfo />
-                </IconButton>
-              </Tooltip>
-            </Flex>
-            <Stack gap="4px">
-              <Text color="#8A9AB5" fontSize="12px" lineHeight="18px">
-                {t(`Wallet.balance.${key}.label`)}
+                  <Icon as={icon} boxSize="18px" color={tone.color} />
+                </Flex>
+                <Tooltip content={help} showArrow>
+                  <IconButton
+                    aria-label={help}
+                    variant="plain"
+                    size="2xs"
+                    minW="auto"
+                    color="#C4CDD8"
+                    _hover={{ color: "#8A9AB5" }}
+                  >
+                    <LuInfo />
+                  </IconButton>
+                </Tooltip>
+              </Flex>
+              <Stack gap="4px">
+                <Text color="#8A9AB5" fontSize="12px" lineHeight="18px">
+                  {indicator.label ?? t(`Wallet.balance.${key}.label`)}
+                </Text>
+                <Value indicator={indicator} color={tone.color} />
+              </Stack>
+              <Text color="#A0ABB8" fontSize="11px" lineHeight="15px">
+                {indicator.caption}
               </Text>
-              <Value indicator={data[key]} color={tone.color} />
             </Stack>
-            <Text color="#A0ABB8" fontSize="11px" lineHeight="15px">
-              {data[key].caption}
-            </Text>
-          </Stack>
-        ))}
+          );
+        })}
       </SimpleGrid>
 
       <SimpleGrid columns={{ base: 1, sm: 2, xl: 4 }} gap="16px">
@@ -218,7 +223,7 @@ export function WalletBalanceCards({ data }: WalletBalanceCardsProps) {
             <SummaryHeader
               icon={icon}
               tone={tone}
-              label={t(`Wallet.balance.${key}.label`)}
+              label={data[key].label ?? t(`Wallet.balance.${key}.label`)}
             />
             <Stack gap="8px">
               <Value indicator={data[key]} color={tone.color} />

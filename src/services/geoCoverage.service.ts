@@ -98,6 +98,73 @@ export interface OfferCoverage {
   coverageVersionId: string;
   publicGeometry: unknown;
   coverageNetworkPoints?: unknown;
+  /**
+   * Escolha do seller, para reeditar (só para o seller): `areaIndexes` quando
+   * vinculou por áreas do KMZ, `publicGeometry` quando desenhou.
+   */
+  publicSelection?: unknown;
+}
+
+/**
+ * Placemark de uma versão (`GET /coverageVersion/{id}/elements`). Só os
+ * campos que a tela usa; a geometria chega sem tipo garantido.
+ */
+export interface CoverageElement {
+  placemarkIndex: number;
+  name?: string | null;
+  folderPath?: string[];
+  geometry?: unknown;
+  geometryKinds?: string[];
+}
+
+/** Página de placemarks: continua com `afterIndex` = `nextCursor`. */
+export interface CoverageElementPage {
+  items: CoverageElement[];
+  hasMore: boolean;
+  nextCursor: number | null;
+}
+
+export interface ListCoverageElementsParams {
+  /** Último índice da página anterior (-1 para começar). */
+  afterIndex?: number;
+  /** 1 a 500 (padrão 100). */
+  limit?: number;
+  /** Simplificação visual em graus (0 a 1); 0 mantém os detalhes. */
+  tolerance?: number;
+}
+
+/** Estado do arquivo depois de arquivar ou restaurar uma versão. */
+export interface CoverageFileMutation {
+  fileId: string;
+  activeVersionId: string;
+  archived: boolean;
+  revision: number;
+}
+
+/**
+ * Campos comuns das mudanças de ciclo de vida: o `previewRevision` lido no
+ * preview (a geo-api recusa com 409 se o arquivo mudou desde então) e uma
+ * chave de idempotência por comando.
+ */
+interface CoverageFileCommand {
+  organizationId: string;
+  expectedRevision: string;
+  idempotencyKey: string;
+}
+
+export interface ArchiveCoverageFileInput extends CoverageFileCommand {
+  /**
+   * Arquivo ativo que recebe as ofertas vinculadas, com o `previewRevision`
+   * dele. Obrigatório quando há ofertas no arquivo arquivado.
+   */
+  replacement?: { fileId: string; revision: string };
+}
+
+export interface RestoreCoverageVersionInput extends CoverageFileCommand {
+  /** Versão retida do mesmo arquivo que passa a ser a ativa. */
+  versionId: string;
+  /** Leva as ofertas para a versão restaurada (padrão: ficam onde estão). */
+  moveBindings?: boolean;
 }
 
 /** Página das listas da geo-api (`data.items`, `total`, `offset`, `limit`). */
@@ -150,6 +217,25 @@ export const geoCoverageService = {
       api.get<CoverageVersion>(
         `/geo/coverageVersion/${encodeURIComponent(versionId)}`,
         { signal: options.signal },
+      ),
+    ),
+
+  /**
+   * Placemarks de uma versão (uma página), com geometria — as áreas que o
+   * seller pode escolher para a oferta. 403 fora da organização.
+   */
+  listElements: (
+    versionId: string,
+    { afterIndex, limit, tolerance }: ListCoverageElementsParams = {},
+    options: { signal?: AbortSignal } = {},
+  ) =>
+    withProfileSession(() =>
+      api.get<CoverageElementPage>(
+        `/geo/coverageVersion/${encodeURIComponent(versionId)}/elements`,
+        {
+          params: { after_index: afterIndex, limit, tolerance },
+          signal: options.signal,
+        },
       ),
     ),
 
@@ -236,6 +322,63 @@ export const geoCoverageService = {
         {
           params: { organization_id: organizationId, offset, limit },
           signal: options.signal,
+        },
+      ),
+    ),
+
+  /**
+   * Arquiva o arquivo lógico (some da lista e não aceita novas ofertas nem
+   * versões). Os bytes ficam retidos: não libera cota. Só o Dono.
+   */
+  archiveFile: (
+    fileId: string,
+    {
+      organizationId,
+      expectedRevision,
+      idempotencyKey,
+      replacement,
+    }: ArchiveCoverageFileInput,
+  ) =>
+    withProfileSession(() =>
+      api.post<CoverageFileMutation>(
+        `/geo/coverageFile/${encodeURIComponent(fileId)}/archive`,
+        {
+          organization_id: organizationId,
+          expectedRevision,
+          idempotencyKey,
+          ...(replacement
+            ? {
+                replacementFileId: replacement.fileId,
+                replacementRevision: replacement.revision,
+              }
+            : {}),
+        },
+      ),
+    ),
+
+  /**
+   * Torna ativa uma versão retida do mesmo arquivo, sem novo upload. Só o
+   * Dono.
+   */
+  restoreVersion: (
+    fileId: string,
+    {
+      organizationId,
+      expectedRevision,
+      idempotencyKey,
+      versionId,
+      moveBindings = false,
+    }: RestoreCoverageVersionInput,
+  ) =>
+    withProfileSession(() =>
+      api.post<CoverageFileMutation>(
+        `/geo/coverageFile/${encodeURIComponent(fileId)}/restore`,
+        {
+          organization_id: organizationId,
+          expectedRevision,
+          idempotencyKey,
+          versionId,
+          moveBindings,
         },
       ),
     ),

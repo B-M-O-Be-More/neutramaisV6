@@ -220,9 +220,11 @@ describe("FormSellerOffer em modo edição", { timeout: 20_000 }, () => {
       await waitFor(() =>
         expect(productCatalogService.bindCoverage).toHaveBeenCalledWith(
           CONNECTIVITY.id,
-          OTHER,
-          null,
-          [],
+          {
+            coverageVersionId: OTHER,
+            publicGeometry: null,
+            coverageNetworkPoints: [],
+          },
         ),
       );
       expect(productCatalogService.updateOffering).not.toHaveBeenCalled();
@@ -376,6 +378,87 @@ describe("FormSellerOffer em modo edição", { timeout: 20_000 }, () => {
       expect(productCatalogService.updateOffering).toHaveBeenCalled();
       expect(productCatalogService.deleteImage).not.toHaveBeenCalled();
       expect(productCatalogService.reorderImages).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("tipo do produto (acompanha a categoria)", () => {
+    const hardwareCategory = () =>
+      screen.getByRole("radio", {
+        name: /SellerOfferCreate.categories.hardware.label/,
+      });
+
+    it("serviço que vira Hardware ganha a Logística e exige o pacote para salvar", async () => {
+      const { user } = renderEdit();
+
+      expect(
+        screen.queryByText("SellerOfferCreate.steps.logistics"),
+      ).not.toBeInTheDocument();
+
+      await user.click(hardwareCategory());
+
+      expect(
+        screen.getByText("SellerOfferCreate.steps.logistics"),
+      ).toBeInTheDocument();
+
+      // Sem o pacote, "Salvar alterações" barra na revisão.
+      await user.click(screen.getByText("SellerOfferCreate.steps.review"));
+      await user.click(
+        await screen.findByRole("button", {
+          name: /SellerOfferEdit.actions.save/,
+        }),
+      );
+      expect(
+        await screen.findByText(
+          "SellerOfferCreate.publish.errors.reviewInvalid",
+        ),
+      ).toBeInTheDocument();
+      expect(productCatalogService.updateOffering).not.toHaveBeenCalled();
+    });
+
+    it("produto físico abre a etapa Logística com o prazo e a origem salvos", async () => {
+      const hardware: ProductOffering = {
+        ...OFFERING,
+        specificationId: "spec-hardware",
+        name: "Roteador AX3000",
+        productType: "physical",
+        shipping: {
+          weightKg: "1.250",
+          heightCm: "10.00",
+          widthCm: "20.00",
+          lengthCm: "30.00",
+          originPostalCode: "60150161",
+          insuranceValue: null,
+          postingDays: 2,
+          packageSize: "custom",
+          weightEstimated: false,
+        },
+      };
+      const { user } = renderWithProviders(
+        <FormSellerOffer
+          mode="edit"
+          offering={hardware}
+          initialValues={offeringToFormValues(hardware, "Hardware / CPE")}
+          images={[]}
+          organizationId="org-1"
+          locale="pt-BR"
+          onCancel={vi.fn()}
+          onSaved={onSaved}
+        />,
+      );
+
+      await user.click(screen.getByText("SellerOfferCreate.steps.logistics"));
+
+      expect(
+        await screen.findByText("SellerOfferCreate.logistics.rulesTitle"),
+      ).toBeVisible();
+      expect(
+        screen.getByRole("radio", {
+          name: "SellerOfferCreate.logistics.dispatch.twoDays",
+        }),
+      ).toBeChecked();
+      expect(
+        screen.getByLabelText(/SellerOfferCreate.shipping.postalCodeLabel/),
+      ).toHaveValue("60150-161");
     });
   });
 

@@ -9,6 +9,7 @@ import { LuArrowRight, LuChevronLeft, LuCircleCheck } from "react-icons/lu";
 
 import SellerOfferBasicInfoStep from "@/components/SellerOfferBasicInfoStep";
 import SellerOfferCoverageStep from "@/components/SellerOfferCoverageStep";
+import SellerOfferLogisticsStep from "@/components/SellerOfferLogisticsStep";
 import SellerOfferPreview from "@/components/SellerOfferPreview";
 import SellerOfferPricingStep from "@/components/SellerOfferPricingStep";
 import SellerOfferReviewStep, {
@@ -36,6 +37,7 @@ import { useOfferingImagesEditor } from "@/hooks/useOfferingImagesEditor";
 import { usePublishOffering } from "@/hooks/usePublishOffering";
 import { useUpdateOffering } from "@/hooks/useUpdateOffering";
 import {
+  offerProductType,
   sellerOfferSchema,
   SELLER_OFFER_DEFAULTS,
   type SellerOfferValues,
@@ -46,61 +48,88 @@ import { FormSellerOfferProps } from "./interface";
 
 const NO_IMAGES: OfferingImage[] = [];
 
-const STEPS: { titleKey: string; fields: (keyof SellerOfferValues)[] }[] = [
-  {
-    titleKey: "SellerOfferCreate.steps.coverage",
-    fields: ["category", "locations", "coverageRegion"],
-  },
-  {
-    titleKey: "SellerOfferCreate.steps.basicInfo",
-    fields: ["name", "shortDescription", "description"],
-  },
-  {
-    titleKey: "SellerOfferCreate.steps.technicalSpecs",
-    fields: [
-      "speedValue",
-      "speedUnit",
-      "maxLatency",
-      "acceptanceSla",
-      "technicalSla",
-      "deliveryTime",
-      "hardwareManufacturer",
-      "hardwareModel",
-      "hardwareCondition",
-      "hardwareWarranty",
-      "hardwareSerialization",
-      "numberingResourceType",
-      "numberingBlock",
-      "numberingHolder",
-      "shippingWeightKg",
-      "shippingHeightCm",
-      "shippingWidthCm",
-      "shippingLengthCm",
-      "shippingOriginPostalCode",
-      "shippingInsuranceValue",
-    ],
-  },
-  {
-    titleKey: "SellerOfferCreate.steps.pricing",
-    fields: [
-      "pricingModel",
-      "currency",
-      "price",
-      "setupFee",
-      "stock",
-      "cancellationTerms",
-      "validUntil",
-      "sponsored",
-    ],
-  },
-  { titleKey: "SellerOfferCreate.steps.review", fields: [] },
+type StepKey =
+  | "coverage"
+  | "basicInfo"
+  | "technicalSpecs"
+  | "logistics"
+  | "pricing"
+  | "review";
+
+const STEP_FIELDS: Record<StepKey, (keyof SellerOfferValues)[]> = {
+  coverage: ["category", "locations", "coverageRegion"],
+  basicInfo: ["name", "shortDescription", "description"],
+  technicalSpecs: [
+    "speedValue",
+    "speedUnit",
+    "maxLatency",
+    "acceptanceSla",
+    "technicalSla",
+    "deliveryTime",
+    "hardwareManufacturer",
+    "hardwareModel",
+    "hardwareCondition",
+    "hardwareWarranty",
+    "hardwareSerialization",
+    "numberingResourceType",
+    "numberingBlock",
+    "numberingHolder",
+    "attributes",
+  ],
+  logistics: [
+    "shippingOriginPostalCode",
+    "shippingInsuranceValue",
+    "shippingDispatch",
+    "shippingOnDemandDays",
+    "shippingPackageSize",
+    "shippingHeightCm",
+    "shippingWidthCm",
+    "shippingLengthCm",
+    "shippingWeightKg",
+    "shippingMode",
+    "shippingExtraFee",
+    "shippingAutoTracking",
+    "shippingPickupAddress",
+    "shippingPickupHours",
+    "shippingCargoPrice",
+    "shippingCargoDays",
+  ],
+  pricing: [
+    "pricingModel",
+    "currency",
+    "price",
+    "setupFee",
+    "stock",
+    "cancellationTerms",
+    "validUntil",
+    "sponsored",
+  ],
+  review: [],
+};
+
+const SERVICE_STEPS: StepKey[] = [
+  "coverage",
+  "basicInfo",
+  "technicalSpecs",
+  "pricing",
+  "review",
+];
+// Produto físico (Hardware / CPE) ganha a Logística (Figma 2943-33503).
+const PHYSICAL_STEPS: StepKey[] = [
+  "coverage",
+  "basicInfo",
+  "technicalSpecs",
+  "logistics",
+  "pricing",
+  "review",
 ];
 
-const ALL_FIELDS = STEPS.flatMap((item) => item.fields);
+const fieldsOf = (keys: StepKey[]) => keys.flatMap((key) => STEP_FIELDS[key]);
 
 /**
  * Assistente de criação de oferta (Figma 2664-55368): indicador de etapas,
- * formulário à esquerda e preview do marketplace à direita.
+ * formulário à esquerda e preview do marketplace à direita. Produto físico
+ * (Hardware / CPE) tem a etapa Logística entre as especificações e o preço.
  *
  * As etapas ficam montadas (só a atual visível) para não perder o KMZ
  * enviado nem o mapa ao voltar. A oferta só é criada na revisão final
@@ -118,8 +147,6 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
   const initialValues = isEdit ? props.initialValues : undefined;
   const { t } = useTranslation();
   const [step, setStep] = React.useState(isEdit ? (props.initialStep ?? 0) : 0);
-  const lastStep = STEPS.length - 1;
-  const isReview = step === lastStep;
 
   const {
     control,
@@ -129,6 +156,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     getValues,
     getFieldState,
     resetField,
+    setValue,
     formState: { errors },
   } = useForm<SellerOfferValues>({
     resolver: yupResolver(sellerOfferSchema),
@@ -142,8 +170,8 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
   // Revalida todas as já validadas porque há regras entre etapas (a categoria
   // decide se o KMZ e a velocidade são obrigatórios).
   // Na edição os dados já existem: os erros acompanham desde o início.
-  const [validatedSteps, setValidatedSteps] = React.useState<number[]>(() =>
-    isEdit ? STEPS.map((_, index) => index) : [],
+  const [validatedSteps, setValidatedSteps] = React.useState<StepKey[]>(() =>
+    isEdit ? PHYSICAL_STEPS : [],
   );
   React.useEffect(
     () =>
@@ -151,7 +179,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
         formState: { values: true },
         callback: () => {
           if (!validatedSteps.length) return;
-          void trigger(validatedSteps.flatMap((index) => STEPS[index].fields));
+          void trigger(fieldsOf(validatedSteps));
         },
       }),
     [subscribe, trigger, validatedSteps],
@@ -159,6 +187,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
 
   const [
     category,
+    productType,
     name,
     shortDescription,
     acceptanceSla,
@@ -170,6 +199,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     control,
     name: [
       "category",
+      "productType",
       "name",
       "shortDescription",
       "acceptanceSla",
@@ -222,6 +252,12 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     });
   }, [savedPoints, getFieldState, resetField]);
   const requiresCoverage = !!offerCategory(category)?.requiresCoverage;
+  // O tipo acompanha a categoria (também na edição): Hardware tem Logística.
+  const isPhysical = offerProductType({ category, productType }) === "physical";
+  const steps = isPhysical ? PHYSICAL_STEPS : SERVICE_STEPS;
+  const lastStep = steps.length - 1;
+  const stepKey = steps[Math.min(step, lastStep)];
+  const isReview = stepKey === "review";
   // Capa do preview: a primeira foto (escolhida agora ou já salva).
   const cover = isEdit ? imagesEditor.items[0] : undefined;
   const coverObjectUrl = useObjectUrl(
@@ -246,7 +282,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
 
   const submitSave = async () => {
     if (props.mode !== "edit") return;
-    if (!(await trigger(ALL_FIELDS))) {
+    if (!(await trigger(fieldsOf(steps)))) {
       setNotice({
         tone: "error",
         messages: [t("SellerOfferCreate.publish.errors.reviewInvalid")],
@@ -280,7 +316,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     if (props.mode === "edit") return;
     const { onPublished } = props;
     // Revalida tudo antes de criar: alguma regra pode ter mudado de etapa.
-    if (!isLocked && !(await trigger(ALL_FIELDS))) {
+    if (!isLocked && !(await trigger(fieldsOf(steps)))) {
       setNotice({
         tone: "error",
         messages: [t("SellerOfferCreate.publish.errors.reviewInvalid")],
@@ -329,9 +365,9 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
       return;
     }
     setValidatedSteps((current) =>
-      current.includes(step) ? current : [...current, step],
+      current.includes(stepKey) ? current : [...current, stepKey],
     );
-    const valid = await trigger(STEPS[step].fields);
+    const valid = await trigger(STEP_FIELDS[stepKey]);
     if (valid) setStep((current) => Math.min(current + 1, lastStep));
   };
 
@@ -350,8 +386,8 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
       <Box px={{ base: 0, md: "8px" }} overflowX="auto">
         <Box minW="560px">
           <Stepper
-            steps={STEPS.map((item) => t(item.titleKey))}
-            step={step}
+            steps={steps.map((key) => t(`SellerOfferCreate.steps.${key}`))}
+            step={Math.min(step, lastStep)}
             onStepClick={goTo}
             variant="compact"
             accentColor="#8B5CF6"
@@ -381,7 +417,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
               void next();
             }}
           >
-            <Box hidden={step !== 0}>
+            <Box hidden={stepKey !== "coverage"}>
               <SellerOfferCoverageStep
                 control={control}
                 register={register}
@@ -392,7 +428,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
               />
             </Box>
 
-            <Box hidden={step !== 1}>
+            <Box hidden={stepKey !== "basicInfo"}>
               <SellerOfferBasicInfoStep
                 control={control}
                 register={register}
@@ -401,7 +437,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
               />
             </Box>
 
-            <Box hidden={step !== 2}>
+            <Box hidden={stepKey !== "technicalSpecs"}>
               <SellerOfferTechnicalSpecsStep
                 control={control}
                 register={register}
@@ -409,7 +445,18 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
               />
             </Box>
 
-            <Box hidden={step !== 3}>
+            {isPhysical && (
+              <Box hidden={stepKey !== "logistics"}>
+                <SellerOfferLogisticsStep
+                  control={control}
+                  errors={errors}
+                  setValue={setValue}
+                  locale={locale}
+                />
+              </Box>
+            )}
+
+            <Box hidden={stepKey !== "pricing"}>
               <SellerOfferPricingStep
                 control={control}
                 register={register}

@@ -30,12 +30,15 @@ describe("AppSidebar", () => {
     expect(itemLinks()).toEqual([
       "AppSidebar.items.searchNetwork",
       "AppSidebar.items.myNetworks",
+      "AppSidebar.items.contracts",
+      "AppSidebar.items.returns",
+      "AppSidebar.items.tickets",
       "AppSidebar.items.wallet",
       "AppSidebar.items.profile",
     ]);
   });
 
-  it("seller vê Buscar Rede, Minhas Ofertas, Carteira e Meu Perfil", () => {
+  it("seller vê Buscar Rede, Minhas Ofertas, Pedidos Recebidos, Ordens de Serviço, Perguntas, Carteira e Meu Perfil", () => {
     renderWithProviders(
       <AppSidebar user={{ name: "Maria Azevedo", personas: ["seller"] }} />,
     );
@@ -43,6 +46,9 @@ describe("AppSidebar", () => {
     expect(itemLinks()).toEqual([
       "AppSidebar.items.searchNetwork",
       "AppSidebar.items.sellerOffers",
+      "AppSidebar.items.receivedOrders",
+      "AppSidebar.items.serviceOrders",
+      "AppSidebar.items.questions",
       "AppSidebar.items.wallet",
       "AppSidebar.items.profile",
     ]);

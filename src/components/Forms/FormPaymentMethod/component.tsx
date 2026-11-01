@@ -39,11 +39,28 @@ const SECTION_TITLE = {
   lineHeight: "19.5px",
 } as const;
 
-// Campos do design: fundo cinza-claro e cantos de 14px.
-const FIELD = { h: "45px", bg: "#F8F9FB", fontSize: "13px" } as const;
+// Campos do design (Figma 2208-38295 / 2215-20288): fundo cinza-claro,
+// cantos de 14px e rótulo cinza de 12px, com o "*" na cor do rótulo.
+const FIELD = {
+  h: "45px",
+  px: "16px",
+  bg: "#F8F9FB",
+  fontSize: "13px",
+  _placeholder: { color: "rgba(10,10,10,0.5)" },
+  labelProps: {
+    color: "#5A6478",
+    fontSize: "12px",
+    lineHeight: "18px",
+    css: { "& .chakra-field__requiredIndicator": { color: "inherit" } },
+  },
+} as const;
+
+// Avisos dentro do formulário: 16px nas laterais.
+const HINT_PX = "16px";
 
 /**
- * Cadastro de método de pagamento (Figma 2208-37661 / 2215-20243): escolhe
+ * Cadastro de método de pagamento (Figma 2208-37661 / 2215-20243 /
+ * 2208-38295): escolhe
  * PIX ou cartão e preenche os dados do tipo. O formulário só valida — quem
  * usa decide o que fazer com os dados (`onSubmit`).
  */
@@ -265,6 +282,7 @@ export function FormPaymentMethod({
 
               <WalletHint
                 tone="green"
+                px={HINT_PX}
                 description={t("Wallet.addMethod.pix.hint")}
               />
             </Stack>
@@ -358,6 +376,7 @@ export function FormPaymentMethod({
 
               <WalletHint
                 tone="blue"
+                px={HINT_PX}
                 icon={LuShield}
                 description={t("Wallet.addMethod.card.hint")}
               />

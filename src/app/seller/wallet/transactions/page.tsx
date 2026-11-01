@@ -17,11 +17,12 @@ function SellerTransactionsContent() {
   );
 }
 
-// Histórico completo da carteira do seller (Figma 2208-35170).
+// Histórico completo da carteira do seller (Figma 2208-35170), com o token
+// do perfil Seller.
 export default function SellerWalletTransactionsPage() {
   return (
     <AuthenticatedLayout>
-      <SellerSessionProvider>
+      <SellerSessionProvider requiredPermission={null}>
         <SellerTransactionsContent />
       </SellerSessionProvider>
     </AuthenticatedLayout>

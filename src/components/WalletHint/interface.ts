@@ -12,4 +12,6 @@ export interface WalletHintProps {
   icon?: IconType;
   /** "notice": faixa da página, maior; "inline": dentro de um card. */
   size?: "notice" | "inline";
+  /** Margem lateral, quando a tela pede outra (ex.: no formulário, 16px). */
+  px?: string;
 }

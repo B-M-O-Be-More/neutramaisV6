@@ -5,7 +5,6 @@ import { rememberKmzFileName } from "@/functions/kmzFileNames";
 import { KmzParseError, parseKmz } from "@/functions/parseKmz";
 import {
   ConflictError,
-  NotFoundError,
   RateLimitError,
   ServerError,
   TimeoutError,
@@ -152,7 +151,7 @@ describe("SellerCoveragePanel (aba Cobertura)", () => {
     expect(geoCoverageService.uploadKmz).not.toHaveBeenCalled();
   });
 
-  it("salva a cobertura, lista com as ofertas vinculadas e abre os detalhes", async () => {
+  it("salva a cobertura, lista com as ofertas vinculadas e liga aos detalhes", async () => {
     let respond!: (version: typeof CREATED) => void;
     vi.mocked(geoCoverageService.uploadKmz).mockReturnValue(
       new Promise((resolve) => (respond = resolve)),
@@ -198,32 +197,16 @@ describe("SellerCoveragePanel (aba Cobertura)", () => {
       screen.getByText("SellerCoverage.form.dropTitle"),
     ).toBeInTheDocument();
 
-    await user.click(
-      within(row).getByRole("button", {
-        name: "SellerCoverage.list.detailsOf",
-      }),
-    );
-    const dialog = await screen.findByRole("dialog");
+    // "Detalhes" abre a página da cobertura, pelo arquivo lógico.
     expect(
-      within(dialog).getByText("SellerCoverage.details.fields.polygons"),
-    ).toBeInTheDocument();
-    expect(within(dialog).getByText("3")).toBeInTheDocument();
-    // A geometria lida no envio dispensa baixar o original.
+      within(row).getByRole("link", { name: "SellerCoverage.list.detailsOf" }),
+    ).toHaveAttribute("href", `/seller/coverage/${VERSION}`);
     expect(geoCoverageService.downloadOriginal).not.toHaveBeenCalled();
   });
 
   describe("coberturas já enviadas (GET /coverageFile)", () => {
     const FILE = "0193f1e2-0000-7c8d-9e0f-1a2b3c4d5e6f";
     const LISTED = { ...CREATED, logicalFileId: FILE };
-
-    const openDetails = async (user: { click: (el: Element) => unknown }) => {
-      await user.click(
-        await screen.findByRole("button", {
-          name: "SellerCoverage.list.detailsOf",
-        }),
-      );
-      return screen.findByRole("dialog");
-    };
 
     beforeEach(() => {
       vi.mocked(geoCoverageService.listFiles).mockResolvedValue({
@@ -264,59 +247,17 @@ describe("SellerCoveragePanel (aba Cobertura)", () => {
       ).toBeInTheDocument();
     });
 
-    it("nos detalhes, baixa o KMZ original e o lê para o mapa", async () => {
-      vi.mocked(geoCoverageService.downloadOriginal).mockResolvedValue(
-        new Blob([new Uint8Array(2048)]),
-      );
-      const { user } = renderPanel();
-
-      const dialog = await openDetails(user);
-
-      await waitFor(() =>
-        expect(geoCoverageService.downloadOriginal).toHaveBeenCalledWith(
-          FILE,
-          ORGANIZATION,
-          { versionId: VERSION, signal: expect.anything() },
-        ),
-      );
-      expect(parseKmz).toHaveBeenCalledWith(expect.any(File));
-      // Contagens lidas do original.
-      expect(await within(dialog).findByText("3")).toBeInTheDocument();
-      expect(
-        within(dialog).queryByText(/SellerOfferCreate.coverage.preview/),
-      ).not.toBeInTheDocument();
-    });
-
-    it("versão sem original retido explica a falta do mapa sem baixar", async () => {
-      vi.mocked(geoCoverageService.getVersion).mockResolvedValue({
-        ...LISTED,
-        originalAvailable: false,
-      });
-      const { user } = renderPanel();
-
-      const dialog = await openDetails(user);
+    it("Detalhes leva à página do arquivo, sem baixar o original na lista", async () => {
+      renderPanel();
 
       expect(
-        await within(dialog).findByText(
-          "SellerOfferCreate.coverage.preview.noOriginal",
-        ),
-      ).toBeInTheDocument();
+        await screen.findByRole("link", {
+          name: "SellerCoverage.list.detailsOf",
+        }),
+      ).toHaveAttribute("href", `/seller/coverage/${FILE}`);
+      // O original só é baixado na página da cobertura, a pedido.
       expect(geoCoverageService.downloadOriginal).not.toHaveBeenCalled();
-    });
-
-    it("original ausente na geo-api (404) também explica a falta do mapa", async () => {
-      vi.mocked(geoCoverageService.downloadOriginal).mockRejectedValue(
-        new NotFoundError(404),
-      );
-      const { user } = renderPanel();
-
-      const dialog = await openDetails(user);
-
-      expect(
-        await within(dialog).findByText(
-          "SellerOfferCreate.coverage.preview.noOriginal",
-        ),
-      ).toBeInTheDocument();
+      expect(parseKmz).not.toHaveBeenCalled();
     });
 
     it("falha da listagem mostra o erro e tenta de novo", async () => {

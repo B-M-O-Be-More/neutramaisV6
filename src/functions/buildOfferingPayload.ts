@@ -1,12 +1,18 @@
 import { parseDecimal } from "@/functions/parseDecimal";
 import {
+  isBlankOfferAttribute,
+  offerAttributeValues,
   offerProductType,
   postalCodeDigits,
+  postingDaysOf,
+  type OfferShippingMode,
   type SellerOfferValues,
 } from "@/schemas/sellerOffer";
 import type {
   CreateOfferingInput,
   OfferingShippingInput,
+  OfferingShippingMode,
+  OfferingShippingPolicy,
   ProductOffering,
   UpdateOfferingInput,
 } from "@/services/productCatalog.service";
@@ -26,6 +32,8 @@ export const OFFERING_METADATA_KEYS = [
   "validUntil",
   "hardware",
   "numbering",
+  "additionalProps",
+  "shippingPolicy",
 ] as const;
 
 /** "1.890,00" → "1890.00" (formato decimal que a marketplace-api espera). */
@@ -54,7 +62,8 @@ const roundTo = (value: string, digits: number) =>
 
 /**
  * Pacote de envio do produto físico (Hardware / CPE): uma unidade embalada.
- * Peso com 3 casas, medidas e seguro com 2; CEP só com os dígitos.
+ * Peso com 3 casas, medidas e seguro com 2; CEP só com os dígitos. Vai também
+ * o tempo para postagem e o tamanho da embalagem (RN-LOG-01).
  */
 export function buildOfferingShipping(
   values: SellerOfferValues,
@@ -65,10 +74,75 @@ export function buildOfferingShipping(
     widthCm: roundTo(values.shippingWidthCm, 2),
     lengthCm: roundTo(values.shippingLengthCm, 2),
     originPostalCode: postalCodeDigits(values.shippingOriginPostalCode) ?? "",
+    postingDays: postingDaysOf(
+      values.shippingDispatch,
+      values.shippingOnDemandDays,
+    ),
+    packageSize: values.shippingPackageSize,
     ...(values.shippingInsuranceValue.trim()
       ? { insuranceValue: roundTo(values.shippingInsuranceValue, 2) }
       : {}),
   };
+}
+
+/** Modalidade do formulário → da API. */
+export const SHIPPING_MODE_TO_API: Record<
+  OfferShippingMode,
+  OfferingShippingMode
+> = {
+  integration: "integration",
+  freeShipping: "free_shipping",
+  pickup: "pickup",
+  cargo: "cargo",
+  toBeAgreed: "to_be_agreed",
+};
+
+/**
+ * Política de frete (`metadata.shippingPolicy`). As flags acompanham a
+ * modalidade; o acréscimo só vale onde há cotação da transportadora
+ * (integração e carga); retirada e frete de carga só levam os próprios
+ * campos — a API recusa os de outra modalidade.
+ */
+export function buildShippingPolicy(
+  values: SellerOfferValues,
+): OfferingShippingPolicy {
+  const mode = values.shippingMode;
+  const isCargo = mode === "cargo";
+  const isPickup = mode === "pickup";
+  const hasCargoQuote =
+    isCargo && !!values.shippingCargoPrice && !!values.shippingCargoDays;
+  const pickupText = (value: string) =>
+    isPickup && value.trim() ? value.trim() : null;
+  return {
+    mode: SHIPPING_MODE_TO_API[mode],
+    sellerMarkup:
+      mode === "integration" || isCargo
+        ? toApiDecimal(values.shippingExtraFee)
+        : "0.00",
+    freeShipping: mode === "freeShipping",
+    pickup: isPickup,
+    pickupAddress: pickupText(values.shippingPickupAddress),
+    pickupHours: pickupText(values.shippingPickupHours),
+    automaticTracking: values.shippingAutoTracking,
+    autoAccept: values.shippingAutoAccept,
+    cargoPrice: hasCargoQuote ? toApiDecimal(values.shippingCargoPrice) : null,
+    cargoDeliveryDays: hasCargoQuote ? Number(values.shippingCargoDays) : null,
+  };
+}
+
+/**
+ * Atributos da oferta (`metadata.additionalProps`): linhas vazias ficam de
+ * fora; os valores viram lista. Sem atributos, a chave não vai.
+ */
+function buildAdditionalProps(values: SellerOfferValues) {
+  const attributes = values.attributes
+    .filter((attribute) => !isBlankOfferAttribute(attribute))
+    .map((attribute) => ({
+      name: attribute.name.trim(),
+      type: attribute.type,
+      values: offerAttributeValues(attribute.values),
+    }));
+  return attributes.length ? attributes : undefined;
 }
 
 /**
@@ -87,6 +161,7 @@ function offeringFields(
 ): Omit<CreateOfferingInput, "productType"> {
   const hasSpeed =
     values.category !== "numberingResources" && !!values.speedValue?.trim();
+  const isPhysical = offerProductType(values) === "physical";
 
   const metadata = compact({
     shortDescription: values.shortDescription.trim(),
@@ -122,6 +197,8 @@ function offeringFields(
             holder: values.numberingHolder.trim(),
           })
         : undefined,
+    additionalProps: buildAdditionalProps(values),
+    shippingPolicy: isPhysical ? buildShippingPolicy(values) : undefined,
   });
 
   return {
@@ -132,9 +209,7 @@ function offeringFields(
     speed: hasSpeed ? `${values.speedValue.trim()} ${values.speedUnit}` : null,
     metadata: metadata ?? null,
     // Serviço com `shipping` volta 422: só o produto físico manda o pacote.
-    ...(offerProductType(values) === "physical"
-      ? { shipping: buildOfferingShipping(values) }
-      : {}),
+    ...(isPhysical ? { shipping: buildOfferingShipping(values) } : {}),
   };
 }
 
@@ -156,8 +231,9 @@ export function buildOfferingPayload(
 /**
  * Corpo de `PATCH /productOffering/{id}` na edição. As chaves do assistente
  * no `metadata` são reescritas (campo apagado some); as demais — de outras
- * telas ou integrações — ficam como estavam. O tipo do produto não muda; o
- * produto físico reenvia o pacote de envio inteiro.
+ * telas ou integrações — ficam como estavam. O produto físico reenvia o
+ * pacote de envio inteiro. `productType` só vai quando a categoria troca o
+ * tipo (ex.: Software → Hardware / CPE vira `physical`, com o pacote).
  */
 export function buildOfferingUpdate(
   values: SellerOfferValues,
@@ -171,5 +247,12 @@ export function buildOfferingUpdate(
       ([key]) => !managed.has(key),
     ),
   );
-  return { ...payload, metadata: { ...kept, ...payload.metadata } };
+  const productType = offerProductType(values);
+  return {
+    ...payload,
+    ...(productType !== (offering.productType ?? "service")
+      ? { productType }
+      : {}),
+    metadata: { ...kept, ...payload.metadata },
+  };
 }

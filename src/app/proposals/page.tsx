@@ -19,6 +19,8 @@ import RfqCard, { type RfqCardAction } from "@/components/RfqCard";
 import RfqCreateDialog from "@/components/RfqCreateDialog";
 import { toaster } from "@/components/ui/toaster";
 import { currencyLocale } from "@/functions/currencyLocale";
+import { downloadTextFile } from "@/functions/downloadTextFile";
+import { rfqToCsv } from "@/functions/rfqCsv";
 import { useDirectProposals } from "@/hooks/useDirectProposals";
 import { useRfqs } from "@/hooks/useRfqs";
 import type { ProposalCancelValues } from "@/schemas/proposals";
@@ -169,6 +171,10 @@ function ProposalsContent() {
       setRfqsToCancel([item.id]);
       return;
     }
+    if (action === "export") {
+      downloadTextFile(`${item.id}.csv`, rfqToCsv(item), "text/csv");
+      return;
+    }
     if (action === "newRfq") {
       // Refaz a RFQ com os mesmos dados; o buyer ajusta o que quiser.
       openWizard({
@@ -278,8 +284,10 @@ function ProposalsContent() {
             {t("Proposals.subtitle")}
           </Text>
         </Stack>
+        {/* Figma 3084-44815. */}
         <Button
-          h="37px"
+          h="41px"
+          minW="131px"
           px="12px"
           gap="8px"
           rounded="14px"

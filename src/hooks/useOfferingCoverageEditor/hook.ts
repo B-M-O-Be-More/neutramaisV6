@@ -2,6 +2,7 @@
 
 import React from "react";
 
+import { savedAreaIndexesOf } from "@/functions/coverageAreas";
 import { isPublicGeometry } from "@/functions/geoShapes";
 import {
   coverageNetworkPointsOf,
@@ -49,15 +50,17 @@ function confirmErrorKey(error: unknown): string {
  * cobertura não segue o "Salvar alterações": "Confirmar cobertura" vincula
  * na hora com `PUT /productOffering/{id}/coverageVersion` — o
  * `coverageVersionId` é o `activeVersionId` do KMZ escolhido na listagem
- * (`/coverageFile`). Cobertura total vai sem `publicGeometry`; a editada
- * leva o polígono desenhado.
+ * (`/coverageFile`). Cobertura total vai sem recorte; a editada leva o
+ * polígono desenhado (`publicGeometry`) e a por áreas, os índices das áreas
+ * escolhidas do KMZ (`coverageAreaIndexes`).
  *
  * As localidades de atendimento do formulário (`formPoints`) vão junto,
  * como `coverageNetworkPoints` (ponto + raio em metros).
  *
  * Com versão vinculada, o salvo vem da geo-api
- * (`GET /offerCoverage/{offeringId}`): com `publicGeometry`, a tela abre na
- * cobertura editada, com os polígonos marcados; sem ele, na área toda. Os
+ * (`GET /offerCoverage/{offeringId}`): com `publicSelection.areaIndexes`, a
+ * tela abre nas áreas escolhidas; com `publicGeometry`, na cobertura
+ * editada, com os polígonos marcados; sem eles, na área toda. Os
  * `coverageNetworkPoints` salvos voltam em `savedPoints`, para o formulário preencher
  * as localidades. Sem `offering` (criação), o hook fica sem uso.
  */
@@ -107,15 +110,21 @@ export function useOfferingCoverageEditor(
         setSavedPoints(points);
         setPointsKnown(true);
         if (touchedRef.current) return;
-        // O polígono só vale sobre o KMZ que a oferta tem vinculado.
-        if (
-          coverage?.coverageVersionId === initialVersionId &&
-          isPublicGeometry(coverage.publicGeometry)
-        ) {
+        // O recorte só vale sobre o KMZ que a oferta tem vinculado.
+        if (coverage?.coverageVersionId !== initialVersionId) return;
+        const geometry = isPublicGeometry(coverage.publicGeometry)
+          ? coverage.publicGeometry
+          : null;
+        const areaIndexes = savedAreaIndexesOf(coverage.publicSelection);
+        if (areaIndexes) {
+          // O recorte salvo é a união das áreas: serve de prévia no mapa.
           setScopeState({
-            mode: "custom",
-            publicGeometry: coverage.publicGeometry,
+            mode: "areas",
+            publicGeometry: geometry,
+            areaIndexes,
           });
+        } else if (geometry) {
+          setScopeState({ mode: "custom", publicGeometry: geometry });
         }
       })
       .catch((error) => {
@@ -137,7 +146,9 @@ export function useOfferingCoverageEditor(
   const scopeError =
     scope.mode === "custom" && !scope.publicGeometry
       ? "SellerOfferCreate.errors.publicGeometryRequired"
-      : undefined;
+      : scope.mode === "areas" && !scope.areaIndexes?.length
+        ? "SellerOfferCreate.errors.coverageAreasRequired"
+        : undefined;
   const pointsError = formPoints.invalid
     ? "SellerOfferCoverage.errors.pointsInvalid"
     : undefined;
@@ -182,12 +193,13 @@ export function useOfferingCoverageEditor(
     const points = formPoints.points;
     const sendPoints = pointsKnown || points.length > 0;
     try {
-      await productCatalogService.bindCoverage(
-        offeringId,
-        versionId,
-        scope.mode === "custom" ? scope.publicGeometry : null,
-        sendPoints ? points : undefined,
-      );
+      await productCatalogService.bindCoverage(offeringId, {
+        coverageVersionId: versionId,
+        publicGeometry: scope.mode === "custom" ? scope.publicGeometry : null,
+        coverageAreaIndexes:
+          scope.mode === "areas" ? scope.areaIndexes : undefined,
+        coverageNetworkPoints: sendPoints ? points : undefined,
+      });
       setBoundVersionId(versionId);
       setScopeChanged(false);
       if (sendPoints) {

@@ -39,6 +39,7 @@ export function WalletHint({
   description,
   icon,
   size = "inline",
+  px,
 }: WalletHintProps) {
   const colors = TONES[tone];
   const isNotice = size === "notice";
@@ -47,7 +48,7 @@ export function WalletHint({
     <Flex
       gap={isNotice ? "12px" : "8px"}
       align={title ? "flex-start" : "center"}
-      px={isNotice ? "20px" : "12px"}
+      px={px ?? (isNotice ? "20px" : "12px")}
       py={isNotice ? "16px" : "12px"}
       bg={colors.bg}
       borderWidth="1px"

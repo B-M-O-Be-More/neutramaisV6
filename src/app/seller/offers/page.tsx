@@ -60,11 +60,11 @@ const INITIAL_FILTERS: SellerOffersFiltersValue = {
   status: "all",
 };
 
-function SellerOffersContent() {
+function SellerOffersContent({ initialTab }: { initialTab: SellerCatalogTab }) {
   const { t, i18n } = useTranslation();
   const locale = currencyLocale(i18n.language);
   const { organizationId, context } = useSellerSession();
-  const [tab, setTab] = React.useState<SellerCatalogTab>("catalog");
+  const [tab, setTab] = React.useState<SellerCatalogTab>(initialTab);
   const [filters, setFilters] =
     React.useState<SellerOffersFiltersValue>(INITIAL_FILTERS);
   const [page, setPage] = React.useState(1);
@@ -348,11 +348,19 @@ function SellerOffersContent() {
 
 // Catálogo do seller (Figma 2073-35059 vazio; 2096-26025 com ofertas): KPIs,
 // filtros por nome/categoria/status e os cards com as ações do ciclo de vida.
-export default function SellerOffersPage() {
+// `?tab=coverage` abre a aba Cobertura (volta do detalhe de uma cobertura).
+export default function SellerOffersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = React.use(searchParams);
+  const initialTab = AVAILABLE_TABS.find((key) => key === tab) ?? "catalog";
+
   return (
     <AuthenticatedLayout>
       <SellerSessionProvider>
-        <SellerOffersContent />
+        <SellerOffersContent initialTab={initialTab} />
       </SellerSessionProvider>
     </AuthenticatedLayout>
   );

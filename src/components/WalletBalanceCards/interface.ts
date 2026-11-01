@@ -4,6 +4,11 @@ export interface WalletIndicator {
   caption: string;
   /** Esqueleto no lugar do valor enquanto a fonte carrega. */
   isLoading?: boolean;
+  /** Rótulo e ajuda no lugar dos padrões (ex.: os do seller). */
+  label?: string;
+  help?: string;
+  /** Valor negativo: em vermelho, com o card de alerta (Figma 3084-45182). */
+  negative?: boolean;
 }
 
 export interface WalletBalanceCardsData {

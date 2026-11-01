@@ -14,15 +14,20 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { LuInfo, LuPentagon } from "react-icons/lu";
+import { LuInfo, LuLayers, LuPentagon } from "react-icons/lu";
 
 import AddressAutocomplete from "@/components/AddressAutocomplete";
+import CoverageAreaList from "@/components/CoverageAreaList";
 import CoverageDrawMap from "@/components/CoverageDrawMap";
 import CoverageShapeCard from "@/components/CoverageShapeCard";
 import CoverageShapeList, {
   type CoverageShapeIssue,
   type CoverageShapeSummary,
 } from "@/components/CoverageShapeList";
+import {
+  COVERAGE_AREAS_MAX,
+  selectedAreasGeometry,
+} from "@/functions/coverageAreas";
 import {
   closedPolygon,
   hasArea,
@@ -35,6 +40,7 @@ import {
   type LngLat,
 } from "@/functions/geoShapes";
 import { KMZ_COLORS, kmzGeometryKinds } from "@/functions/kmzLayers";
+import { useCoverageAreas } from "@/hooks/useCoverageAreas";
 import {
   COVERAGE_SCOPE_MODES,
   type CoverageScopeMode,
@@ -71,12 +77,14 @@ const SWATCH = {
 
 /**
  * Modal "Escolher cobertura" (Figma 2697-43374 / 2697-43449): usa toda a
- * cobertura do KMZ ou desenha no mapa um ou mais polígonos públicos da
- * oferta. A escolha só vai para o formulário ao confirmar.
+ * cobertura do KMZ, escolhe áreas (placemarks) do KMZ — na lista ou no
+ * mapa — ou desenha no mapa um ou mais polígonos públicos da oferta. A
+ * escolha só vai para o formulário ao confirmar.
  */
 export function CoverageScopeDialog({
   open,
   coverage,
+  versionId,
   value,
   onConfirm,
   onClose,
@@ -107,6 +115,7 @@ export function CoverageScopeDialog({
           >
             <CoverageScopeBody
               coverage={coverage}
+              versionId={versionId}
               value={value}
               onConfirm={onConfirm}
             />
@@ -125,11 +134,21 @@ export function CoverageScopeDialog({
 
 function CoverageScopeBody({
   coverage,
+  versionId,
   value,
   onConfirm,
-}: Pick<CoverageScopeDialogProps, "coverage" | "value" | "onConfirm">) {
+}: Pick<
+  CoverageScopeDialogProps,
+  "coverage" | "versionId" | "value" | "onConfirm"
+>) {
   const { t, i18n } = useTranslation();
   const [mode, setMode] = React.useState<CoverageScopeMode>(value.mode);
+  const [areaIndexes, setAreaIndexes] = React.useState<number[]>(
+    () => value.areaIndexes ?? [],
+  );
+  // As áreas só são buscadas quando o seller abre o modo por áreas.
+  const [wantsAreas, setWantsAreas] = React.useState(value.mode === "areas");
+  const areaList = useCoverageAreas(wantsAreas ? versionId : null);
   const [shapes, setShapes] = React.useState<LngLat[][]>(() =>
     shapesOf(value.publicGeometry),
   );
@@ -175,7 +194,13 @@ function CoverageScopeBody({
   );
   const drawing = draft.length > 0;
   const canConfirm =
-    mode === "full" || (shapes.length > 0 && !issues.length && !drawing);
+    mode === "full" ||
+    (mode === "areas"
+      ? areaIndexes.length > 0 &&
+        areaIndexes.length <= COVERAGE_AREAS_MAX &&
+        !areaList.isLoading &&
+        !areaList.error
+      : shapes.length > 0 && !issues.length && !drawing);
   const selectedShape = selected === null ? null : summaries[selected];
 
   const kinds = React.useMemo(() => kmzGeometryKinds(coverage), [coverage]);
@@ -190,10 +215,20 @@ function CoverageScopeBody({
     ...(kinds.has("point")
       ? [{ key: "points", shape: "point", color: KMZ_COLORS.point } as const]
       : []),
+    ...(mode === "areas"
+      ? [{ key: "areas", shape: "area", color: "#1F5AFF" } as const]
+      : []),
     ...(mode === "custom"
       ? [{ key: "custom", shape: "area", color: "#1F5AFF" } as const]
       : []),
   ];
+
+  const toggleArea = (index: number) =>
+    setAreaIndexes((current) =>
+      current.includes(index)
+        ? current.filter((item) => item !== index)
+        : [...current, index],
+    );
 
   const removeShape = (index: number) => {
     setShapes((current) => current.filter((_, i) => i !== index));
@@ -215,13 +250,19 @@ function CoverageScopeBody({
   const status =
     mode === "full"
       ? t("SellerOfferCreate.coverageScope.status.full")
-      : drawing
-        ? t("SellerOfferCreate.coverageScope.status.closing")
-        : shapes.length
-          ? t("SellerOfferCreate.coverageScope.status.custom", {
-              count: shapes.length,
+      : mode === "areas"
+        ? areaIndexes.length
+          ? t("SellerOfferCreate.coverageScope.status.areas", {
+              count: areaIndexes.length,
             })
-          : t("SellerOfferCreate.coverageScope.status.drawing");
+          : t("SellerOfferCreate.coverageScope.status.areasEmpty")
+        : drawing
+          ? t("SellerOfferCreate.coverageScope.status.closing")
+          : shapes.length
+            ? t("SellerOfferCreate.coverageScope.status.custom", {
+                count: shapes.length,
+              })
+            : t("SellerOfferCreate.coverageScope.status.drawing");
 
   return (
     <>
@@ -254,9 +295,11 @@ function CoverageScopeBody({
           <Stack gap="20px" w={{ base: "full", lg: "300px" }} flexShrink={0}>
             <RadioGroup.Root
               value={mode}
-              onValueChange={(details) =>
-                setMode(details.value as CoverageScopeMode)
-              }
+              onValueChange={(details) => {
+                const next = details.value as CoverageScopeMode;
+                setMode(next);
+                if (next === "areas") setWantsAreas(true);
+              }}
               aria-labelledby="coverage-scope-type"
             >
               <Text
@@ -337,6 +380,34 @@ function CoverageScopeBody({
                   </Text>
                 </Stack>
               </Flex>
+            ) : mode === "areas" ? (
+              <>
+                <Flex gap="12px" p="16px" bg="#EEF3FF" rounded="12px">
+                  <Icon as={LuLayers} boxSize="16px" color="#1F5AFF" mt="2px" />
+                  <Stack gap="2px">
+                    <Text
+                      color="#1F5AFF"
+                      fontSize="13px"
+                      fontWeight={700}
+                      lineHeight="19.5px"
+                    >
+                      {t("SellerOfferCreate.coverageScope.areasTitle")}
+                    </Text>
+                    <Text color="#5A6478" fontSize="12px" lineHeight="18px">
+                      {t("SellerOfferCreate.coverageScope.areasText")}
+                    </Text>
+                  </Stack>
+                </Flex>
+                <CoverageAreaList
+                  areas={areaList.areas}
+                  selected={areaIndexes}
+                  onChange={setAreaIndexes}
+                  isLoading={areaList.isLoading}
+                  error={areaList.error}
+                  truncated={areaList.truncated}
+                  locale={i18n.language}
+                />
+              </>
             ) : (
               <>
                 <AddressAutocomplete
@@ -429,6 +500,9 @@ function CoverageScopeBody({
                 onSelect={setSelected}
                 onCancelDraft={() => setDraft([])}
                 onClear={clearShapes}
+                areas={areaList.areas}
+                selectedAreas={areaIndexes}
+                onToggleArea={toggleArea}
                 label={t("SellerOfferCreate.coverageScope.mapTitle")}
               />
               {mode === "custom" && selected !== null && selectedShape && (
@@ -521,11 +595,22 @@ function CoverageScopeBody({
             disabled={!canConfirm}
             _disabled={{ opacity: 0.5, cursor: "not-allowed" }}
             onClick={() =>
-              onConfirm({
-                mode,
-                publicGeometry:
-                  mode === "custom" ? toPublicGeometry(shapes) : null,
-              })
+              onConfirm(
+                mode === "areas"
+                  ? {
+                      mode,
+                      publicGeometry: selectedAreasGeometry(
+                        areaList.areas,
+                        areaIndexes,
+                      ),
+                      areaIndexes,
+                    }
+                  : {
+                      mode,
+                      publicGeometry:
+                        mode === "custom" ? toPublicGeometry(shapes) : null,
+                    },
+              )
             }
           >
             {t("SellerOfferCreate.coverageScope.confirm")}

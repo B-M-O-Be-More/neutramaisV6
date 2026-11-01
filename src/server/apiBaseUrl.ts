@@ -16,7 +16,9 @@ export type ApiService =
   | "marketplace"
   | "compliance"
   | "geo"
-  | "wallet";
+  | "wallet"
+  | "orders"
+  | "payment";
 
 /** Caminho (com a versão) de cada serviço no host da `API_BASE_URL`. */
 export const API_SERVICE_PATHS: Record<ApiService, string> = {
@@ -25,6 +27,8 @@ export const API_SERVICE_PATHS: Record<ApiService, string> = {
   compliance: "/compliance/api/v1",
   geo: "/geo/api/v2",
   wallet: "/wallet/api/v2",
+  orders: "/orders/api/v2",
+  payment: "/payment/api/v2",
 };
 
 /** Variável que sobrescreve a URL de cada serviço (opcional). */
@@ -34,6 +38,8 @@ export const API_SERVICE_OVERRIDES: Record<ApiService, string> = {
   compliance: "COMPLIANCE_API_URL",
   geo: "GEO_API_URL",
   wallet: "WALLET_API_URL",
+  orders: "ORDERS_API_URL",
+  payment: "PAYMENT_API_URL",
 };
 
 const withoutTrailingSlash = (url: string) => url.replace(/\/+$/, "");

@@ -3,6 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import WalletOverview from "@/components/WalletOverview";
 import { ForbiddenError } from "@/services/errors";
 import {
+  sellerPayoutService,
+  type SellerReceivable,
+} from "@/services/sellerPayout.service";
+import {
   walletService,
   type WalletTransaction,
 } from "@/services/wallet.service";
@@ -12,6 +16,27 @@ import { renderWithProviders, screen } from "../test-utils";
 vi.mock("@/services/wallet.service", () => ({
   walletService: { getBalance: vi.fn(), listTransactions: vi.fn() },
 }));
+
+vi.mock("@/services/sellerPayout.service", () => ({
+  sellerPayoutService: {
+    listReceivables: vi.fn(),
+    listShippingCostDebts: vi.fn(),
+  },
+}));
+
+const receivable = (overrides: Partial<SellerReceivable> = {}) => ({
+  allocationId: "a-1",
+  orderId: "o-1",
+  sellerOrganizationId: "org-1",
+  currency: "BRL",
+  grossMinor: 1_890_000,
+  feeMinor: 210_000,
+  netMinor: 1_680_000,
+  eligible: false,
+  batchId: null,
+  cancellationId: null,
+  ...overrides,
+});
 
 const NOW = new Date("2026-10-29T10:00:00");
 const at = (iso: string) => Math.floor(new Date(iso).getTime() / 1000);
@@ -38,9 +63,10 @@ function transaction(
 
 const TRANSACTIONS = [
   transaction("1"),
+  // A wallet-api devolve o débito negativo.
   transaction("2", {
     kind: "debit",
-    amountMinor: 10999,
+    amountMinor: -10999,
     cancellationId: null,
     createdAt: at("2026-10-20T12:00:00"),
   }),
@@ -68,6 +94,14 @@ describe("WalletOverview", () => {
       items: TRANSACTIONS,
       nextCursor: null,
     });
+    vi.mocked(sellerPayoutService.listReceivables).mockResolvedValue([
+      receivable(),
+      // Já repassado: só a taxa conta.
+      receivable({ allocationId: "a-2", batchId: "batch-1" }),
+      // Cancelado: fica de fora.
+      receivable({ allocationId: "a-3", cancellationId: "c-1" }),
+    ]);
+    vi.mocked(sellerPayoutService.listShippingCostDebts).mockResolvedValue([]);
   });
 
   it("mostra o saldo, o movimento do mês e os últimos lançamentos", async () => {
@@ -110,9 +144,11 @@ describe("WalletOverview", () => {
     expect(
       screen.getByRole("link", { name: "Wallet.transactions.viewAll" }),
     ).toHaveAttribute("href", "/wallet/transactions");
+    // A carteira do buyer não lê os recebimentos do seller.
+    expect(sellerPayoutService.listReceivables).not.toHaveBeenCalled();
   });
 
-  it("seller vê o aviso, as contas de recebimento e as ações bloqueadas", async () => {
+  it("seller vê o aviso, as contas de recebimento e Sacar", async () => {
     const { user } = renderWallet("seller");
 
     expect(
@@ -120,11 +156,14 @@ describe("WalletOverview", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Wallet.methods.payoutTitle")).toBeInTheDocument();
     expect(
+      screen.queryByText("Wallet.methods.paymentTitle"),
+    ).not.toBeInTheDocument();
+    expect(
       screen.getByRole("button", { name: "Wallet.seller.advance" }),
     ).toBeDisabled();
     expect(
-      screen.getByRole("button", { name: "Wallet.seller.payout" }),
-    ).toBeDisabled();
+      screen.getByRole("link", { name: "Wallet.seller.payout" }),
+    ).toHaveAttribute("href", "/seller/wallet/withdraw");
 
     // Conta de recebimento abre o cadastro direto no PIX.
     const payoutLinks = screen
@@ -141,6 +180,71 @@ describe("WalletOverview", () => {
     expect(
       screen.queryByText("Wallet.seller.notice.title"),
     ).not.toBeInTheDocument();
+  });
+
+  it("seller vê o a receber e as taxas da payment-api", async () => {
+    renderWallet("seller");
+
+    // A receber: só o recebível fora de lote e não cancelado.
+    expect(await screen.findByText("R$ 16.800")).toBeInTheDocument();
+    expect(
+      screen.getByText("Wallet.seller.balance.toReceive.label"),
+    ).toBeInTheDocument();
+    // Taxas: os dois não cancelados.
+    expect(screen.getByText("R$ 4.200,00")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Wallet.seller.debt.message"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("seller com dívida de frete vê o aviso com o total", async () => {
+    vi.mocked(sellerPayoutService.listShippingCostDebts).mockResolvedValue([
+      {
+        reference: "shipping-cost:o-1:1",
+        orderId: "o-1",
+        sellerOrganizationId: "org-1",
+        currency: "BRL",
+        amountMinor: 1_000_000,
+        eventId: "e-1",
+        occurredAt: "2026-10-28T14:05:11Z",
+        status: "recorded",
+        automaticallyDeducted: false,
+      },
+    ]);
+
+    renderWallet("seller");
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Wallet.seller.debt.message",
+    );
+  });
+
+  it("seller sem payment:read vê o motivo nos cards de recebimento", async () => {
+    vi.mocked(sellerPayoutService.listReceivables).mockRejectedValue(
+      new ForbiddenError(403),
+    );
+
+    renderWallet("seller");
+
+    expect(
+      await screen.findAllByText("Wallet.seller.errors.receivablesForbidden"),
+    ).toHaveLength(2);
+  });
+
+  it("seller troca a moeda do histórico", async () => {
+    const { user } = renderWallet("seller");
+
+    await user.selectOptions(
+      await screen.findByRole("combobox", {
+        name: "Wallet.transactions.currency",
+      }),
+      "USD",
+    );
+
+    expect(walletService.listTransactions).toHaveBeenCalledWith(
+      { currency: "USD", limit: 5 },
+      expect.anything(),
+    );
   });
 
   it("explica quando o perfil não tem acesso à carteira", async () => {

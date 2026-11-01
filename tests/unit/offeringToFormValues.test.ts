@@ -38,6 +38,9 @@ const OFFERING: ProductOffering = {
     stock: 3,
     cancellationTerms: "30 dias corridos",
     validUntil: "2026-12-31",
+    additionalProps: [
+      { name: "Velocidade", type: "mbps", values: ["100mbps", "500mbps"] },
+    ],
     // Chave de outra integração: precisa sobreviver à edição.
     externalRef: "ERP-77",
   },
@@ -64,7 +67,35 @@ describe("offeringToFormValues", () => {
       stock: "3",
       validUntil: "2026-12-31",
       sponsored: true,
+      attributes: [
+        { name: "Velocidade", type: "mbps", values: "100mbps, 500mbps" },
+      ],
     });
+  });
+
+  it("sem atributos (ou com itens estranhos), abre uma linha vazia", () => {
+    const empty = { name: "", type: "", values: "" };
+
+    expect(
+      offeringToFormValues(
+        { ...OFFERING, metadata: { additionalProps: "x" } },
+        "Conectividade",
+      ).attributes,
+    ).toEqual([empty]);
+    expect(
+      offeringToFormValues(
+        {
+          ...OFFERING,
+          metadata: {
+            additionalProps: [
+              null,
+              { name: "Cor", type: "outro", values: [1] },
+            ],
+          },
+        },
+        "Hardware / CPE",
+      ).attributes,
+    ).toEqual([{ name: "Cor", type: "", values: "" }]);
   });
 
   it("usa os padrões quando o metadata falta ou tem valores estranhos", () => {
@@ -105,6 +136,23 @@ describe("offeringToFormValues", () => {
           lengthCm: "30.00",
           originPostalCode: "01310100",
           insuranceValue: "1200.00",
+          postingDays: 12,
+          packageSize: "medium",
+          weightEstimated: false,
+        },
+        metadata: {
+          shippingPolicy: {
+            mode: "pickup",
+            sellerMarkup: "0.00",
+            freeShipping: false,
+            pickup: true,
+            pickupAddress: "Av. Santos Dumont, 3030",
+            pickupHours: null,
+            automaticTracking: false,
+            autoAccept: true,
+            cargoPrice: null,
+            cargoDeliveryDays: null,
+          },
         },
       },
       "Hardware / CPE",
@@ -119,15 +167,59 @@ describe("offeringToFormValues", () => {
       shippingLengthCm: "30",
       shippingOriginPostalCode: "01310-100",
       shippingInsuranceValue: "1.200,00",
+      // 4 a 30 dias = sob encomenda.
+      shippingDispatch: "onDemand",
+      shippingOnDemandDays: "12",
+      shippingPackageSize: "medium",
+      shippingMode: "pickup",
+      shippingExtraFee: "",
+      shippingAutoTracking: false,
+      shippingAutoAccept: true,
+      shippingPickupAddress: "Av. Santos Dumont, 3030",
+      shippingPickupHours: "",
     });
-    // Ida e volta: o PATCH devolve o mesmo pacote.
+    // Ida e volta: o PATCH devolve o mesmo pacote e a mesma política.
     expect(buildOfferingUpdate(values, "spec-1", OFFERING).shipping).toEqual({
       weightKg: 1.25,
       heightCm: 10,
       widthCm: 25.5,
       lengthCm: 30,
       originPostalCode: "01310100",
+      postingDays: 12,
+      packageSize: "medium",
       insuranceValue: 1200,
+    });
+    expect(
+      buildOfferingUpdate(values, "spec-1", OFFERING).metadata?.shippingPolicy,
+    ).toEqual({
+      mode: "pickup",
+      sellerMarkup: "0.00",
+      freeShipping: false,
+      pickup: true,
+      pickupAddress: "Av. Santos Dumont, 3030",
+      pickupHours: null,
+      automaticTracking: false,
+      autoAccept: true,
+      cargoPrice: null,
+      cargoDeliveryDays: null,
+    });
+  });
+
+  it("política antiga sem `mode` usa as flags; prazo padrão é 1 dia útil", () => {
+    const values = offeringToFormValues(
+      {
+        ...OFFERING,
+        productType: "physical",
+        metadata: { shippingPolicy: { freeShipping: true } },
+      },
+      "Hardware / CPE",
+    );
+
+    expect(values).toMatchObject({
+      shippingMode: "freeShipping",
+      shippingDispatch: "oneDay",
+      shippingPackageSize: "custom",
+      shippingAutoTracking: true,
     });
   });
 
@@ -176,5 +268,17 @@ describe("buildOfferingUpdate", () => {
       deliveryTime: "15 dias úteis",
     });
     expect(update.metadata).not.toHaveProperty("validUntil");
+  });
+
+  it("atributos apagados somem do metadata", () => {
+    const values = {
+      ...offeringToFormValues(OFFERING, "Conectividade"),
+      attributes: [{ name: "", type: "" as const, values: "" }],
+    };
+
+    const update = buildOfferingUpdate(values, "spec-1", OFFERING);
+
+    expect(update.metadata).not.toHaveProperty("additionalProps");
+    expect(update.metadata).toMatchObject({ externalRef: "ERP-77" });
   });
 });

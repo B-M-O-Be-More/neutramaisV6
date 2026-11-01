@@ -305,6 +305,62 @@ describe("BFF da publicação de oferta", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("PUT coverageVersion repassa as áreas do KMZ (coverageAreaIndexes) e recusa as inválidas", async () => {
+    const put = (body: unknown) =>
+      coverageRoute.PUT(
+        jsonRequest(
+          `/api/productCatalog/productOffering/${OFFERING}/coverageVersion`,
+          "PUT",
+          body,
+        ),
+        params(OFFERING),
+      );
+    const points = [{ longitude: -46.6, latitude: -23.5, radiusMeters: 800 }];
+
+    await put({
+      coverageVersionId: VERSION,
+      coverageAreaIndexes: [0, 4],
+      coverageNetworkPoints: points,
+    });
+    expect(sent().body).toEqual({
+      coverageVersionId: VERSION,
+      coverageAreaIndexes: [0, 4],
+      coverageNetworkPoints: points,
+    });
+
+    // null vale o KMZ inteiro: vai sem o campo.
+    fetchMock.mockClear();
+    await put({ coverageVersionId: VERSION, coverageAreaIndexes: null });
+    expect(sent().body).toEqual({ coverageVersionId: VERSION });
+
+    fetchMock.mockClear();
+    const square = {
+      type: "Polygon",
+      coordinates: [
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+        ],
+      ],
+    };
+    for (const body of [
+      { coverageAreaIndexes: [] },
+      { coverageAreaIndexes: [1, 1] },
+      { coverageAreaIndexes: [-1] },
+      { coverageAreaIndexes: [1.5] },
+      { coverageAreaIndexes: "0" },
+      { coverageAreaIndexes: Array.from({ length: 501 }, (_, i) => i) },
+      // Um recorte ou outro, não os dois.
+      { coverageAreaIndexes: [0], publicGeometry: square },
+    ]) {
+      const response = await put({ coverageVersionId: VERSION, ...body });
+      expect(response.status).toBe(422);
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("PUT promotion só aceita isPromoted booleano", async () => {
     await promotionRoute.PUT(
       jsonRequest(

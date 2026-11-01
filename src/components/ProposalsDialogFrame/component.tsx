@@ -85,6 +85,7 @@ export function ProposalsDialogFooter({
 export function ProposalsDialogFrame({
   open,
   title,
+  subtitle,
   onClose,
   isBusy = false,
   role = "dialog",
@@ -133,6 +134,16 @@ export function ProposalsDialogFrame({
               >
                 {title}
               </Dialog.Title>
+              {subtitle && (
+                <Dialog.Description
+                  pt="2px"
+                  color="#8A9AB5"
+                  fontSize="13px"
+                  lineHeight="19.5px"
+                >
+                  {subtitle}
+                </Dialog.Description>
+              )}
             </Dialog.Header>
 
             <Dialog.Body px="24px" py="20px">

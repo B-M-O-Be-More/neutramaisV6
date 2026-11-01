@@ -12,5 +12,6 @@ export interface SellerCoverageListProps {
   offerCounts: Map<string, number> | null;
   /** Idioma para datas (ex.: "pt-BR"). */
   locale: string;
-  onDetails: (version: CoverageVersionSummary) => void;
+  /** Endereço do detalhe da cobertura. */
+  detailsHref: (version: CoverageVersionSummary) => string;
 }

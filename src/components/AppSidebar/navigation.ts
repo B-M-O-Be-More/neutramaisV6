@@ -1,11 +1,17 @@
 import {
   LuBox,
   LuCircleUser,
+  LuFileText,
+  LuInbox,
   LuMegaphone,
+  LuMessageCircleQuestion,
+  LuMessageSquare,
+  LuPackageOpen,
   LuSearch,
   LuUserCheck,
   LuUserPlus,
   LuWallet,
+  LuWrench,
 } from "react-icons/lu";
 
 import { SidebarNavGroup, SidebarPersona } from "./interface";
@@ -59,6 +65,17 @@ export const SIDEBAR_NAVIGATION: SidebarNavGroup[] = [
         ],
       },
       {
+        key: "management",
+        items: [
+          { key: "contracts", href: "/contracts", icon: LuFileText },
+          { key: "returns", href: "/returns", icon: LuPackageOpen },
+        ],
+      },
+      {
+        key: "support",
+        items: [{ key: "tickets", href: "/tickets", icon: LuMessageSquare }],
+      },
+      {
         key: "finance",
         items: [{ key: "wallet", href: "/wallet", icon: LuWallet }],
       },
@@ -82,6 +99,22 @@ export const SIDEBAR_NAVIGATION: SidebarNavGroup[] = [
         key: "catalog",
         items: [
           { key: "sellerOffers", href: "/seller/offers", icon: LuMegaphone },
+        ],
+      },
+      {
+        key: "sales",
+        items: [
+          { key: "receivedOrders", href: "/seller/orders", icon: LuInbox },
+          {
+            key: "serviceOrders",
+            href: "/seller/service-orders",
+            icon: LuWrench,
+          },
+          {
+            key: "questions",
+            href: "/seller/questions",
+            icon: LuMessageCircleQuestion,
+          },
         ],
       },
       {

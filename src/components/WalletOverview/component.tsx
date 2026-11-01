@@ -6,10 +6,12 @@ import {
   Flex,
   Icon,
   IconButton,
+  NativeSelect,
   SimpleGrid,
   Stack,
   Text,
 } from "@chakra-ui/react";
+import NextLink from "next/link";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -21,25 +23,40 @@ import {
   LuZap,
 } from "react-icons/lu";
 
+import SellerDebtBanner from "@/components/SellerDebtBanner";
+import SellerPayoutAccounts from "@/components/SellerPayoutAccounts";
 import { Tooltip } from "@/components/ui/tooltip";
 import WalletBalanceCards, {
   type WalletBalanceCardsData,
+  type WalletIndicator,
 } from "@/components/WalletBalanceCards";
 import WalletHint from "@/components/WalletHint";
 import WalletMethodsCard from "@/components/WalletMethodsCard";
 import WalletRecentTransactions from "@/components/WalletRecentTransactions";
 import {
+  summarizeReceivables,
+  totalShippingDebt,
+} from "@/functions/sellerFinance";
+import {
   formatMinorAmount,
   summarizeMonth,
 } from "@/functions/walletTransactions";
+import { useSellerFinance } from "@/hooks/useSellerFinance";
 import { useWalletBalance } from "@/hooks/useWalletBalance";
 import { useWalletTransactions } from "@/hooks/useWalletTransactions";
+import type { WalletCurrency } from "@/services/wallet.service";
+import type { PayoutAccount } from "@/services/withdrawal.service";
 
 import { WalletOverviewProps } from "./interface";
 
 // Lançamentos lidos para os totais do mês; a lista mostra os primeiros.
 const MONTH_SAMPLE = 100;
 const RECENT_COUNT = 5;
+
+const CURRENCIES: WalletCurrency[] = ["BRL", "USD", "EUR"];
+
+// Nenhuma API lista as contas de recebimento ainda.
+const NO_ACCOUNTS: PayoutAccount[] = [];
 
 /** Aviso do topo da carteira do seller (Figma 2250-22842). */
 function SellerNotice() {
@@ -122,63 +139,112 @@ function SellerNotice() {
 }
 
 /**
- * Antecipação e payout ainda não têm endpoint na wallet-api: os botões do
- * design aparecem desabilitados, com a explicação no tooltip.
+ * Antecipar e Sacar (Figma 2250-22868). A antecipação ainda não tem endpoint:
+ * fica desabilitada, com a explicação no tooltip. Sacar abre o fluxo de saque.
  */
-function SellerActions() {
+function SellerActions({ withdrawHref }: { withdrawHref: string }) {
   const { t } = useTranslation();
 
   return (
-    <Tooltip content={t("Wallet.seller.comingSoon")} showArrow>
-      <Flex gap="8px" tabIndex={0} rounded="15px">
-        <Button
-          disabled
-          h="36px"
-          px="12px"
-          gap="8px"
-          bg="#F3EEFF"
-          borderWidth="1px"
-          borderColor="#D3BFFD"
-          rounded="15px"
-          color="#8B5CF6"
-          fontSize="14px"
-          fontWeight={600}
-        >
-          <Icon as={LuZap} boxSize="15px" />
-          {t("Wallet.seller.advance")}
-        </Button>
-        <Button
-          disabled
-          h="36px"
-          px="12px"
-          gap="8px"
-          bg="#8B5CF6"
-          rounded="15px"
-          color="white"
-          fontSize="14px"
-          fontWeight={700}
-          boxShadow="0px 1px 1.5px rgba(0,0,0,0.1), 0px 1px 1px rgba(0,0,0,0.1)"
-        >
+    <Flex gap="8px">
+      <Tooltip content={t("Wallet.seller.comingSoon")} showArrow>
+        <Flex tabIndex={0} rounded="15px">
+          <Button
+            disabled
+            h="36px"
+            px="12px"
+            gap="8px"
+            bg="#F3EEFF"
+            borderWidth="1px"
+            borderColor="#D3BFFD"
+            rounded="15px"
+            color="#8B5CF6"
+            fontSize="14px"
+            fontWeight={600}
+          >
+            <Icon as={LuZap} boxSize="15px" />
+            {t("Wallet.seller.advance")}
+          </Button>
+        </Flex>
+      </Tooltip>
+      <Button
+        asChild
+        h="36px"
+        px="12px"
+        gap="8px"
+        bg="#8B5CF6"
+        rounded="15px"
+        color="white"
+        fontSize="14px"
+        fontWeight={700}
+        boxShadow="0px 1px 1.5px rgba(0,0,0,0.1), 0px 1px 1px rgba(0,0,0,0.1)"
+        _hover={{ bg: "#7C4DEB" }}
+      >
+        <NextLink href={withdrawHref}>
           {t("Wallet.seller.payout")}
           <Icon as={LuArrowUpRight} boxSize="15px" />
-        </Button>
-      </Flex>
-    </Tooltip>
+        </NextLink>
+      </Button>
+    </Flex>
+  );
+}
+
+/** Moeda do histórico na carteira do seller (Figma 3084-45154). */
+function CurrencySelect({
+  value,
+  onChange,
+}: {
+  value: WalletCurrency;
+  onChange: (currency: WalletCurrency) => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <NativeSelect.Root size="sm" w="76px" flexShrink={0}>
+      <NativeSelect.Field
+        aria-label={t("Wallet.transactions.currency")}
+        value={value}
+        onChange={(event) => onChange(event.target.value as WalletCurrency)}
+        h="34px"
+        bg="white"
+        borderWidth="1px"
+        borderColor="#A0ABB8"
+        rounded="10px"
+        color="#0A0D14"
+        fontSize="13px"
+        fontWeight={500}
+      >
+        {CURRENCIES.map((currency) => (
+          <option key={currency} value={currency}>
+            {currency}
+          </option>
+        ))}
+      </NativeSelect.Field>
+      <NativeSelect.Indicator />
+    </NativeSelect.Root>
   );
 }
 
 /**
- * Carteira da organização (Figma 2250-21984). Saldo e extrato vêm da
- * wallet-api; escrow, disputas, métodos e contas ainda não têm endpoint e
- * aparecem como "—" ou vazios.
+ * Carteira da organização (buyer: Figma 2250-21984; seller: 2250-22028 e
+ * 3084-45182). Saldo e extrato vêm da wallet-api; no seller, o a receber, as
+ * taxas e a dívida de frete vêm da payment-api. Escrow, disputas e contas de
+ * recebimento ainda não têm endpoint e aparecem como "—" ou vazios.
  */
 export function WalletOverview({ variant, locale, now }: WalletOverviewProps) {
   const { t } = useTranslation();
   const isSeller = variant === "seller";
   const basePath = isSeller ? "/seller/wallet" : "/wallet";
+  const [historyCurrency, setHistoryCurrency] =
+    React.useState<WalletCurrency>("BRL");
 
   const balance = useWalletBalance();
   const statement = useWalletTransactions({ limit: MONTH_SAMPLE });
+  const recent = useWalletTransactions({
+    currency: historyCurrency,
+    limit: RECENT_COUNT,
+  });
+  const finance = useSellerFinance(isSeller);
 
   const currency = balance.balance?.currency ?? "BRL";
   const money = (minor: number, maximumFractionDigits?: number) =>
@@ -194,14 +260,50 @@ export function WalletOverview({ variant, locale, now }: WalletOverviewProps) {
       ? t("Wallet.balance.available.reserved", { amount: money(reserved) })
       : t("Wallet.balance.available.caption");
 
+  // Seller: a receber e taxas pelos recebíveis; dívida de frete no aviso.
+  const receivables = finance.receivables
+    ? summarizeReceivables(finance.receivables, currency)
+    : null;
+  const debtMinor = finance.debts
+    ? totalShippingDebt(finance.debts, currency)
+    : 0;
+  const financeIndicator = (
+    value: number | undefined,
+    caption: string,
+  ): WalletIndicator => ({
+    value: value === undefined ? null : money(value),
+    caption: finance.receivablesError ? t(finance.receivablesError) : caption,
+    isLoading: finance.isLoading,
+  });
+
   const cards: WalletBalanceCardsData = {
     available: {
       value: available === undefined ? null : money(available, 0),
       caption: balanceCaption,
       isLoading: balance.isLoading,
+      negative: available !== undefined && available < 0,
     },
-    escrow: { value: null, caption: unavailable },
-    dispute: { value: null, caption: unavailable },
+    escrow: isSeller
+      ? {
+          ...financeIndicator(
+            receivables === null ? undefined : receivables.toReceiveMinor,
+            t("Wallet.seller.balance.toReceive.caption", {
+              count: receivables?.toReceiveOrders ?? 0,
+            }),
+          ),
+          value:
+            receivables === null ? null : money(receivables.toReceiveMinor, 0),
+          label: t("Wallet.seller.balance.toReceive.label"),
+          help: t("Wallet.seller.balance.toReceive.help"),
+        }
+      : { value: null, caption: unavailable },
+    dispute: isSeller
+      ? {
+          value: null,
+          caption: unavailable,
+          label: t("Wallet.seller.balance.dispute.label"),
+        }
+      : { value: null, caption: unavailable },
     credit: {
       value: available === undefined ? null : money(available),
       caption: t("Wallet.balance.credit.caption"),
@@ -221,8 +323,35 @@ export function WalletOverview({ variant, locale, now }: WalletOverviewProps) {
       }),
       isLoading: statement.isLoading,
     },
-    escrowNow: { value: null, caption: unavailable },
+    escrowNow: isSeller
+      ? {
+          ...financeIndicator(
+            receivables?.feesMinor,
+            t("Wallet.seller.balance.fees.caption"),
+          ),
+          label: t("Wallet.seller.balance.fees.label"),
+        }
+      : { value: null, caption: unavailable },
   };
+
+  const history = (
+    <WalletRecentTransactions
+      transactions={recent.transactions.slice(0, RECENT_COUNT)}
+      isLoading={recent.isLoading}
+      error={recent.error}
+      onRetry={recent.reload}
+      historyHref={`${basePath}/transactions`}
+      locale={locale}
+      headerEnd={
+        isSeller ? (
+          <CurrencySelect
+            value={historyCurrency}
+            onChange={setHistoryCurrency}
+          />
+        ) : undefined
+      }
+    />
+  );
 
   return (
     <Stack
@@ -232,6 +361,9 @@ export function WalletOverview({ variant, locale, now }: WalletOverviewProps) {
       gap="24px"
     >
       {isSeller && <SellerNotice />}
+      {isSeller && debtMinor > 0 && (
+        <SellerDebtBanner amount={money(debtMinor)} />
+      )}
 
       <Flex
         direction={{ base: "column", md: "row" }}
@@ -253,7 +385,7 @@ export function WalletOverview({ variant, locale, now }: WalletOverviewProps) {
             {t(`Wallet.${variant}.subtitle`)}
           </Text>
         </Stack>
-        {isSeller && <SellerActions />}
+        {isSeller && <SellerActions withdrawHref={`${basePath}/withdraw`} />}
       </Flex>
 
       <WalletBalanceCards data={cards} />
@@ -266,40 +398,31 @@ export function WalletOverview({ variant, locale, now }: WalletOverviewProps) {
         description={t("Wallet.withdrawNotice.description")}
       />
 
-      <SimpleGrid columns={{ base: 1, lg: isSeller ? 2 : 1 }} gap="16px">
-        <WalletMethodsCard
-          title={t("Wallet.methods.paymentTitle")}
-          addHref={`${basePath}/payment-methods/new`}
-          emptyLabel={t("Wallet.methods.paymentEmpty")}
-          hint={{
-            tone: "blue",
-            title: t("Wallet.methods.combinedTitle"),
-            description: t("Wallet.methods.combinedDescription"),
-          }}
-        />
-        {isSeller && (
-          <WalletMethodsCard
-            title={t("Wallet.methods.payoutTitle")}
+      {isSeller ? (
+        // Seller: histórico e contas de recebimento lado a lado.
+        <SimpleGrid columns={{ base: 1, lg: 2 }} gap="16px" alignItems="start">
+          {history}
+          <SellerPayoutAccounts
+            accounts={NO_ACCOUNTS}
             // Conta de recebimento é uma chave PIX: o cadastro abre no PIX.
             addHref={`${basePath}/payment-methods/new?type=pix`}
-            emptyLabel={t("Wallet.methods.payoutEmpty")}
+          />
+        </SimpleGrid>
+      ) : (
+        <>
+          <WalletMethodsCard
+            title={t("Wallet.methods.paymentTitle")}
+            addHref={`${basePath}/payment-methods/new`}
+            emptyLabel={t("Wallet.methods.paymentEmpty")}
             hint={{
-              tone: "purple",
-              title: t("Wallet.methods.pixPayoutTitle"),
-              description: t("Wallet.methods.pixPayoutDescription"),
+              tone: "blue",
+              title: t("Wallet.methods.combinedTitle"),
+              description: t("Wallet.methods.combinedDescription"),
             }}
           />
-        )}
-      </SimpleGrid>
-
-      <WalletRecentTransactions
-        transactions={statement.transactions.slice(0, RECENT_COUNT)}
-        isLoading={statement.isLoading}
-        error={statement.error}
-        onRetry={statement.reload}
-        historyHref={`${basePath}/transactions`}
-        locale={locale}
-      />
+          {history}
+        </>
+      )}
     </Stack>
   );
 }

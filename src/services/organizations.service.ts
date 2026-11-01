@@ -77,7 +77,25 @@ export interface OrganizationUser {
   created_at: string;
 }
 
+/** Endereço legal (sede) — `GET /organizations/{org_id}/address`. */
+export interface OrganizationAddress {
+  street: string;
+  complement?: string | null;
+  city: string;
+  state?: string | null;
+  postal_code: string;
+  /** ISO 3166-1 alpha-2. */
+  country: string;
+}
+
 export const organizationsService = {
+  /** Endereço legal da organização. 404 enquanto não foi cadastrado. */
+  getAddress: (orgId: string, options: { signal?: AbortSignal } = {}) =>
+    api.get<OrganizationAddress | null>(
+      `/organizations/${encodeURIComponent(orgId)}/address`,
+      { signal: options.signal },
+    ),
+
   /** Registra a organização (buyer ou seller). Ponto de entrada do onboarding. */
   register: (data: RegisterOrganizationDto) =>
     api.post<Organization>("/organizations/register", data),

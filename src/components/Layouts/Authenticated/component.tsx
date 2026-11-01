@@ -73,7 +73,11 @@ function SessionGate() {
   );
 }
 
-function AuthenticatedShell({ children, badges }: AuthenticatedLayoutProps) {
+function AuthenticatedShell({
+  children,
+  badges,
+  bare = false,
+}: AuthenticatedLayoutProps) {
   const { t } = useTranslation();
   const { status, profile, personas } = useSession();
   const [isDrawerOpen, setDrawerOpen] = React.useState(false);
@@ -90,6 +94,7 @@ function AuthenticatedShell({ children, badges }: AuthenticatedLayoutProps) {
 
   // Nada da área autenticada aparece antes de o /me confirmar a sessão.
   if (status !== "authenticated" || !profile) return <SessionGate />;
+  if (bare) return <>{children}</>;
 
   const user = { name: profile.display_name, personas };
 
@@ -181,10 +186,16 @@ function AuthenticatedShell({ children, badges }: AuthenticatedLayoutProps) {
  * renderiza a navegação lateral (fixa no desktop; em drawer abaixo de `lg`) e
  * o conteúdo. Os filhos podem usar `useSession()` para ler o usuário.
  */
-function AuthenticatedLayout({ children, badges }: AuthenticatedLayoutProps) {
+function AuthenticatedLayout({
+  children,
+  badges,
+  bare,
+}: AuthenticatedLayoutProps) {
   return (
     <SessionProvider>
-      <AuthenticatedShell badges={badges}>{children}</AuthenticatedShell>
+      <AuthenticatedShell badges={badges} bare={bare}>
+        {children}
+      </AuthenticatedShell>
     </SessionProvider>
   );
 }

@@ -1,11 +1,7 @@
 import IMask, { type FactoryOpts } from "imask";
 import { describe, expect, it } from "vitest";
 
-import {
-  DIGITS_MASK,
-  MONEY_MASK,
-  PERCENT_MASK,
-} from "@/components/OfferMaskedInput";
+import { DIGITS_MASK, PERCENT_MASK } from "@/components/OfferMaskedInput";
 
 /** Simula digitação/colagem: o texto entra como input do usuário. */
 function typed(options: FactoryOpts, text: string): string {
@@ -30,11 +26,6 @@ describe("máscaras do assistente de oferta", () => {
     expect(typed(PERCENT_MASK, input)).toBe(expected);
   });
 
-  it.each([
-    ["1890", "1.890"],
-    ["1.890,00", "1.890,00"],
-    ["800,5", "800,5"],
-  ])("MONEY_MASK: %j vira %j", (input, expected) => {
-    expect(typed(MONEY_MASK, input)).toBe(expected);
-  });
+  // MONEY_MASK não passa pelo IMask (é o input de caixa de banco):
+  // ver tests/integration/OfferMaskedInput.test.tsx.
 });

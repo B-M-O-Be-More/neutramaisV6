@@ -21,7 +21,7 @@ export default function SellerNewPaymentMethodPage({
 
   return (
     <AuthenticatedLayout>
-      <SellerSessionProvider>
+      <SellerSessionProvider requiredPermission={null}>
         <WalletAddPaymentMethod
           backHref="/seller/wallet"
           initialType={initialType}

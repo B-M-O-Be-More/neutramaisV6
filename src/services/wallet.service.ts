@@ -1,13 +1,15 @@
 // Service da carteira (wallet-api).
 // Segue o padrão do SDD §12.2: funções nomeadas por operação, sem React, sem
 // tratamento de erro (propaga AppError tipado para o hook chamador).
-// O browser fala com o BFF (`/api/wallet/*`), que anexa o Bearer do cookie.
+// O browser fala com o BFF (`/api/wallet/*`), que anexa o Bearer da sessão de
+// perfil (Buyer ou Seller) — em 401, renova esse perfil uma vez e repete.
 //
 // Valores sempre em unidades mínimas (centavos) e inteiros. A carteira guarda
 // o crédito Neutra+ da organização (gerado em cancelamentos) e o consumo dele
 // em checkouts.
 
 import { api } from "./api.client";
+import { withProfileSession } from "./profileSession.service";
 
 export type WalletCurrency = "BRL" | "USD" | "EUR";
 
@@ -27,7 +29,7 @@ export interface WalletTransaction {
   /** credit: crédito por cancelamento; debit: uso do saldo num checkout. */
   kind: "credit" | "debit";
   currency: WalletCurrency;
-  /** Sempre positivo — o sinal vem de `kind`. */
+  /** Positivo no crédito, negativo no débito (a tela usa `kind` para o sinal). */
   amountMinor: number;
   orderId: string;
   paymentId: string;
@@ -60,18 +62,22 @@ export const walletService = {
     currency: WalletCurrency = "BRL",
     options: { signal?: AbortSignal } = {},
   ) =>
-    api.get<WalletBalance>("/wallet/balance", {
-      params: { currency },
-      signal: options.signal,
-    }),
+    withProfileSession(() =>
+      api.get<WalletBalance>("/wallet/balance", {
+        params: { currency },
+        signal: options.signal,
+      }),
+    ),
 
   /** Extrato, do lançamento mais novo ao mais antigo. */
   listTransactions: (
     params: ListWalletTransactionsParams = {},
     options: { signal?: AbortSignal } = {},
   ) =>
-    api.get<WalletStatement>("/wallet/transactions", {
-      params: { currency: "BRL", ...params },
-      signal: options.signal,
-    }),
+    withProfileSession(() =>
+      api.get<WalletStatement>("/wallet/transactions", {
+        params: { currency: "BRL", ...params },
+        signal: options.signal,
+      }),
+    ),
 };

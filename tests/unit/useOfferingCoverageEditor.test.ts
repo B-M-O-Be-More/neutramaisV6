@@ -204,9 +204,11 @@ describe("useOfferingCoverageEditor", () => {
 
       expect(productCatalogService.bindCoverage).toHaveBeenCalledWith(
         OFFERING_ID,
-        BOUND,
-        null,
-        [NEW_POINT],
+        {
+          coverageVersionId: BOUND,
+          publicGeometry: null,
+          coverageNetworkPoints: [NEW_POINT],
+        },
       );
       expect(result.current.isDirty).toBe(false);
     });
@@ -242,9 +244,10 @@ describe("useOfferingCoverageEditor", () => {
 
       expect(productCatalogService.bindCoverage).toHaveBeenCalledWith(
         OFFERING_ID,
-        OTHER,
-        null,
-        undefined,
+        {
+          coverageVersionId: OTHER,
+          publicGeometry: null,
+        },
       );
     });
   });
@@ -282,14 +285,78 @@ describe("useOfferingCoverageEditor", () => {
 
     expect(productCatalogService.bindCoverage).toHaveBeenCalledWith(
       OFFERING_ID,
-      BOUND,
-      POLYGON,
-      [],
+      {
+        coverageVersionId: BOUND,
+        publicGeometry: POLYGON,
+        coverageNetworkPoints: [],
+      },
     );
     expect(result.current.isDirty).toBe(false);
     expect(result.current.notice).toEqual({
       tone: "success",
       messages: ["SellerOfferCoverage.confirmed"],
+    });
+  });
+
+  describe("áreas do KMZ (coverageAreaIndexes)", () => {
+    it("a escolha salva por áreas abre no modo por áreas, com a prévia", async () => {
+      vi.mocked(geoCoverageService.getOfferCoverage).mockResolvedValue({
+        offeringId: OFFERING_ID,
+        coverageVersionId: BOUND,
+        publicGeometry: POLYGON,
+        publicSelection: { areaIndexes: [0, 3] },
+      });
+      const { result } = renderHook(() =>
+        useOfferingCoverageEditor(offering(BOUND)),
+      );
+
+      await waitFor(() =>
+        expect(result.current.scope).toEqual({
+          mode: "areas",
+          publicGeometry: POLYGON,
+          areaIndexes: [0, 3],
+        }),
+      );
+      expect(result.current.isDirty).toBe(false);
+    });
+
+    it("exige ao menos uma área e manda só os índices, sem publicGeometry", async () => {
+      const { result } = renderHook(() =>
+        useOfferingCoverageEditor(offering(BOUND)),
+      );
+      await waitFor(() => expect(result.current.isLoadingScope).toBe(false));
+
+      act(() =>
+        result.current.setScope({
+          mode: "areas",
+          publicGeometry: null,
+          areaIndexes: [],
+        }),
+      );
+      expect(result.current.scopeError).toBe(
+        "SellerOfferCreate.errors.coverageAreasRequired",
+      );
+      expect(result.current.canConfirm).toBe(false);
+
+      act(() =>
+        result.current.setScope({
+          mode: "areas",
+          publicGeometry: POLYGON,
+          areaIndexes: [2, 5],
+        }),
+      );
+      expect(result.current.canConfirm).toBe(true);
+      await act(() => result.current.confirm());
+
+      expect(productCatalogService.bindCoverage).toHaveBeenCalledWith(
+        OFFERING_ID,
+        {
+          coverageVersionId: BOUND,
+          publicGeometry: null,
+          coverageAreaIndexes: [2, 5],
+          coverageNetworkPoints: [],
+        },
+      );
     });
   });
 
@@ -320,9 +387,11 @@ describe("useOfferingCoverageEditor", () => {
 
     expect(productCatalogService.bindCoverage).toHaveBeenCalledWith(
       OFFERING_ID,
-      OTHER,
-      null,
-      [],
+      {
+        coverageVersionId: OTHER,
+        publicGeometry: null,
+        coverageNetworkPoints: [],
+      },
     );
     expect(result.current.boundVersionId).toBe(OTHER);
   });

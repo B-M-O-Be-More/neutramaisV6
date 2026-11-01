@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 
+import { csvCell } from "@/functions/csvCell";
 import type {
   WalletCurrency,
   WalletTransaction,
@@ -32,6 +33,28 @@ export function formatMinorAmount(
     minimumFractionDigits: maximumFractionDigits === 0 ? 0 : undefined,
   }).format(minor / 100);
   return sign ? `${sign}${formatted}` : formatted;
+}
+
+/**
+ * Valor com sinal do lançamento, em centavos: o `kind` manda (a wallet-api
+ * devolve o débito negativo; o crédito, positivo).
+ */
+export function signedAmountMinor(transaction: WalletTransaction): number {
+  const amount = Math.abs(transaction.amountMinor);
+  return transaction.kind === "debit" ? -amount : amount;
+}
+
+/** "+R$ 24.500,00" no crédito, "-R$ 16.800,00" no débito. */
+export function formatTransactionAmount(
+  transaction: WalletTransaction,
+  locale: string,
+): string {
+  return formatMinorAmount(
+    Math.abs(transaction.amountMinor),
+    transaction.currency,
+    locale,
+    { sign: transaction.kind === "debit" ? "-" : "+" },
+  );
 }
 
 /** Data do lançamento (epoch em segundos) no formato curto do idioma. */
@@ -104,22 +127,18 @@ export function summarizeMonth(
     (summary, transaction) => {
       const time = transaction.createdAt * 1000;
       if (time < start || time >= end) return summary;
+      const amount = Math.abs(transaction.amountMinor);
       if (transaction.kind === "credit") {
-        summary.creditedMinor += transaction.amountMinor;
+        summary.creditedMinor += amount;
         summary.creditCount += 1;
       } else {
-        summary.spentMinor += transaction.amountMinor;
+        summary.spentMinor += amount;
         summary.debitCount += 1;
       }
       return summary;
     },
     { creditedMinor: 0, creditCount: 0, spentMinor: 0, debitCount: 0 },
   );
-}
-
-function csvCell(value: string | number): string {
-  const text = String(value);
-  return /[",\n;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
 /**
@@ -145,10 +164,7 @@ export function transactionsToCsv(
       transaction.kind,
       describe(transaction),
       transaction.orderId,
-      (
-        ((transaction.kind === "debit" ? -1 : 1) * transaction.amountMinor) /
-        100
-      ).toFixed(2),
+      (signedAmountMinor(transaction) / 100).toFixed(2),
       transaction.currency,
       transaction.id,
     ]

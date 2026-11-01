@@ -10,7 +10,13 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
-import { LuArrowRight, LuCircleCheck, LuClock, LuPlus } from "react-icons/lu";
+import {
+  LuArrowRight,
+  LuCircleCheck,
+  LuClock,
+  LuDownload,
+  LuPlus,
+} from "react-icons/lu";
 
 import ProposalStatusBadge from "@/components/ProposalStatusBadge";
 import { offerCategory } from "@/data/offerCategories";
@@ -59,7 +65,7 @@ const URGENT_HOURS = 24;
 /**
  * Card de uma RFQ (Figma 2038-19649): produto, status e prazo; sellers
  * notificados, propostas recebidas, criação e melhor proposta; e as ações
- * que o status permite.
+ * que o status permite, com "Exportar" à direita (Figma 2037-15640).
  */
 export function RfqCard({
   rfq,
@@ -73,6 +79,8 @@ export function RfqCard({
   const { t } = useTranslation();
   const category = offerCategory(rfq.category);
   const isCancellable = isRfqCancellable(rfq.status);
+  // Convertida não exporta: o design leva ao pedido gerado (Figma 2037-15640).
+  const isExportable = rfq.status !== "converted";
   const hoursLeft = isCancellable ? hoursUntil(rfq.deadlineAt, now) : 0;
 
   const stats = [
@@ -287,17 +295,30 @@ export function RfqCard({
             {t("Proposals.rfq.actions.newRfq")}
           </Button>
         )}
-        {isCancellable && (
-          <Button
-            {...OUTLINE_BUTTON}
-            ms="auto"
-            borderColor="#FECACA"
-            color="#EF4444"
-            _hover={{ bg: "#FEF2F2" }}
-            onClick={() => onAction("cancel")}
-          >
-            {t("Proposals.rfq.actions.cancel")}
-          </Button>
+        {(isCancellable || isExportable) && (
+          <Flex gap="8px" ms="auto">
+            {isCancellable && (
+              <Button
+                {...OUTLINE_BUTTON}
+                borderColor="#FECACA"
+                color="#EF4444"
+                _hover={{ bg: "#FEF2F2" }}
+                onClick={() => onAction("cancel")}
+              >
+                {t("Proposals.rfq.actions.cancel")}
+              </Button>
+            )}
+            {isExportable && (
+              <Button
+                {...OUTLINE_BUTTON}
+                gap="16px"
+                onClick={() => onAction("export")}
+              >
+                {t("Proposals.rfq.actions.export")}
+                <Icon as={LuDownload} boxSize="14px" />
+              </Button>
+            )}
+          </Flex>
         )}
       </Flex>
     </Stack>

@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 export interface ProposalsDialogFrameProps {
   open: boolean;
   title: ReactNode;
+  /** Linha de apoio abaixo do título (modais das ordens de serviço). */
+  subtitle?: ReactNode;
   onClose: () => void;
   /** Ação em andamento: bloqueia o fechamento. */
   isBusy?: boolean;

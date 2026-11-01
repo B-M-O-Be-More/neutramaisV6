@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import { ValidationError, type AnyObjectSchema } from "yup";
 
 import {
+  OFFER_ATTRIBUTES_MAX,
   OFFER_IMAGE_MAX_BYTES,
   OFFER_LOCATIONS_MAX,
   offerImageErrorKey,
   sellerOfferBasicInfoSchema,
   sellerOfferCoverageSchema,
+  sellerOfferLogisticsSchema,
   sellerOfferPricingSchema,
   sellerOfferTechnicalSpecsSchema,
 } from "@/schemas/sellerOffer";
@@ -268,6 +270,54 @@ describe("sellerOfferTechnicalSpecsSchema (etapa Especificações técnicas)", (
     ]);
   });
 
+  it("atributos são opcionais: linha vazia passa, linha começada exige os três campos", async () => {
+    expect(
+      await specsErrors({ attributes: [{ name: "", type: "", values: "" }] }),
+    ).toEqual([]);
+    expect(
+      await specsErrors({
+        attributes: [{ name: "Velocidade", type: "mbps", values: "100mbps" }],
+      }),
+    ).toEqual([]);
+    expect(
+      await specsErrors({
+        attributes: [{ name: "Velocidade", type: "", values: " " }],
+      }),
+    ).toEqual([
+      "SellerOfferCreate.errors.attributeTypeRequired",
+      "SellerOfferCreate.errors.attributeValuesRequired",
+    ]);
+    expect(
+      await specsErrors({
+        attributes: [{ name: "", type: "text", values: "" }],
+      }),
+    ).toEqual([
+      "SellerOfferCreate.errors.attributeNameRequired",
+      "SellerOfferCreate.errors.attributeValuesRequired",
+    ]);
+  });
+
+  it("atributos têm limite de tamanho, de tipo e de quantidade", async () => {
+    expect(
+      await specsErrors({
+        attributes: [
+          { name: "x".repeat(61), type: "outro", values: "y".repeat(501) },
+        ],
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        "SellerOfferCreate.errors.attributeNameTooLong",
+        "SellerOfferCreate.errors.attributeValuesTooLong",
+      ]),
+    );
+    const row = { name: "Cor", type: "text", values: "Preto" };
+    expect(
+      await specsErrors({
+        attributes: Array.from({ length: OFFER_ATTRIBUTES_MAX + 1 }, () => row),
+      }),
+    ).toEqual(["SellerOfferCreate.errors.attributesMax"]);
+  });
+
   it("exige o prazo de entrega", async () => {
     expect(await specsErrors({ deliveryTime: " " })).toEqual([
       "SellerOfferCreate.errors.deliveryTimeRequired",
@@ -289,6 +339,23 @@ describe("sellerOfferTechnicalSpecsSchema · Hardware / CPE", () => {
     hardwareModel: "RB4011",
     hardwareCondition: "refurbished",
   };
+  it("exige fabricante, modelo e condição só para Hardware", async () => {
+    expect(await hardwareErrors({ category: "hardware" })).toEqual([
+      "SellerOfferCreate.errors.manufacturerRequired",
+      "SellerOfferCreate.errors.modelRequired",
+      "SellerOfferCreate.errors.conditionRequired",
+    ]);
+    expect(await hardwareErrors({ category: "software" })).toEqual([]);
+  });
+
+  it("aceita Hardware completo, com garantia e serialização opcionais", async () => {
+    expect(await hardwareErrors({ category: "hardware", ...DEVICE })).toEqual(
+      [],
+    );
+  });
+});
+
+describe("sellerOfferLogisticsSchema (etapa Logística, produto físico)", () => {
   const SHIPPING = {
     shippingWeightKg: "1,25",
     shippingHeightCm: "10",
@@ -296,38 +363,46 @@ describe("sellerOfferTechnicalSpecsSchema · Hardware / CPE", () => {
     shippingLengthCm: "30",
     shippingOriginPostalCode: "01310-100",
   };
+  const logisticsErrors = (values: Record<string, unknown>) =>
+    validate(sellerOfferLogisticsSchema, values);
 
-  it("exige fabricante, modelo, condição e o envio só para Hardware", async () => {
-    expect(await hardwareErrors({ category: "hardware" })).toEqual([
-      "SellerOfferCreate.errors.manufacturerRequired",
-      "SellerOfferCreate.errors.modelRequired",
-      "SellerOfferCreate.errors.conditionRequired",
+  it("exige o pacote e a origem só no produto físico", async () => {
+    expect(await logisticsErrors({ category: "hardware" })).toEqual([
       "SellerOfferCreate.errors.weightRequired",
       "SellerOfferCreate.errors.heightRequired",
       "SellerOfferCreate.errors.widthRequired",
       "SellerOfferCreate.errors.lengthRequired",
       "SellerOfferCreate.errors.postalCodeRequired",
     ]);
-    expect(await hardwareErrors({ category: "software" })).toEqual([]);
+    expect(await logisticsErrors({ category: "software" })).toEqual([]);
   });
 
-  it("aceita Hardware completo, com garantia, serialização e seguro opcionais", async () => {
+  it("aceita o pacote completo, com seguro e acréscimo opcionais", async () => {
     expect(
-      await hardwareErrors({ category: "hardware", ...DEVICE, ...SHIPPING }),
+      await logisticsErrors({ category: "hardware", ...SHIPPING }),
+    ).toEqual([]);
+    expect(
+      await logisticsErrors({
+        category: "hardware",
+        ...SHIPPING,
+        shippingExtraFee: "0,00",
+      }),
     ).toEqual([]);
   });
 
   it("aplica os limites do pacote de envio da marketplace-api", async () => {
     expect(
-      await hardwareErrors({
+      await logisticsErrors({
         category: "hardware",
-        ...DEVICE,
         ...SHIPPING,
         shippingWeightKg: "1000,5",
         shippingHeightCm: "0",
         shippingLengthCm: "401",
         shippingOriginPostalCode: "00000-000",
         shippingInsuranceValue: "0",
+        shippingExtraFee: "1,999",
+        // Acima do limite de mercado: só carga ou a combinar.
+        shippingMode: "cargo",
       }),
     ).toEqual([
       "SellerOfferCreate.errors.weightRange",
@@ -335,15 +410,124 @@ describe("sellerOfferTechnicalSpecsSchema · Hardware / CPE", () => {
       "SellerOfferCreate.errors.sideRange",
       "SellerOfferCreate.errors.postalCodeInvalid",
       "SellerOfferCreate.errors.insuranceInvalid",
+      "SellerOfferCreate.errors.extraFeeInvalid",
     ]);
   });
 
-  it("na edição vale o tipo salvo: Hardware criado como serviço não exige envio", async () => {
+  it("o tipo acompanha a categoria: serviço que vira Hardware passa a exigir o envio", async () => {
     expect(
-      await hardwareErrors({
+      await logisticsErrors({ category: "hardware", productType: "service" }),
+    ).toContain("SellerOfferCreate.errors.weightRequired");
+    expect(
+      await logisticsErrors({ category: "software", productType: "physical" }),
+    ).toEqual([]);
+    // Sem categoria reconhecida, vale o tipo salvo.
+    expect(
+      await logisticsErrors({ category: "", productType: "physical" }),
+    ).toContain("SellerOfferCreate.errors.weightRequired");
+  });
+
+  it("prazo de postagem, tamanho e modalidade têm padrão e só aceitam as opções", async () => {
+    expect(sellerOfferLogisticsSchema.getDefault()).toMatchObject({
+      shippingDispatch: "oneDay",
+      shippingPackageSize: "custom",
+      shippingMode: "integration",
+      shippingAutoTracking: true,
+    });
+    expect(
+      await logisticsErrors({
         category: "hardware",
-        productType: "service",
-        ...DEVICE,
+        ...SHIPPING,
+        shippingDispatch: "nextWeek",
+      }),
+    ).toHaveLength(1);
+  });
+
+  it("sob encomenda exige de 4 a 30 dias úteis", async () => {
+    const onDemand = (days: string) =>
+      logisticsErrors({
+        category: "hardware",
+        ...SHIPPING,
+        shippingDispatch: "onDemand",
+        shippingOnDemandDays: days,
+      });
+
+    expect(await onDemand("")).toEqual([
+      "SellerOfferCreate.errors.onDemandDaysRange",
+    ]);
+    expect(await onDemand("3")).toEqual([
+      "SellerOfferCreate.errors.onDemandDaysRange",
+    ]);
+    expect(await onDemand("31")).toEqual([
+      "SellerOfferCreate.errors.onDemandDaysRange",
+    ]);
+    expect(await onDemand("12")).toEqual([]);
+  });
+
+  it("o tamanho pronto precisa caber no peso máximo e no limite de mercado", async () => {
+    expect(
+      await logisticsErrors({
+        category: "hardware",
+        ...SHIPPING,
+        shippingPackageSize: "small",
+        shippingWeightKg: "1,5",
+      }),
+    ).toEqual(["SellerOfferCreate.errors.packageSizeMismatch"]);
+    expect(
+      await logisticsErrors({
+        category: "hardware",
+        ...SHIPPING,
+        shippingPackageSize: "medium",
+        shippingWeightKg: "4",
+      }),
+    ).toEqual([]);
+  });
+
+  it("Carga é só acima do limite, e aí a modalidade é carga ou a combinar", async () => {
+    expect(
+      await logisticsErrors({
+        category: "hardware",
+        ...SHIPPING,
+        shippingPackageSize: "cargo",
+      }),
+    ).toEqual(["SellerOfferCreate.errors.cargoWithinLimit"]);
+
+    const big = {
+      category: "hardware",
+      ...SHIPPING,
+      shippingPackageSize: "cargo",
+      shippingWeightKg: "45",
+      shippingHeightCm: "120",
+    };
+    expect(await logisticsErrors(big)).toEqual([
+      "SellerOfferCreate.errors.shippingModeInvalid",
+    ]);
+    expect(
+      await logisticsErrors({ ...big, shippingMode: "toBeAgreed" }),
+    ).toEqual([]);
+  });
+
+  it("valor e prazo do frete de carga vão juntos", async () => {
+    const cargo = {
+      category: "hardware",
+      ...SHIPPING,
+      shippingWeightKg: "45",
+      shippingMode: "cargo",
+    };
+    expect(
+      await logisticsErrors({ ...cargo, shippingCargoPrice: "480,00" }),
+    ).toEqual(["SellerOfferCreate.errors.cargoDaysRequired"]);
+    expect(
+      await logisticsErrors({ ...cargo, shippingCargoDays: "91" }),
+    ).toEqual([
+      "SellerOfferCreate.errors.cargoPriceRequired",
+      "SellerOfferCreate.errors.cargoDaysRange",
+    ]);
+    expect(
+      await logisticsErrors({
+        ...cargo,
+        shippingCargoPrice: "480,00",
+        shippingCargoDays: "8",
       }),
     ).toEqual([]);
   });

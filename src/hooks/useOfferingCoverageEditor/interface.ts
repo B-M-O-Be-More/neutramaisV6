@@ -17,10 +17,19 @@ export interface OfferingCoveragePoints {
   invalid: boolean;
 }
 
-/** Recorte da cobertura: toda a área do KMZ ou o polígono desenhado. */
+/**
+ * Recorte da cobertura: toda a área do KMZ, as áreas escolhidas do KMZ ou o
+ * polígono desenhado.
+ */
 export interface OfferingCoverageScope {
   mode: CoverageScopeMode;
+  /**
+   * Polígonos desenhados (`custom`) ou o desenho das áreas escolhidas
+   * (`areas`, só para o mapa); null na cobertura completa.
+   */
   publicGeometry: PublicGeometry | null;
+  /** Índices das áreas do KMZ escolhidas (`areas`). */
+  areaIndexes?: number[];
 }
 
 export interface UseOfferingCoverageEditorReturn {
@@ -41,7 +50,10 @@ export interface UseOfferingCoverageEditorReturn {
    * formulário as usa para preencher a lista.
    */
   savedPoints: CoverageNetworkPoint[] | null;
-  /** Chave de tradução do erro do recorte (cobertura editada sem polígono). */
+  /**
+   * Chave de tradução do erro do recorte (cobertura editada sem polígono ou
+   * por áreas sem nenhuma escolhida).
+   */
   scopeError?: string;
   /** Chave de tradução quando alguma localidade tem ponto sem raio válido. */
   pointsError?: string;

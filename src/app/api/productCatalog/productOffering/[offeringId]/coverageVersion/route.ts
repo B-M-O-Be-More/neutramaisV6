@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 
+import { isCoverageAreaIndexList } from "@/functions/coverageAreas";
 import { isPublicGeometry, vertexCount } from "@/functions/geoShapes";
 import { isCoverageNetworkPoint } from "@/functions/coverageNetworkPoints";
 import { isUuid, readJsonBody } from "@/server/complianceProxy";
@@ -16,6 +17,10 @@ import { forwardToMarketplace } from "@/server/marketplaceProxy";
 // - Polygon: uma área;
 // - MultiPolygon: várias áreas, um polígono por área.
 // Cada anel fecha: o último ponto repete o primeiro.
+// `coverageAreaIndexes` é o recorte por áreas do KMZ: índices dos placemarks
+// da versão (`GET /coverageVersion/{id}/elements`), de 1 a 500, sem
+// repetidos. A geo-api junta as áreas e recorta pela cobertura. Não vai junto
+// com `publicGeometry`.
 // `coverageNetworkPoints` são as localidades de atendimento, cada uma com o raio:
 //   [{ longitude, latitude, radiusMeters }]
 // - ausente: o upstream decide (não mexe nos pontos salvos);
@@ -47,11 +52,13 @@ export async function PUT(
     | {
         coverageVersionId?: unknown;
         publicGeometry?: unknown;
+        coverageAreaIndexes?: unknown;
         coverageNetworkPoints?: unknown;
       }
     | undefined;
   const coverageVersionId = body?.coverageVersionId;
   const publicGeometry = body?.publicGeometry;
+  const coverageAreaIndexes = body?.coverageAreaIndexes;
   const coverageNetworkPoints = body?.coverageNetworkPoints;
 
   if (
@@ -73,6 +80,23 @@ export async function PUT(
     );
   }
   if (
+    coverageAreaIndexes != null &&
+    !isCoverageAreaIndexList(coverageAreaIndexes)
+  ) {
+    return envelopeError(
+      422,
+      "validation_error",
+      "coverageAreaIndexes deve ter de 1 a 500 índices inteiros ≥ 0, sem repetidos.",
+    );
+  }
+  if (publicGeometry != null && coverageAreaIndexes != null) {
+    return envelopeError(
+      422,
+      "validation_error",
+      "Envie publicGeometry ou coverageAreaIndexes, não os dois.",
+    );
+  }
+  if (
     coverageNetworkPoints !== undefined &&
     !isPointList(coverageNetworkPoints)
   ) {
@@ -89,6 +113,7 @@ export async function PUT(
     body: {
       coverageVersionId,
       ...(publicGeometry ? { publicGeometry } : {}),
+      ...(coverageAreaIndexes != null ? { coverageAreaIndexes } : {}),
       ...(coverageNetworkPoints !== undefined ? { coverageNetworkPoints } : {}),
     },
     authenticated: true,

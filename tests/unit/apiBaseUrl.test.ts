@@ -8,6 +8,7 @@ const SERVICES = [
   ["compliance", "COMPLIANCE_API_URL", "/compliance/api/v1"],
   ["geo", "GEO_API_URL", "/geo/api/v2"],
   ["wallet", "WALLET_API_URL", "/wallet/api/v2"],
+  ["orders", "ORDERS_API_URL", "/orders/api/v2"],
 ] as const;
 
 describe("apiBaseUrl", () => {

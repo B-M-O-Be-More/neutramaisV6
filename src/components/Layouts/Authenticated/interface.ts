@@ -6,4 +6,9 @@ export interface AuthenticatedLayoutProps {
   /** Renderizado só com a sessão válida — pode usar `useSession()`. */
   children: ReactNode;
   badges?: AppSidebarProps["badges"];
+  /**
+   * Sem a navegação lateral: fluxos de tela cheia (ex.: saque), com a mesma
+   * validação de sessão.
+   */
+  bare?: boolean;
 }

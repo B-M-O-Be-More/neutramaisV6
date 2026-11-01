@@ -36,6 +36,8 @@ const BASE: SellerOfferValues = {
   numberingResourceType: "IPv6",
   numberingBlock: "/48",
   numberingHolder: "LACNIC",
+  // Linha vazia do formulário: não vai no payload.
+  attributes: [{ name: "", type: "", values: "" }],
   productType: "",
   shippingWeightKg: "1,2506",
   shippingHeightCm: "10",
@@ -43,6 +45,17 @@ const BASE: SellerOfferValues = {
   shippingLengthCm: "30",
   shippingOriginPostalCode: "01310-100",
   shippingInsuranceValue: "",
+  shippingDispatch: "oneDay",
+  shippingOnDemandDays: "",
+  shippingPackageSize: "custom",
+  shippingMode: "integration",
+  shippingExtraFee: "",
+  shippingAutoTracking: true,
+  shippingAutoAccept: false,
+  shippingPickupAddress: "",
+  shippingPickupHours: "",
+  shippingCargoPrice: "",
+  shippingCargoDays: "",
   pricingModel: "monthly",
   currency: "BRL",
   price: "1.890,00",
@@ -86,6 +99,25 @@ describe("buildOfferingPayload", () => {
       cancellationTerms: "30 dias corridos",
       validUntil: "2026-12-31",
     });
+  });
+
+  it("atributos vão em `metadata.additionalProps`, com os valores em lista", () => {
+    const payload = buildOfferingPayload(
+      {
+        ...BASE,
+        attributes: [
+          { name: " Velocidade ", type: "mbps", values: "100mbps, 500mbps," },
+          { name: "", type: "", values: "" },
+          { name: "Cor", type: "text", values: "Preto, Cinza, Preto" },
+        ],
+      },
+      "spec-1",
+    );
+
+    expect(payload.metadata?.additionalProps).toEqual([
+      { name: "Velocidade", type: "mbps", values: ["100mbps", "500mbps"] },
+      { name: "Cor", type: "text", values: ["Preto", "Cinza"] },
+    ]);
   });
 
   it("não envia categoria, localidade, região nem imagem", () => {
@@ -148,8 +180,101 @@ describe("buildOfferingPayload", () => {
       widthCm: 25.5,
       lengthCm: 30,
       originPostalCode: "01310100",
+      postingDays: 1,
+      packageSize: "custom",
       insuranceValue: 1200,
     });
+    // Política de frete padrão: integração, sem acréscimo, com rastreio.
+    expect(payload.metadata).toMatchObject({
+      shippingPolicy: {
+        mode: "integration",
+        sellerMarkup: "0.00",
+        freeShipping: false,
+        pickup: false,
+        pickupAddress: null,
+        pickupHours: null,
+        automaticTracking: true,
+        autoAccept: false,
+        cargoPrice: null,
+        cargoDeliveryDays: null,
+      },
+    });
+  });
+
+  it("sob encomenda manda os dias informados em `postingDays`", () => {
+    const payload = buildOfferingPayload(
+      {
+        ...BASE,
+        category: "hardware",
+        shippingDispatch: "onDemand",
+        shippingOnDemandDays: "12",
+        shippingPackageSize: "medium",
+      },
+      "spec-1",
+    );
+
+    expect(payload.shipping).toMatchObject({
+      postingDays: 12,
+      packageSize: "medium",
+    });
+  });
+
+  it("frete de carga leva valor, prazo e acréscimo; retirada, endereço e horário", () => {
+    const cargo = buildOfferingPayload(
+      {
+        ...BASE,
+        category: "hardware",
+        shippingMode: "cargo",
+        shippingExtraFee: "5,00",
+        shippingCargoPrice: "480,00",
+        shippingCargoDays: "8",
+        shippingPickupAddress: "Não vai",
+      },
+      "spec-1",
+    );
+    expect(cargo.metadata?.shippingPolicy).toMatchObject({
+      mode: "cargo",
+      sellerMarkup: "5.00",
+      cargoPrice: "480.00",
+      cargoDeliveryDays: 8,
+      pickupAddress: null,
+    });
+
+    const pickup = buildOfferingPayload(
+      {
+        ...BASE,
+        category: "hardware",
+        shippingMode: "pickup",
+        shippingExtraFee: "5,00",
+        shippingPickupAddress: " Av. Santos Dumont, 3030 ",
+        shippingPickupHours: "Seg a sex, 8h às 17h",
+      },
+      "spec-1",
+    );
+    expect(pickup.metadata?.shippingPolicy).toMatchObject({
+      mode: "pickup",
+      pickup: true,
+      freeShipping: false,
+      sellerMarkup: "0.00",
+      pickupAddress: "Av. Santos Dumont, 3030",
+      pickupHours: "Seg a sex, 8h às 17h",
+      cargoPrice: null,
+    });
+
+    const free = buildOfferingPayload(
+      { ...BASE, category: "hardware", shippingMode: "freeShipping" },
+      "spec-1",
+    );
+    expect(free.metadata?.shippingPolicy).toMatchObject({
+      mode: "free_shipping",
+      freeShipping: true,
+    });
+  });
+
+  it("serviço não leva política de frete", () => {
+    const payload = buildOfferingPayload(BASE, "spec-1");
+
+    expect(payload.metadata).not.toHaveProperty("shippingPolicy");
   });
 
   it("sem seguro, o pacote não leva `insuranceValue`", () => {
@@ -175,24 +300,44 @@ describe("buildOfferingPayload", () => {
 describe("buildOfferingUpdate", () => {
   const OFFERING = { metadata: null } as ProductOffering;
 
-  it("produto físico reenvia o pacote, sem `productType` (fixo na criação)", () => {
+  it("produto físico reenvia o pacote, sem `productType` quando o tipo não muda", () => {
     const payload = buildOfferingUpdate(
       { ...BASE, category: "hardware", productType: "physical" },
       "spec-1",
-      OFFERING,
+      { ...OFFERING, productType: "physical" },
     );
 
     expect(payload).not.toHaveProperty("productType");
     expect(payload.shipping).toMatchObject({ originPostalCode: "01310100" });
   });
 
-  it("oferta salva como serviço não manda pacote, mesmo em Hardware", () => {
+  it("serviço que vira Hardware manda `productType: physical` com o pacote e a política", () => {
     const payload = buildOfferingUpdate(
       { ...BASE, category: "hardware", productType: "service" },
       "spec-1",
-      OFFERING,
+      { ...OFFERING, productType: "service" },
     );
 
+    expect(payload.productType).toBe("physical");
+    expect(payload.shipping).toMatchObject({ originPostalCode: "01310100" });
+    expect(payload.metadata).toHaveProperty("shippingPolicy");
+  });
+
+  it("Hardware que vira outra categoria manda `productType: service`, sem pacote nem política", () => {
+    const payload = buildOfferingUpdate(
+      { ...BASE, category: "software", productType: "physical" },
+      "spec-1",
+      {
+        ...OFFERING,
+        productType: "physical",
+        metadata: { shippingPolicy: { mode: "integration" }, extra: 1 },
+      },
+    );
+
+    expect(payload.productType).toBe("service");
     expect(payload).not.toHaveProperty("shipping");
+    expect(payload.metadata).not.toHaveProperty("shippingPolicy");
+    // Chaves de outras telas continuam.
+    expect(payload.metadata).toMatchObject({ extra: 1 });
   });
 });

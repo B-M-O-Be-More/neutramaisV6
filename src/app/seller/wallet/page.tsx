@@ -15,11 +15,13 @@ function SellerWalletContent() {
 }
 
 // Carteira do seller (Figma 2250-21984): a do buyer mais o aviso de
-// recebimentos, antecipação/payout e as contas de recebimento.
+// recebimentos, antecipação/payout e as contas de recebimento. A wallet-api
+// recebe o token do perfil Seller; quem não tem `wallet:read` vê o aviso
+// dela, sem exigir a permissão da geo-api.
 export default function SellerWalletPage() {
   return (
     <AuthenticatedLayout>
-      <SellerSessionProvider>
+      <SellerSessionProvider requiredPermission={null}>
         <SellerWalletContent />
       </SellerSessionProvider>
     </AuthenticatedLayout>

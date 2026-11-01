@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   describeTransaction,
   formatMinorAmount,
+  formatTransactionAmount,
   matchesFilter,
   matchesSearch,
   summarizeMonth,
@@ -105,9 +106,10 @@ describe("summarizeMonth", () => {
           createdAt: at("2026-10-01T00:00:00"),
         }),
         transaction({ amountMinor: 500, createdAt: at("2026-10-29T09:00:00") }),
+        // Débito negativo, como a wallet-api devolve: o gasto soma positivo.
         transaction({
           kind: "debit",
-          amountMinor: 300,
+          amountMinor: -300,
           createdAt: at("2026-10-15T00:00:00"),
         }),
         // Fora do mês.
@@ -132,6 +134,23 @@ describe("summarizeMonth", () => {
   });
 });
 
+describe("formatTransactionAmount", () => {
+  // O Intl separa "R$" do número com espaço não separável.
+  const amount = (item: WalletTransaction) =>
+    formatTransactionAmount(item, "pt-BR").replace(/\s/g, " ");
+
+  it("um sinal só, pelo tipo do lançamento", () => {
+    expect(amount(transaction({ amountMinor: 2450000 }))).toBe("+R$ 24.500,00");
+    // A wallet-api devolve o débito negativo.
+    expect(amount(transaction({ kind: "debit", amountMinor: -1680000 }))).toBe(
+      "-R$ 16.800,00",
+    );
+    expect(amount(transaction({ kind: "debit", amountMinor: 1680000 }))).toBe(
+      "-R$ 16.800,00",
+    );
+  });
+});
+
 describe("transactionsToCsv", () => {
   it("gera cabeçalho, valor com sinal e escapa vírgulas e aspas", () => {
     const csv = transactionsToCsv(
@@ -140,7 +159,7 @@ describe("transactionsToCsv", () => {
         transaction({
           id: "tx-2",
           kind: "debit",
-          amountMinor: 10999,
+          amountMinor: -10999,
           createdAt: at("2026-10-02T08:00:00Z"),
         }),
       ],

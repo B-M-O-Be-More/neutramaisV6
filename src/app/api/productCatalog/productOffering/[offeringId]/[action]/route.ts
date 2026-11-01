@@ -15,7 +15,8 @@ function isOfferingAction(action: string): action is OfferingAction {
 //   → marketplace-api POST /productCatalog/productOffering/{id}/{action}
 // Rota autenticada: transição do ciclo de vida (publish, pause, unpublish,
 // archive), sem body. Só essas ações são repassadas; o upstream valida
-// permissão, dono da oferta e o status atual.
+// permissão, dono da oferta e o status atual. Vai com o token do perfil
+// Seller (POST /auth/context).
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ offeringId: string; action: string }> },
@@ -34,5 +35,6 @@ export async function POST(
     method: "POST",
     path: `/productCatalog/productOffering/${encodeURIComponent(offeringId)}/${action}`,
     authenticated: true,
+    profileSession: true,
   });
 }

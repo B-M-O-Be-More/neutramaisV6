@@ -2,19 +2,17 @@
 
 import { Flex, Grid, Icon, Stack, Text } from "@chakra-ui/react";
 import React from "react";
-import { Trans, useTranslation } from "react-i18next";
-import { LuEye, LuLock } from "react-icons/lu";
+import { useTranslation } from "react-i18next";
+import { LuLock } from "react-icons/lu";
 
-import type { CoverageGeoJson } from "@/components/CoverageMap";
+import CoveragePrivacyNotice from "@/components/CoveragePrivacyNotice";
 import CoverageStorageUsage from "@/components/CoverageStorageUsage";
 import FormSellerCoverage from "@/components/Forms/FormSellerCoverage";
-import SellerCoverageDetailsDialog from "@/components/SellerCoverageDetailsDialog";
 import SellerCoverageList from "@/components/SellerCoverageList";
 import { toaster } from "@/components/ui/toaster";
 import { coverageVersionLabel } from "@/functions/coverageVersionLabel";
 import { mergeVersions } from "@/functions/mergeCoverageVersions";
 import { useCoverageFiles } from "@/hooks/useCoverageFiles";
-import { useCoverageGeometry } from "@/hooks/useCoverageGeometry";
 import { useOrganizationOfferings } from "@/hooks/useOrganizationOfferings";
 import { useOrganizationStorage } from "@/hooks/useOrganizationStorage";
 import type { CoverageVersionSummary } from "@/services/geoCoverage.service";
@@ -28,6 +26,7 @@ const OFFERINGS_PAGE = { offset: 0, limit: 200 };
 /**
  * Aba "Cobertura" do catálogo do seller (Figma 2664-56660): coberturas
  * cadastradas à esquerda e o cadastro de uma nova (upload de KMZ) à direita.
+ * "Detalhes" abre a página da cobertura (`/seller/coverage/{fileId}`).
  */
 export function SellerCoveragePanel({
   organizationId,
@@ -42,12 +41,11 @@ export function SellerCoveragePanel({
   } = useOrganizationOfferings(OFFERINGS_PAGE);
   // Coberturas da organização na geo-api (sobrevivem ao recarregar).
   const files = useCoverageFiles(organizationId);
-  // Enviadas nesta tela, com o nome e a geometria lidos do KMZ — dispensam
-  // baixar o original para o mapa.
+  // Enviadas nesta tela, com o nome e as contagens lidos do KMZ, até a
+  // listagem da geo-api trazê-las.
   const [saved, setSaved] = React.useState<
-    { version: CoverageVersionSummary; geometry: CoverageGeoJson | null }[]
+    { version: CoverageVersionSummary }[]
   >([]);
-  const [openId, setOpenId] = React.useState<string | null>(null);
   const storage = useOrganizationStorage(organizationId);
 
   const versions = React.useMemo(
@@ -67,15 +65,6 @@ export function SellerCoveragePanel({
     }
     return counts;
   }, [offerings, offeringsLoading, offeringsError]);
-
-  const openVersion = versions.find((version) => version.id === openId) ?? null;
-  const openSaved = saved.find((item) => item.version.id === openId);
-  // Fora das enviadas nesta tela, o mapa vem do KMZ original baixado.
-  const preview = useCoverageGeometry(
-    organizationId,
-    openVersion,
-    openSaved ? openSaved.geometry : undefined,
-  );
 
   return (
     <Stack gap="20px">
@@ -122,34 +111,7 @@ export function SellerCoveragePanel({
         </Flex>
       </Flex>
 
-      <Flex
-        align="flex-start"
-        gap="12px"
-        px="21px"
-        py="17px"
-        bg="#F3EEFF"
-        borderWidth="1px"
-        borderColor="#D3BFFD"
-        rounded="14px"
-      >
-        <Icon as={LuEye} boxSize="15px" color="#8B5CF6" mt="2px" />
-        <Stack gap="2px">
-          <Text
-            color="#8B5CF6"
-            fontSize="13px"
-            fontWeight={700}
-            lineHeight="19.5px"
-          >
-            {t("SellerCoverage.privacy.title")}
-          </Text>
-          <Text color="#5B21B6" fontSize="12px" lineHeight="18px">
-            <Trans
-              i18nKey="SellerCoverage.privacy.text"
-              components={{ strong: <strong /> }}
-            />
-          </Text>
-        </Stack>
-      </Flex>
+      <CoveragePrivacyNotice />
 
       {!canUpload && (
         <Text
@@ -180,7 +142,9 @@ export function SellerCoveragePanel({
           onRetry={files.reload}
           offerCounts={offerCounts}
           locale={locale}
-          onDetails={(version) => setOpenId(version.id)}
+          detailsHref={(version) =>
+            `/seller/coverage/${encodeURIComponent(version.logicalFileId)}`
+          }
         />
         <Stack gap="20px">
           <CoverageStorageUsage
@@ -196,7 +160,7 @@ export function SellerCoveragePanel({
             locale={locale}
             onSaved={(coverage) => {
               setSaved((current) => [
-                coverage,
+                { version: coverage.version },
                 ...current.filter(
                   (item) => item.version.id !== coverage.version.id,
                 ),
@@ -214,24 +178,6 @@ export function SellerCoveragePanel({
           />
         </Stack>
       </Grid>
-
-      <SellerCoverageDetailsDialog
-        version={
-          openVersion && preview.info
-            ? { ...openVersion, ...preview.info }
-            : openVersion
-        }
-        geometry={preview.geometry}
-        isLoadingMap={preview.isLoading}
-        mapError={preview.error}
-        offerCount={
-          openVersion && offerCounts
-            ? (offerCounts.get(openVersion.id) ?? 0)
-            : null
-        }
-        locale={locale}
-        onClose={() => setOpenId(null)}
-      />
     </Stack>
   );
 }

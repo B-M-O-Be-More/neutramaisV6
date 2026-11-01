@@ -11,6 +11,7 @@ import AuthenticatedLayout from "@/components/Layouts/Authenticated";
 import SellerOfferDetail from "@/components/SellerOfferDetail";
 import SellerOfferLoadState from "@/components/SellerOfferLoadState";
 import { toaster } from "@/components/ui/toaster";
+import { SellerSessionProvider } from "@/contexts/SellerSessionContext";
 import { currencyLocale } from "@/functions/currencyLocale";
 import { useOffering } from "@/hooks/useOffering";
 import { useOfferingImages } from "@/hooks/useOfferingImages";
@@ -125,11 +126,15 @@ function OfferDetailContent() {
 }
 
 // Detalhe da oferta no catálogo do seller (Figma 2098-31809), com as ações
-// de editar e patrocinar.
+// de editar e patrocinar. Imagens, planos e patrocínio vão com o token do
+// perfil Seller (POST /auth/context); a página não exige a permissão da
+// geo-api.
 export default function OfferDetailPage() {
   return (
     <AuthenticatedLayout>
-      <OfferDetailContent />
+      <SellerSessionProvider requiredPermission={null}>
+        <OfferDetailContent />
+      </SellerSessionProvider>
     </AuthenticatedLayout>
   );
 }

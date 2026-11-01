@@ -6,7 +6,8 @@ export type RfqCardAction =
   | "follow"
   | "cancel"
   | "viewOrder"
-  | "newRfq";
+  | "newRfq"
+  | "export";
 
 export interface RfqCardProps {
   rfq: Rfq;

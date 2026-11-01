@@ -276,9 +276,11 @@ describe("SellerOfferCoverageSection — KMZs da organização", () => {
 
     expect(productCatalogService.bindCoverage).toHaveBeenCalledWith(
       OFFERING_ID,
-      BOUND,
-      null,
-      [],
+      {
+        coverageVersionId: BOUND,
+        publicGeometry: null,
+        coverageNetworkPoints: [],
+      },
     );
     expect(
       await screen.findByText("SellerOfferCoverage.confirmed"),

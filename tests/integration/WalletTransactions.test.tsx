@@ -40,9 +40,10 @@ function transaction(
 
 const FIRST_PAGE = [
   transaction("009"),
+  // A wallet-api devolve o débito negativo.
   transaction("002", {
     kind: "debit",
-    amountMinor: 1680000,
+    amountMinor: -1680000,
     cancellationId: null,
     createdAt: at("2026-07-06T12:00:00"),
   }),
@@ -83,7 +84,9 @@ describe("WalletTransactions", () => {
     renderHistory();
 
     expect(await screen.findByText("+R$ 3.200,00")).toBeInTheDocument();
+    // Um sinal só no débito negativo da wallet-api.
     expect(screen.getByText("-R$ 16.800,00")).toBeInTheDocument();
+    expect(screen.queryByText(/--|−/)).not.toBeInTheDocument();
     expect(
       screen.getAllByText("Wallet.transactions.status.completed"),
     ).toHaveLength(2);
