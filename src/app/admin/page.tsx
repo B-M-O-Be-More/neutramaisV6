@@ -12,6 +12,7 @@ import AdminPanelHeader, {
 import type { AdminTabKey } from "@/components/AdminTabs";
 import AdminUsersTab from "@/components/AdminUsersTab";
 import AuthenticatedLayout from "@/components/Layouts/Authenticated";
+import RequirePermission from "@/components/RequirePermission";
 import {
   useAdminKycQueue,
   type AdminKycQueueFilters,
@@ -82,28 +83,50 @@ function AdminContent({
   );
 }
 
-// Painel administrativo: destino do login para `admin_neutra` e `super_admin`.
-// A fila fica no nível da página porque os indicadores dela alimentam também
-// o card "KYC em fila", a aba e o contador da sidebar. `?tab=` abre uma aba.
-export default function AdminPage({ searchParams }: AdminPageProps) {
-  const { tab } = React.use(searchParams);
-  const initialTab = ADMIN_AVAILABLE_TABS.find((key) => key === tab) ?? "kyc";
+interface AdminAreaProps {
+  /** Aba aberta ao entrar (vem do `?tab=`). */
+  initialTab: AdminTabKey;
+  /** Pendentes da fila, para o contador da sidebar (fora desta árvore). */
+  onPendingChange: (pending: number | undefined) => void;
+}
+
+// A fila só é consultada aqui dentro, depois do RequirePermission: quem não é
+// admin não chega a disparar o GET /admin/kyc/queue.
+function AdminArea({ initialTab, onPendingChange }: AdminAreaProps) {
   const [filters, setFilters] =
     React.useState<AdminKycQueueFilters>(INITIAL_FILTERS);
   // A busca só vai para a API depois de uma pausa na digitação.
   const search = useDebouncedValue(filters.search, 300);
   const queue = useAdminKycQueue({ ...filters, search });
+  const pending = queue.indicators?.pending ?? undefined;
+
+  React.useEffect(() => {
+    onPendingChange(pending);
+  }, [onPendingChange, pending]);
 
   return (
-    <AuthenticatedLayout
-      badges={{ kyc: queue.indicators?.pending ?? undefined }}
-    >
-      <AdminContent
-        initialTab={initialTab}
-        filters={filters}
-        onFiltersChange={setFilters}
-        queue={queue}
-      />
+    <AdminContent
+      initialTab={initialTab}
+      filters={filters}
+      onFiltersChange={setFilters}
+      queue={queue}
+    />
+  );
+}
+
+// Painel administrativo: destino do login para `admin_neutra` e `super_admin`,
+// e só para eles. Os indicadores da fila alimentam também o card "KYC em
+// fila", a aba e o contador da sidebar. `?tab=` abre uma aba.
+export default function AdminPage({ searchParams }: AdminPageProps) {
+  const { tab } = React.use(searchParams);
+  const initialTab = ADMIN_AVAILABLE_TABS.find((key) => key === tab) ?? "kyc";
+  const [pending, setPending] = React.useState<number | undefined>();
+
+  return (
+    <AuthenticatedLayout badges={{ kyc: pending }}>
+      <RequirePermission role="admin">
+        <AdminArea initialTab={initialTab} onPendingChange={setPending} />
+      </RequirePermission>
     </AuthenticatedLayout>
   );
 }

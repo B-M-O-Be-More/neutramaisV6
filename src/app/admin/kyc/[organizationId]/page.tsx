@@ -6,6 +6,7 @@ import React from "react";
 
 import AdminKycReview from "@/components/AdminKycReview";
 import AuthenticatedLayout from "@/components/Layouts/Authenticated";
+import RequirePermission from "@/components/RequirePermission";
 
 interface AdminKycReviewPageProps {
   params: Promise<{ organizationId: string }>;
@@ -14,7 +15,7 @@ interface AdminKycReviewPageProps {
 
 // Revisão de KYC de uma organização (compliance-api). Chega da fila do /admin:
 // "Ver documentos" abre só a solicitação; "Iniciar Revisão" chega com
-// `?start=1` e inicia a revisão ao abrir.
+// `?start=1` e inicia a revisão ao abrir. Só para admin da plataforma.
 export default function AdminKycReviewPage({
   params,
   searchParams,
@@ -31,17 +32,19 @@ export default function AdminKycReviewPage({
 
   return (
     <AuthenticatedLayout>
-      <Stack
-        maxW="1280px"
-        px={{ base: 4, md: "32px" }}
-        py={{ base: 6, md: "32px" }}
-      >
-        <AdminKycReview
-          organizationId={organizationId}
-          autoStart={autoStart}
-          onAutoStartHandled={onAutoStartHandled}
-        />
-      </Stack>
+      <RequirePermission role="admin">
+        <Stack
+          maxW="1280px"
+          px={{ base: 4, md: "32px" }}
+          py={{ base: 6, md: "32px" }}
+        >
+          <AdminKycReview
+            organizationId={organizationId}
+            autoStart={autoStart}
+            onAutoStartHandled={onAutoStartHandled}
+          />
+        </Stack>
+      </RequirePermission>
     </AuthenticatedLayout>
   );
 }
