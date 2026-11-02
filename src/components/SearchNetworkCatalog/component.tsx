@@ -19,17 +19,34 @@ import {
   LuRefreshCw,
 } from "react-icons/lu";
 
+import DirectProposalCreateDialog from "@/components/DirectProposalCreateDialog";
 import SearchNetworkFilters, {
   DEFAULT_SEARCH_NETWORK_FILTERS,
   SearchNetworkFiltersValue,
 } from "@/components/SearchNetworkFilters";
 import SearchNetworkOfferCard from "@/components/SearchNetworkOfferCard";
+import { useSession } from "@/contexts/SessionContext";
+import { useOrganizationAddress } from "@/hooks/useOrganizationAddress";
 import { useOrganizationOfferings } from "@/hooks/useOrganizationOfferings";
+import { useSendDirectProposal } from "@/hooks/useSendDirectProposal";
+import type { ProductOffering } from "@/services/productCatalog.service";
 
 import { SearchNetworkCatalogProps } from "./interface";
-import { filterOfferings, toOfferCardProps } from "./offerings";
+import {
+  filterOfferings,
+  toOfferCardProps,
+  toProposalOffer,
+} from "./offerings";
 
 const PAGE_SIZE = 20;
+
+/** "62420000" → "62420-000"; outro formato passa como veio. */
+function formatPostalCode(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  return digits.length === 8
+    ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+    : value;
+}
 
 function currencyLocale(language: string): string {
   return language.startsWith("pt") ? "pt-BR" : language;
@@ -53,6 +70,13 @@ export function SearchNetworkCatalog({
     DEFAULT_SEARCH_NETWORK_FILTERS,
   );
   const [page, setPage] = React.useState(1);
+  // Oferta do modal "Nova Proposta"; null com o modal fechado.
+  const [proposalFor, setProposalFor] = React.useState<ProductOffering | null>(
+    null,
+  );
+  const { profile } = useSession();
+  const { address } = useOrganizationAddress(profile?.organization.id ?? null);
+  const { send } = useSendDirectProposal();
 
   const { offerings, pagination, isLoading, hasError, refetch } =
     useOrganizationOfferings({
@@ -144,6 +168,7 @@ export function SearchNetworkCatalog({
           <SearchNetworkOfferCard
             key={offering.id}
             {...toOfferCardProps(offering, t, locale)}
+            onPropose={() => setProposalFor(offering)}
           />
         ))}
       </SimpleGrid>
@@ -237,6 +262,26 @@ export function SearchNetworkCatalog({
           )}
         </Stack>
       </Grid>
+
+      {proposalFor && (
+        <DirectProposalCreateDialog
+          key={proposalFor.id}
+          offer={toProposalOffer(proposalFor, t, locale)}
+          buyerName={profile?.display_name ?? ""}
+          defaultAddress={
+            address
+              ? {
+                  street: address.street,
+                  postalCode: formatPostalCode(address.postal_code),
+                }
+              : undefined
+          }
+          locale={locale}
+          proposalsHref="/proposals"
+          onClose={() => setProposalFor(null)}
+          onSend={send}
+        />
+      )}
     </Stack>
   );
 }

@@ -4,6 +4,7 @@ import type {
   SearchNetworkFiltersValue,
   SearchNetworkServiceType,
 } from "@/components/SearchNetworkFilters";
+import type { DirectProposalOffer } from "@/components/DirectProposalCreateDialog";
 import type { SearchNetworkOfferCardProps } from "@/components/SearchNetworkOfferCard";
 import type { ProductOffering } from "@/services/productCatalog.service";
 
@@ -98,6 +99,9 @@ function splitSpeed(speed: string): { value: string; unit?: string } {
   return { value: match[1], unit: match[2] || undefined };
 }
 
+/** Props do card que vêm da oferta (a ação de proposta fica com a tela). */
+export type OfferCardData = Omit<SearchNetworkOfferCardProps, "onPropose">;
+
 /**
  * Converte a oferta da API nas props do card. Provedor, selos e preço
  * anterior não vêm na API — esses blocos do card ficam ocultos.
@@ -106,7 +110,7 @@ export function toOfferCardProps(
   offering: ProductOffering,
   t: TFunction,
   locale: string,
-): SearchNetworkOfferCardProps {
+): OfferCardData {
   const money = new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "BRL",
@@ -170,6 +174,30 @@ export function toOfferCardProps(
     price: money.format(Number(offering.monthlyPrice)),
     priceSuffix: t("Marketplace.offers.perMonth"),
     addHref: `/cart?${query}`,
-    proposalHref: `/proposals/new?${query}`,
+  };
+}
+
+/** Vigência sugerida quando a oferta não informa (meses). */
+const DEFAULT_CONTRACT_MONTHS = 12;
+
+/**
+ * Dados da oferta para o modal "Nova Proposta". A API não traz mínimo de
+ * portas: vale `metadata.minPorts` quando a especificação o define; sem ele, 1.
+ */
+export function toProposalOffer(
+  offering: ProductOffering,
+  t: TFunction,
+  locale: string,
+): DirectProposalOffer {
+  const card = toOfferCardProps(offering, t, locale);
+  const minPorts = Number(offering.metadata?.minPorts);
+  return {
+    id: offering.id,
+    title: offering.name,
+    subtitle: [card.location, `${card.price}${card.priceSuffix ?? ""}`]
+      .filter(Boolean)
+      .join(" · "),
+    minPorts: Number.isInteger(minPorts) && minPorts > 0 ? minPorts : 1,
+    contractMonths: offering.durationMonths ?? DEFAULT_CONTRACT_MONTHS,
   };
 }

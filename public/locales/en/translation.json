@@ -481,7 +481,14 @@
         "email": {
           "title": "Verify email",
           "fallback": "your@email.com",
-          "hint": "Verification link sent to this email. Didn't get it? Check your spam folder. The link can only be used once."
+          "hint": "Verification link sent to this email. Didn't get it? Check your spam folder. The link can only be used once.",
+          "resend": "Resend email",
+          "resent": "We sent a new link. The previous one is no longer valid.",
+          "errors": {
+            "missingUser": "We could not identify your registration. Log in again to receive a new link.",
+            "resend": "We could not resend the email. Please try again.",
+            "rateLimit": "Too many resends. Wait a few minutes and try again."
+          }
         },
         "phone": {
           "title": "Verify phone",
@@ -2531,6 +2538,97 @@
         "contract": "Contract",
         "add": "Add",
         "propose": "Make Proposal"
+      }
+    },
+    "proposal": {
+      "titles": {
+        "form": "New Proposal",
+        "review": "Review proposal",
+        "done": "Proposal sent!"
+      },
+      "subtitle": "Sending a proposal to this offer's provider",
+      "detailsTitle": "Proposal details",
+      "requiredTitle": "Required proposal data",
+      "fields": {
+        "street": "Address",
+        "number": "Number",
+        "postalCode": "Postal code",
+        "ports": "Number of ports",
+        "contractMonths": "Contract term",
+        "price": "Proposed price (BRL) *",
+        "sla": "Technical SLA *",
+        "delivery": "Delivery / activation time *",
+        "cancellation": "Cancellation terms *",
+        "requiresSiteSurvey": "This proposal depends on a technical site survey",
+        "message": "Message (optional)",
+        "attachments": "Attachments (optional)"
+      },
+      "hints": {
+        "ports": "(Minimum: {{count}})",
+        "contractMonths": "(in months)"
+      },
+      "helpers": {
+        "price": "The proposal currency can't change (BRL)"
+      },
+      "placeholders": {
+        "sla": "E.g. 99.9% availability",
+        "delivery": "E.g. 30 business days",
+        "cancellation": "E.g. 30 calendar days, 3-month fee",
+        "message": "Describe additional details of your proposal..."
+      },
+      "dropzone": "Click to upload files",
+      "dropzoneHint": "PDF, DOCX, XLSX · max 10 MB per file",
+      "attachmentsNote": "Don't attach confidential documents — use the legal/NDA flow if needed.",
+      "removeFile": "Remove {{name}}",
+      "cancel": "Cancel",
+      "review": "Review proposal →",
+      "edit": "Edit proposal",
+      "confirm": "Confirm and send",
+      "reviewNotice": "Once sent, the proposal is versioned (v1). Updates create new versions. The currency can't be changed after sending.",
+      "acceptance": "This proposal includes <strong>traceable electronic acceptance</strong> under Neutra+ rules. By confirming, you agree to the stated terms.",
+      "summary": {
+        "buyer": "Buyer",
+        "product": "Product",
+        "address": "Delivery address",
+        "addressValue": "{{street}}, {{number}} — Postal code {{postalCode}}",
+        "ports": "Ports",
+        "contract": "Contract term",
+        "months_one": "{{count}} month",
+        "months_other": "{{count}} months",
+        "price": "Proposed price",
+        "sla": "Technical SLA",
+        "delivery": "Delivery time",
+        "cancellation": "Cancellation terms",
+        "siteSurvey": "Site survey",
+        "surveyRequired": "Required",
+        "surveyNotRequired": "Not required",
+        "message": "Message",
+        "attachments": "Attachments"
+      },
+      "done": {
+        "heading": "Proposal sent successfully!",
+        "description": "The provider has up to {{count}}h to accept. The proposal is versioned and traceable.",
+        "id": "Proposal sent",
+        "status": "Status",
+        "statusValue": "Awaiting seller",
+        "version": "Version",
+        "validity": "Valid for",
+        "days_one": "{{count}} day",
+        "days_other": "{{count}} days",
+        "close": "Close",
+        "viewSent": "View sent proposals"
+      },
+      "errors": {
+        "required": "Required field.",
+        "tooLong": "Text is too long.",
+        "postalCode": "Enter the postal code as 00000-000.",
+        "integer": "Use a valid whole number.",
+        "portsMin": "This offer's minimum is {{min}} ports.",
+        "monthsInvalid": "Use 1 to 120 months.",
+        "priceInvalid": "Enter a price above zero.",
+        "tooManyFiles": "Attach at most 5 files.",
+        "fileTooLarge": "Each file can be at most 10 MB.",
+        "sendFailed": "We couldn't send the proposal. Try again."
       }
     }
   },
@@ -6161,6 +6259,89 @@
       "referenceTooLong": "Use at most 40 characters.",
       "tooManyFiles": "Attach at most 5 files.",
       "fileTooLarge": "Each file can be at most 10 MB."
+    }
+  },
+  "Offers": {
+    "notice": {
+      "title": "Offers",
+      "description": "Find up to 50% off on exclusive offers!",
+      "collapse": "Collapse notice",
+      "expand": "Expand notice",
+      "dismiss": "Close notice"
+    },
+    "hero": {
+      "badge": "Offers Made For You",
+      "title": "You're on the Offers page.\nFind <highlight>exclusive offers</highlight> from many providers for you.",
+      "shortcutsLabel": "Category shortcuts",
+      "shortcuts": {
+        "fiber": "Fiber optic",
+        "dedicatedLink": "Dedicated Link",
+        "ip": "IPv4/IPv6",
+        "hardware": "CPE Hardware"
+      }
+    },
+    "specials": {
+      "title": "Special Offers",
+      "subtitle": "The best opportunities for you",
+      "count_one": "{{count}} special offer",
+      "count_other": "{{count}} special offers",
+      "viewAll": "View all →"
+    },
+    "featuredLabel": "Featured offers",
+    "bestDealsLabel": "Best offers for you",
+    "badges": {
+      "weekPromotion": "Deal of the Week",
+      "bestOffers": "Best Offers",
+      "forYou": "For you",
+      "newOffers": "New Offers",
+      "weekOffers": "Offers of the Week",
+      "regionalHighlight": "Regional highlight"
+    },
+    "covers": {
+      "connectivity": "Connectivity",
+      "hardware": "Hardware / CPE",
+      "forYou": "Offers related to you"
+    },
+    "topProviders": "TOP 3 PROVIDERS",
+    "sponsored": "Sponsored",
+    "discount": "-{{percent}}%",
+    "expiresIn": "Ends in {{hours}}h {{minutes}}min",
+    "view": "View Offer",
+    "categories": {
+      "fiber": "Fiber optic",
+      "hardware": "Hardware"
+    },
+    "provider": {
+      "rating_one": "Rated {{rating}} out of 5, {{count}} review",
+      "rating_other": "Rated {{rating}} out of 5, {{count}} reviews",
+      "kyc": "KYC ✓"
+    },
+    "row": {
+      "previous": "Show previous offers",
+      "next": "Show more offers"
+    },
+    "trending": {
+      "title": "Trending on Neutra+",
+      "subtitle": "Most hired by companies in the last 7 days",
+      "filtersLabel": "Filter trending products",
+      "filters": {
+        "all": "All",
+        "connectivity": "Connectivity",
+        "hardware": "Hardware",
+        "numbering": "Resources"
+      },
+      "categories": {
+        "connectivity": "Connectivity",
+        "hardware": "Hardware",
+        "numbering": "Resources"
+      },
+      "hot": "Trending",
+      "rank": "No. {{rank}} most hired",
+      "add": "Add {{name}} to cart",
+      "error": "We couldn't load the products.",
+      "empty": "There are no products in the catalog yet.",
+      "emptyFiltered": "No products in this category.",
+      "retry": "Try again"
     }
   }
 }

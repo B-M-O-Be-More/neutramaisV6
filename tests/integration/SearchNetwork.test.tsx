@@ -9,6 +9,27 @@ import { productCatalogService } from "@/services/productCatalog.service";
 
 import { renderWithProviders, screen } from "../test-utils";
 
+vi.mock("@/contexts/SessionContext", () => ({
+  useSession: () => ({
+    profile: { display_name: "Maria Azevedo", organization: { id: "org-1" } },
+  }),
+}));
+
+// Sede da organização: sugerida como endereço de entrega da proposta.
+vi.mock("@/hooks/useOrganizationAddress", () => ({
+  useOrganizationAddress: () => ({
+    address: {
+      street: "Rua Felipe Santiago",
+      complement: null,
+      city: "Russas",
+      state: "CE",
+      postal_code: "62420000",
+      country: "BR",
+    },
+    isLoading: false,
+  }),
+}));
+
 const STATS = {
   verifiedSellers: "2.418",
   averageSla: "99,5%",
@@ -163,6 +184,48 @@ describe("SearchNetworkCatalog", () => {
       screen.getByRole("button", { name: "SearchNetwork.filters.clear" }),
     );
     expect(screen.getByText("Fibra 500 Mega")).toBeInTheDocument();
+
+    spy.mockRestore();
+  });
+
+  it("Fazer Proposta abre o modal da oferta com a sede como endereço", async () => {
+    const spy = vi
+      .spyOn(productCatalogService, "listOrganizationOfferings")
+      .mockResolvedValue({
+        message: "Offerings retrieved",
+        data: OFFERINGS,
+        metadata: { page: 1, pageSize: 20, totalCount: 2, totalPages: 1 },
+      });
+
+    const { user } = renderWithProviders(
+      <SearchNetworkCatalog tab="nearby" query="" onViewAll={vi.fn()} />,
+    );
+
+    await screen.findByText("Link Dedicado 100 Mbps");
+    const [, second] = screen.getAllByRole("button", {
+      name: "SearchNetwork.catalog.card.propose",
+    });
+    await user.click(second);
+
+    expect(
+      await screen.findByText("SearchNetwork.proposal.titles.form"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("SearchNetwork.proposal.fields.street"),
+    ).toHaveValue("Rua Felipe Santiago");
+    expect(
+      screen.getByLabelText("SearchNetwork.proposal.fields.postalCode"),
+    ).toHaveValue("62420-000");
+    expect(
+      screen.getByRole("spinbutton", { name: /fields\.contractMonths/ }),
+    ).toHaveValue(24);
+
+    await user.click(
+      screen.getByRole("button", { name: "SearchNetwork.proposal.cancel" }),
+    );
+    expect(
+      screen.queryByText("SearchNetwork.proposal.titles.form"),
+    ).not.toBeInTheDocument();
 
     spy.mockRestore();
   });

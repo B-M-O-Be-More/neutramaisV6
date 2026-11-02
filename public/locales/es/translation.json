@@ -481,7 +481,14 @@
         "email": {
           "title": "Verificar correo",
           "fallback": "tu@correo.com",
-          "hint": "Enlace de verificación enviado a este correo. ¿No lo recibiste? Revisa la carpeta de spam. El enlace solo puede usarse una vez."
+          "hint": "Enlace de verificación enviado a este correo. ¿No lo recibiste? Revisa la carpeta de spam. El enlace solo puede usarse una vez.",
+          "resend": "Reenviar correo",
+          "resent": "Enviamos un nuevo enlace. El anterior dejó de ser válido.",
+          "errors": {
+            "missingUser": "No pudimos identificar el registro. Inicia sesión nuevamente para recibir un nuevo enlace.",
+            "resend": "No pudimos reenviar el correo. Inténtalo de nuevo.",
+            "rateLimit": "Demasiados reenvíos. Espera unos minutos e inténtalo de nuevo."
+          }
         },
         "phone": {
           "title": "Verificar teléfono",
@@ -2519,6 +2526,97 @@
         "contract": "Contrato",
         "add": "Agregar",
         "propose": "Hacer Propuesta"
+      }
+    },
+    "proposal": {
+      "titles": {
+        "form": "Nueva Propuesta",
+        "review": "Revisar propuesta",
+        "done": "¡Propuesta enviada!"
+      },
+      "subtitle": "Enviando propuesta al proveedor de esta oferta",
+      "detailsTitle": "Detalles de la propuesta",
+      "requiredTitle": "Datos obligatorios de la propuesta",
+      "fields": {
+        "street": "Dirección",
+        "number": "Número",
+        "postalCode": "Código postal",
+        "ports": "Cantidad de puertos",
+        "contractMonths": "Vigencia del contrato",
+        "price": "Precio propuesto (BRL) *",
+        "sla": "SLA técnico *",
+        "delivery": "Plazo de entrega / activación *",
+        "cancellation": "Condiciones de cancelación *",
+        "requiresSiteSurvey": "Esta propuesta depende de una inspección técnica",
+        "message": "Mensaje (opcional)",
+        "attachments": "Adjuntos (opcional)"
+      },
+      "hints": {
+        "ports": "(Mínimo: {{count}})",
+        "contractMonths": "(en meses)"
+      },
+      "helpers": {
+        "price": "La propuesta no puede cambiar de moneda (BRL)"
+      },
+      "placeholders": {
+        "sla": "Ej.: 99,9% de disponibilidad",
+        "delivery": "Ej.: 30 días hábiles",
+        "cancellation": "Ej.: 30 días corridos, multa de 3 mensualidades",
+        "message": "Describa detalles adicionales de su propuesta..."
+      },
+      "dropzone": "Haga clic para subir archivos",
+      "dropzoneHint": "PDF, DOCX, XLSX · máx. 10 MB por archivo",
+      "attachmentsNote": "No adjunte documentos confidenciales — use el flujo jurídico/NDA si es necesario.",
+      "removeFile": "Quitar {{name}}",
+      "cancel": "Cancelar",
+      "review": "Revisar propuesta →",
+      "edit": "Editar propuesta",
+      "confirm": "Confirmar y enviar",
+      "reviewNotice": "Tras el envío, la propuesta se versiona (v1). Las actualizaciones generan nuevas versiones. La moneda no se puede cambiar después del envío.",
+      "acceptance": "Esta propuesta incluye <strong>aceptación electrónica rastreable</strong> según las reglas de Neutra+. Al confirmar, usted acepta las condiciones declaradas.",
+      "summary": {
+        "buyer": "Comprador",
+        "product": "Producto",
+        "address": "Dirección de entrega",
+        "addressValue": "{{street}}, {{number}} — CP {{postalCode}}",
+        "ports": "Cant. de puertos",
+        "contract": "Vigencia del contrato",
+        "months_one": "{{count}} mes",
+        "months_other": "{{count}} meses",
+        "price": "Precio propuesto",
+        "sla": "SLA técnico",
+        "delivery": "Plazo de entrega",
+        "cancellation": "Condiciones de cancelación",
+        "siteSurvey": "Inspección técnica",
+        "surveyRequired": "Necesaria",
+        "surveyNotRequired": "No necesaria",
+        "message": "Mensaje",
+        "attachments": "Adjuntos"
+      },
+      "done": {
+        "heading": "¡Propuesta enviada con éxito!",
+        "description": "El proveedor tiene hasta {{count}}h para aceptar. La propuesta está versionada y es rastreable.",
+        "id": "Propuesta enviada",
+        "status": "Estado",
+        "statusValue": "Esperando al seller",
+        "version": "Versión",
+        "validity": "Válida por",
+        "days_one": "{{count}} día",
+        "days_other": "{{count}} días",
+        "close": "Cerrar",
+        "viewSent": "Ver propuestas enviadas"
+      },
+      "errors": {
+        "required": "Campo obligatorio.",
+        "tooLong": "Texto demasiado largo.",
+        "postalCode": "Indique el código postal en el formato 00000-000.",
+        "integer": "Use un número entero válido.",
+        "portsMin": "El mínimo de esta oferta es {{min}} puertos.",
+        "monthsInvalid": "Use de 1 a 120 meses.",
+        "priceInvalid": "Indique un precio mayor que cero.",
+        "tooManyFiles": "Adjunte como máximo 5 archivos.",
+        "fileTooLarge": "Cada archivo puede tener como máximo 10 MB.",
+        "sendFailed": "No fue posible enviar la propuesta. Intente de nuevo."
       }
     }
   },
@@ -6149,6 +6247,89 @@
       "referenceTooLong": "Use como máximo 40 caracteres.",
       "tooManyFiles": "Adjunte como máximo 5 archivos.",
       "fileTooLarge": "Cada archivo puede tener como máximo 10 MB."
+    }
+  },
+  "Offers": {
+    "notice": {
+      "title": "Ofertas",
+      "description": "¡Encuentre hasta 50% de descuento en ofertas exclusivas!",
+      "collapse": "Contraer aviso",
+      "expand": "Expandir aviso",
+      "dismiss": "Cerrar aviso"
+    },
+    "hero": {
+      "badge": "Ofertas Hechas Para usted",
+      "title": "Está en la Página de ofertas.\nEncuentre <highlight>ofertas exclusivas</highlight> de diversos proveedores para usted.",
+      "shortcutsLabel": "Atajos de categoría",
+      "shortcuts": {
+        "fiber": "Fibra óptica",
+        "dedicatedLink": "Enlace Dedicado",
+        "ip": "IPv4/IPv6",
+        "hardware": "Hardware CPE"
+      }
+    },
+    "specials": {
+      "title": "Ofertas Especiales",
+      "subtitle": "Las mejores oportunidades para usted",
+      "count_one": "{{count}} oferta especial",
+      "count_other": "{{count}} ofertas especiales",
+      "viewAll": "Ver todas →"
+    },
+    "featuredLabel": "Ofertas destacadas",
+    "bestDealsLabel": "Mejores ofertas para usted",
+    "badges": {
+      "weekPromotion": "Promoción de la Semana",
+      "bestOffers": "Mejores Ofertas",
+      "forYou": "Para usted",
+      "newOffers": "Nuevas Ofertas",
+      "weekOffers": "Ofertas de la Semana",
+      "regionalHighlight": "Destacado regional"
+    },
+    "covers": {
+      "connectivity": "Conectividad",
+      "hardware": "Hardware / CPE",
+      "forYou": "Ofertas relacionadas con usted"
+    },
+    "topProviders": "TOP 3 PROVEEDORES",
+    "sponsored": "Patrocinada",
+    "discount": "-{{percent}}%",
+    "expiresIn": "Vence en {{hours}}h {{minutes}}min",
+    "view": "Ver Oferta",
+    "categories": {
+      "fiber": "Fibra óptica",
+      "hardware": "Hardware"
+    },
+    "provider": {
+      "rating_one": "Nota {{rating}} de 5, {{count}} reseña",
+      "rating_other": "Nota {{rating}} de 5, {{count}} reseñas",
+      "kyc": "KYC ✓"
+    },
+    "row": {
+      "previous": "Ver ofertas anteriores",
+      "next": "Ver más ofertas"
+    },
+    "trending": {
+      "title": "Productos en tendencia en Neutra+",
+      "subtitle": "Los más contratados por las empresas en los últimos 7 días",
+      "filtersLabel": "Filtrar productos en tendencia",
+      "filters": {
+        "all": "Todos",
+        "connectivity": "Conectividad",
+        "hardware": "Hardware",
+        "numbering": "Recursos"
+      },
+      "categories": {
+        "connectivity": "Conectividad",
+        "hardware": "Hardware",
+        "numbering": "Recursos"
+      },
+      "hot": "En tendencia",
+      "rank": "N.º {{rank}} más contratado",
+      "add": "Agregar {{name}} al carrito",
+      "error": "No fue posible cargar los productos.",
+      "empty": "Aún no hay productos en el catálogo.",
+      "emptyFiltered": "Ningún producto en esta categoría.",
+      "retry": "Intentar de nuevo"
     }
   }
 }

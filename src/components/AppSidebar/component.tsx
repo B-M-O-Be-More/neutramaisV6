@@ -45,6 +45,12 @@ function getInitials(name: string) {
   return `${first}${last}`.toUpperCase();
 }
 
+// Telas sem item próprio no menu que acendem o item a que pertencem (a página
+// de ofertas é aberta pelas campanhas do Buscar Rede).
+const ROUTE_ALIASES: Record<string, string> = {
+  "/offers": "/search-network",
+};
+
 // Um item está ativo na própria rota e em qualquer sub-rota dela.
 function isActiveRoute(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -411,7 +417,7 @@ export function AppSidebar({
   // O logo leva ao início do primeiro grupo (o admin tem o próprio painel).
   const homeHref = groups[0]?.homeHref ?? "/dashboard";
   const activeHref = findActiveHref(
-    pathname,
+    ROUTE_ALIASES[pathname] ?? pathname,
     groups.flatMap((group) =>
       group.sections.flatMap((section) =>
         section.items.map((item) => item.href),

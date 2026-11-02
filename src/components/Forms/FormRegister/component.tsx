@@ -62,6 +62,7 @@ import {
   saveRegisterHandoff,
 } from "@/functions/registerHandoff";
 import { useConfirmPhone } from "@/hooks/useConfirmPhone";
+import { useResendEmailConfirmation } from "@/hooks/useResendEmailConfirmation";
 import KycNextSteps from "@/components/KycNextSteps";
 import { useRouter } from "next/navigation";
 import type {
@@ -229,6 +230,11 @@ export function FormRegister({ typeRegister }: FormRegisterProps) {
   // Confirmação do telefone por SMS: enviar código → habilitar campo → validar.
   const phoneOtp = useConfirmPhone(linkHandoff?.userId);
   const [otp, setOtp] = React.useState("");
+
+  // Reenvio do link do e-mail. O register não devolve o `user_id`, então o
+  // reenvio só existe quando o handoff o conhece — na retomada pelo login de uma
+  // conta pré-cadastrada (ver functions/postLoginRoute).
+  const emailResend = useResendEmailConfirmation(linkHandoff?.userId);
 
   // Card informativo da etapa de verificação / próximos passos.
   const renderInfoCard = (opts: {
@@ -1066,6 +1072,42 @@ export function FormRegister({ typeRegister }: FormRegisterProps) {
               hint: emailConfirmed
                 ? undefined
                 : t("Register.flow.verify.email.hint"),
+              children: !emailConfirmed && linkHandoff?.userId && (
+                <Stack gap="8px">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={emailResend.resend}
+                    loading={emailResend.loading}
+                    w="full"
+                    h="47px"
+                    rounded="14px"
+                    borderColor="brand.500"
+                    color="brand.500"
+                    fontSize="14px"
+                    fontWeight={700}
+                  >
+                    {t("Register.flow.verify.email.resend")}
+                  </Button>
+
+                  {emailResend.error ? (
+                    <Text fontSize="12px" color="#EF4444" textAlign="center">
+                      {t(emailResend.error)}
+                    </Text>
+                  ) : (
+                    emailResend.status === "sent" && (
+                      <Text
+                        fontSize="12px"
+                        fontWeight={600}
+                        color="#10B981"
+                        textAlign="center"
+                      >
+                        {t("Register.flow.verify.email.resent")}
+                      </Text>
+                    )
+                  )}
+                </Stack>
+              ),
             })}
 
             {renderInfoCard({
