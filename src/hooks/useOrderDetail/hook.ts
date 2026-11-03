@@ -63,5 +63,5 @@ export function useOrderDetail(orderId: string): UseOrderDetailReturn {
     setAttempt((n) => n + 1);
   }, []);
 
-  return { order, shipping, isLoading, errorKey, reload };
+  return { order, shipping, isLoading, errorKey, reload, setShipping };
 }

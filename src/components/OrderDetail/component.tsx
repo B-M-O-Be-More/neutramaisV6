@@ -14,12 +14,16 @@ import NextLink from "next/link";
 import { useTranslation } from "react-i18next";
 import {
   LuBuilding2,
+  LuCheck,
   LuChevronLeft,
   LuCreditCard,
   LuDownload,
   LuFileText,
+  LuFileUp,
+  LuPrinter,
   LuScrollText,
   LuShoppingBag,
+  LuTruck,
   LuZap,
 } from "react-icons/lu";
 
@@ -44,6 +48,29 @@ function orderNumber(id: string) {
   return `#${id.slice(0, 8).toUpperCase()}`;
 }
 
+const LABEL_STATUSES = ["pending", "cart", "paid", "ready", "cancelled"];
+
+/** Status da etiqueta para a tradução; os `*_unknown` viram "incerto". */
+function labelStatusKey(status: string): string {
+  return LABEL_STATUSES.includes(status) ? status : "unknown";
+}
+
+/** Botão secundário do rodapé do cartão da NF. */
+const OUTLINE_ACTION = {
+  variant: "plain",
+  h: "36px",
+  px: "12px",
+  gap: "8px",
+  rounded: "10px",
+  borderWidth: "1px",
+  borderColor: "#C7D8FF",
+  bg: "#EEF3FF",
+  color: "#1F5AFF",
+  fontSize: "12px",
+  fontWeight: 600,
+  _hover: { bg: "#E0EAFF" },
+} as const;
+
 /**
  * Detalhe de um pedido (Figma 2191-17812) para o Buyer ou o Seller dele:
  * progresso, a outra parte, pagamento e escrow, nota fiscal (físico),
@@ -60,6 +87,7 @@ export function OrderDetail({
   contractsHref,
   isDownloadingInvoice,
   onDownloadInvoice,
+  sellerShipping,
 }: OrderDetailProps) {
   const { t } = useTranslation();
   const isCheckout = isCheckoutOrder(order);
@@ -288,6 +316,174 @@ export function OrderDetail({
     shipping?.labels.find((label) => label.tracking)?.tracking ??
     null;
 
+  // ---- Nota fiscal, etiquetas e rastreio (pedido físico)
+  const labels = shipping?.labels ?? [];
+  const invoiceRows: OrderInfoRow[] = [
+    {
+      key: "key",
+      label: t("OrderDetail.invoice.key"),
+      value: shipping?.invoiceKey ?? "—",
+      copyValue: shipping?.invoiceKey ?? undefined,
+    },
+    {
+      key: "status",
+      label: t("OrderDetail.invoice.status"),
+      value: t(
+        shipping?.invoiceAttached
+          ? "OrderDetail.invoice.attached"
+          : "OrderDetail.invoice.pending",
+      ),
+    },
+    ...(perspective === "seller" && shipping
+      ? [
+          {
+            key: "accepted",
+            label: t("OrderShipping.accepted.label"),
+            value: t(
+              shipping.accepted
+                ? "OrderShipping.accepted.yes"
+                : "OrderShipping.accepted.no",
+            ),
+          },
+        ]
+      : []),
+    ...(labels.length > 0
+      ? [
+          {
+            key: "labels",
+            label: t("OrderShipping.labels.label", { count: labels.length }),
+            value: labels
+              .map((label) =>
+                t(
+                  `OrderShipping.labels.status.${labelStatusKey(label.status)}`,
+                ),
+              )
+              .join(" · "),
+          },
+        ]
+      : []),
+    {
+      key: "tracking",
+      label: t("OrderDetail.invoice.tracking"),
+      value: tracking ?? "—",
+      copyValue: tracking ?? undefined,
+    },
+    {
+      key: "received",
+      label: t("OrderDetail.invoice.received"),
+      value: t(
+        shipping?.received
+          ? "OrderDetail.invoice.receivedYes"
+          : "OrderDetail.invoice.receivedNo",
+      ),
+    },
+  ];
+  const labelNeedsAttention = labels.some((label) => label.attentionRequired);
+
+  const sellerActions = sellerShipping?.actions;
+  const pending = sellerShipping?.pending ?? null;
+  const isBusy = pending !== null;
+  const printable = sellerActions?.printableLabels ?? [];
+
+  const invoiceActions =
+    sellerActions?.canAccept ||
+    sellerActions?.canAttachInvoice ||
+    sellerActions?.canInformTracking ||
+    printable.length > 0 ||
+    shipping?.invoiceAttached ? (
+      <Flex gap="8px" wrap="wrap">
+        {sellerShipping && sellerActions?.canAccept && (
+          <Button
+            h="36px"
+            px="14px"
+            gap="8px"
+            rounded="10px"
+            bg="#1F5AFF"
+            color="white"
+            fontSize="12px"
+            fontWeight={700}
+            _hover={{ bg: "#1646CC" }}
+            loading={pending === "accept"}
+            disabled={isBusy}
+            onClick={sellerShipping.onAccept}
+          >
+            <Icon as={LuCheck} boxSize="13px" />
+            {t("OrderShipping.actions.accept")}
+          </Button>
+        )}
+        {sellerShipping && sellerActions?.canAttachInvoice && (
+          <Button
+            {...OUTLINE_ACTION}
+            disabled={isBusy}
+            onClick={sellerShipping.onAttachInvoice}
+          >
+            <Icon as={LuFileUp} boxSize="13px" />
+            {t(
+              shipping?.invoiceAttached
+                ? "OrderShipping.actions.replaceInvoice"
+                : "OrderShipping.actions.attachInvoice",
+            )}
+          </Button>
+        )}
+        {sellerShipping &&
+          printable.map((label, index) => (
+            <Button
+              key={label.id}
+              {...OUTLINE_ACTION}
+              loading={
+                typeof pending === "object" &&
+                pending !== null &&
+                pending.label === label.id
+              }
+              disabled={isBusy}
+              onClick={() => sellerShipping.onPrintLabel(label.id)}
+            >
+              <Icon as={LuPrinter} boxSize="13px" />
+              {printable.length > 1
+                ? t("OrderShipping.actions.printLabelNumber", {
+                    number: index + 1,
+                  })
+                : t("OrderShipping.actions.printLabel")}
+            </Button>
+          ))}
+        {sellerShipping && sellerActions?.canInformTracking && (
+          <Button
+            {...OUTLINE_ACTION}
+            disabled={isBusy}
+            onClick={sellerShipping.onInformTracking}
+          >
+            <Icon as={LuTruck} boxSize="13px" />
+            {t(
+              shipping?.tracking
+                ? "OrderShipping.actions.replaceTracking"
+                : "OrderShipping.actions.informTracking",
+            )}
+          </Button>
+        )}
+        {shipping?.invoiceAttached && (
+          <Button
+            variant="plain"
+            h="36px"
+            px="12px"
+            gap="8px"
+            rounded="10px"
+            borderWidth="1px"
+            borderColor="#AAECD5"
+            bg="#EDFBF5"
+            color="#10B981"
+            fontSize="12px"
+            fontWeight={600}
+            loading={isDownloadingInvoice}
+            _hover={{ bg: "#DDF7EC" }}
+            onClick={onDownloadInvoice}
+          >
+            <Icon as={LuDownload} boxSize="13px" />
+            {t("OrderDetail.invoice.download")}
+          </Button>
+        )}
+      </Flex>
+    ) : undefined;
+
   return (
     <Stack
       maxW="1280px"
@@ -430,60 +626,12 @@ export function OrderDetail({
               icon={LuFileText}
               iconColor="#10B981"
               title={t("OrderDetail.invoice.title")}
-              rows={[
-                {
-                  key: "key",
-                  label: t("OrderDetail.invoice.key"),
-                  value: shipping?.invoiceKey ?? "—",
-                  copyValue: shipping?.invoiceKey ?? undefined,
-                },
-                {
-                  key: "status",
-                  label: t("OrderDetail.invoice.status"),
-                  value: t(
-                    shipping?.invoiceAttached
-                      ? "OrderDetail.invoice.attached"
-                      : "OrderDetail.invoice.pending",
-                  ),
-                },
-                {
-                  key: "tracking",
-                  label: t("OrderDetail.invoice.tracking"),
-                  value: tracking ?? "—",
-                  copyValue: tracking ?? undefined,
-                },
-                {
-                  key: "received",
-                  label: t("OrderDetail.invoice.received"),
-                  value: t(
-                    shipping?.received
-                      ? "OrderDetail.invoice.receivedYes"
-                      : "OrderDetail.invoice.receivedNo",
-                  ),
-                },
-              ]}
-              actions={
-                shipping?.invoiceAttached ? (
-                  <Button
-                    variant="plain"
-                    h="36px"
-                    px="12px"
-                    gap="8px"
-                    rounded="10px"
-                    borderWidth="1px"
-                    borderColor="#AAECD5"
-                    bg="#EDFBF5"
-                    color="#10B981"
-                    fontSize="12px"
-                    fontWeight={600}
-                    loading={isDownloadingInvoice}
-                    _hover={{ bg: "#DDF7EC" }}
-                    onClick={onDownloadInvoice}
-                  >
-                    <Icon as={LuDownload} boxSize="13px" />
-                    {t("OrderDetail.invoice.download")}
-                  </Button>
-                ) : undefined
+              rows={invoiceRows}
+              actions={invoiceActions}
+              note={
+                labelNeedsAttention
+                  ? t("OrderShipping.labels.attention")
+                  : undefined
               }
             />
           )}

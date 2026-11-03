@@ -15,10 +15,18 @@ export interface CheckoutOrderItem {
     name: string;
     productType?: "service" | "physical";
     specification?: { id: string; name: string } | null;
+    /** Só físico. `automaticTracking: false` libera o rastreio manual. */
+    shippingPolicy?: { automaticTracking?: boolean } | null;
+    /** Só físico. CEP de origem da cotação (8 dígitos). */
+    shippingPackage?: { originPostalCode?: string | null } | null;
   };
   quantity: number;
   /** Total da linha em centavos da moeda do pedido. */
   totalMinor: number;
+  /** Valor só dos produtos da linha (sem frete), em centavos. */
+  productSubtotalMinor?: number;
+  /** Só físico: entrega, frete grátis ou retirada (sem etiqueta). */
+  shippingMode?: "delivery" | "free" | "pickup";
 }
 
 /** Pedido criado pelo checkout atual. */
@@ -109,7 +117,55 @@ export interface OrderShipping {
   received: boolean;
   /** Rastreio informado pelo Seller (manual). */
   tracking: string | null;
-  labels: { id: string; status: string; tracking: string | null }[];
+  labels: OrderShippingLabel[];
+}
+
+/** Etiqueta do Melhor Envio: uma por linha com entrega. */
+export interface OrderShippingLabel {
+  id: string;
+  offeringId?: string;
+  /**
+   * `pending`, `cart`, `paid`, `ready` (pronta para imprimir), `cancelled`,
+   * ou com sufixo `_unknown` quando o resultado no Melhor Envio é incerto.
+   */
+  status: string;
+  tracking: string | null;
+  attempts?: number;
+  /** Resultado incerto ou falha na última tentativa: o Financeiro trata. */
+  attentionRequired?: boolean;
+}
+
+/** Remetente da NF: o Seller que emite. Campos no formato da orders-api. */
+export interface InvoiceSender {
+  name: string;
+  /** CNPJ (14 dígitos), igual ao da chave de acesso. */
+  company_document: string;
+  state_register: string;
+  /** CEP de origem da cotação (8 dígitos). */
+  postal_code: string;
+  address: string;
+  number: string;
+  district: string;
+  city: string;
+  state_abbr: string;
+  phone: string;
+  email: string;
+  complement?: string;
+  economic_activity_code?: string | null;
+}
+
+/** Corpo do "Anexar nota fiscal" (PDF em Base64, até 2 MiB). */
+export interface AttachInvoiceInput {
+  pdfBase64: string;
+  /** Chave de acesso da NF-e (44 dígitos). */
+  accessKey: string;
+  /** Soma dos produtos das linhas físicas, sem frete e sem taxas. */
+  valueMinor: number;
+  sender: InvoiceSender;
+  /** CPF ou CNPJ do Buyer, sem máscara. */
+  recipientDocument: string;
+  recipientEmail: string;
+  recipientPhone: string;
 }
 
 /**
@@ -130,6 +186,21 @@ export interface ListOrdersParams {
 }
 
 export const ordersService = {
+  /**
+   * Pedidos em que a organização do perfil é o Buyer, do mais novo ao mais
+   * antigo. `metadata` traz a paginação. 403 sem `order:read`.
+   */
+  listBuyerOrders: (
+    { offset, limit }: ListOrdersParams = {},
+    options: { signal?: AbortSignal } = {},
+  ) =>
+    withProfileSession(() =>
+      api.request<ProductOrder[]>("GET", "/orders/buyer", null, {
+        params: { offset, limit },
+        signal: options.signal,
+      }),
+    ),
+
   /**
    * Pedidos em que a organização do perfil é o Seller, do mais novo ao mais
    * antigo. `metadata` traz a paginação. 403 sem `order:read`.
@@ -180,5 +251,38 @@ export const ordersService = {
   downloadInvoice: (orderId: string) =>
     withProfileSession(() =>
       api.getBlob(`/orders/${encodeURIComponent(orderId)}/shipping/invoice`),
+    ),
+
+  /**
+   * O Seller anexa (ou troca, até a etiqueta começar a ser comprada) a NF do
+   * pedido físico aceito (`order:accept`). Devolve o envio atualizado; 422
+   * com o motivo quando a chave, o valor ou o PDF não conferem.
+   */
+  attachInvoice: (orderId: string, input: AttachInvoiceInput) =>
+    withProfileSession(() =>
+      api.post<OrderShipping>(
+        `/orders/${encodeURIComponent(orderId)}/shipping/invoice`,
+        input,
+      ),
+    ),
+
+  /**
+   * Rastreio manual (`order:accept`): pedido pago, aceito, com NF e oferta
+   * sem rastreio automático. Cada chamada troca o código.
+   */
+  informTracking: (orderId: string, code: string) =>
+    withProfileSession(() =>
+      api.post<OrderShipping>(
+        `/orders/${encodeURIComponent(orderId)}/shipping/tracking`,
+        { code },
+      ),
+    ),
+
+  /** PDF da etiqueta `ready` (`order:accept`), lido na hora do Melhor Envio. */
+  downloadLabel: (orderId: string, labelId: string) =>
+    withProfileSession(() =>
+      api.getBlob(
+        `/orders/${encodeURIComponent(orderId)}/shipping/labels/${encodeURIComponent(labelId)}`,
+      ),
     ),
 };

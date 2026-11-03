@@ -25,10 +25,12 @@ type QueryValue = string | number | boolean | null | undefined;
 export interface OrdersForwardOptions {
   /** Caminho relativo à base da orders-api, ex.: "/productOrder/seller". */
   path: string;
-  /** Método HTTP; o padrão é GET. As ações sem corpo (aceite) usam POST. */
+  /** Método HTTP; o padrão é GET. As ações (aceite, NF, rastreio) usam POST. */
   method?: "GET" | "POST";
   /** Query string a repassar. Valores nulos/vazios são descartados. */
   params?: Record<string, QueryValue>;
+  /** Corpo JSON (NF, rastreio). Só os campos do contrato: filtre antes. */
+  body?: Record<string, unknown>;
   /**
    * Resposta de sucesso em bytes (PDF da nota fiscal): repassa o corpo sem
    * ler como texto, com o nome do arquivo e sem cache.
@@ -61,6 +63,35 @@ async function resolveOrdersBearer(): Promise<string | undefined> {
   );
 }
 
+// O upstream aceita offset de 0 a 10000 e limit de 1 a 200.
+const OFFSET_PATTERN = /^(10000|\d{1,4})$/;
+const LIMIT_PATTERN = /^(200|1\d{2}|[1-9]\d?)$/;
+
+/**
+ * Lista paginada de pedidos (Buyer ou Seller): confere `offset` e `limit`
+ * antes de chamar a orders-api e repassa o envelope.
+ */
+export async function forwardOrdersList(
+  searchParams: URLSearchParams,
+  path: "/productOrder/buyer" | "/productOrder/seller",
+): Promise<NextResponse> {
+  const offset = searchParams.get("offset");
+  const limit = searchParams.get("limit");
+
+  if (
+    (offset !== null && !OFFSET_PATTERN.test(offset)) ||
+    (limit !== null && !LIMIT_PATTERN.test(limit))
+  ) {
+    return envelopeError(
+      422,
+      "validation_error",
+      "Use offset de 0 a 10000 e limit de 1 a 200.",
+    );
+  }
+
+  return forwardToOrders({ path, params: { offset, limit } });
+}
+
 /**
  * Encaminha uma chamada autenticada para a orders-api e devolve a resposta
  * upstream sem alterar. Falhas de infraestrutura viram envelopes de erro
@@ -70,6 +101,7 @@ export async function forwardToOrders({
   path,
   method = "GET",
   params,
+  body,
   binary = false,
 }: OrdersForwardOptions): Promise<NextResponse> {
   if (!ORDERS_API_URL) {
@@ -90,8 +122,10 @@ export async function forwardToOrders({
         headers: {
           Accept: binary ? "*/*" : "application/json",
           [CORRELATION_ID_HEADER]: crypto.randomUUID(),
+          ...(body ? { "Content-Type": "application/json" } : {}),
           ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
         },
+        ...(body ? { body: JSON.stringify(body) } : {}),
         cache: "no-store",
       },
     );

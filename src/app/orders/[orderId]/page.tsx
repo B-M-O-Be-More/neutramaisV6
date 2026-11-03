@@ -13,16 +13,16 @@ function BuyerOrderDetailContent({ orderId }: { orderId: string }) {
     <OrderDetailScreen
       orderId={orderId}
       perspective="buyer"
-      backHref="/dashboard"
+      backHref="/orders"
       backLabel={t("OrderDetail.back.buyer")}
       contractsHref="/contracts"
     />
   );
 }
 
-// Detalhe de um pedido do buyer (Figma 2191-17812). A lista de pedidos do
-// buyer ainda não existe: a volta é para o início. A orders-api recebe o
-// token do perfil Buyer (POST /auth/context).
+// Detalhe de um pedido do buyer (Figma 2191-17812), aberto por "Meus
+// Pedidos" (/orders). A orders-api recebe o token do perfil Buyer
+// (POST /auth/context).
 export default function BuyerOrderDetailPage({
   params,
 }: {

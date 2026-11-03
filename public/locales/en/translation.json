@@ -3577,7 +3577,7 @@
   "OrderDetail": {
     "back": {
       "seller": "Back to orders",
-      "buyer": "Back to home"
+      "buyer": "Back to my orders"
     },
     "number": "Order {{number}}",
     "createdAt": "Created on {{date}}",
@@ -3712,6 +3712,132 @@
       "failed": "Could not load the order. Try again.",
       "invoiceMissing": "The invoice has not been attached yet.",
       "invoiceFailed": "Could not download the invoice. Try again."
+    }
+  },
+  "OrderShipping": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "dialogDescription": "Order {{number}}",
+    "accepted": {
+      "label": "Order acceptance",
+      "yes": "Accepted",
+      "no": "Waiting for your acceptance"
+    },
+    "labels": {
+      "label_one": "Label",
+      "label_other": "Labels",
+      "status": {
+        "pending": "Waiting for purchase",
+        "cart": "In the Melhor Envio cart",
+        "paid": "Paid",
+        "ready": "Ready to print",
+        "cancelled": "Cancelled",
+        "unknown": "Uncertain status"
+      },
+      "attention": "A label purchase needs attention from the Neutra+ Finance team. You don't need to do anything."
+    },
+    "actions": {
+      "accept": "Accept order",
+      "attachInvoice": "Attach invoice",
+      "replaceInvoice": "Replace invoice",
+      "printLabel": "Print label",
+      "printLabelNumber": "Print label {{number}}",
+      "informTracking": "Add tracking code",
+      "replaceTracking": "Replace tracking code"
+    },
+    "success": {
+      "accepted": "Order accepted. Now attach the invoice.",
+      "invoiceAttached": "Invoice attached. The label is purchased next on Melhor Envio.",
+      "trackingInformed": "Tracking code sent to the buyer."
+    },
+    "invoice": {
+      "title": "Attach invoice",
+      "notice": "Upload the NF-e PDF for this order. Melhor Envio uses the access key and the sender and recipient details to generate the label. You can replace the invoice until the label purchase starts.",
+      "sections": {
+        "invoice": "Invoice",
+        "sender": "Sender (your company)",
+        "recipient": "Recipient (buyer)"
+      },
+      "fields": {
+        "file": "Invoice PDF",
+        "accessKey": "Access key",
+        "value": "Invoice amount (R$)",
+        "senderName": "Legal name",
+        "stateRegister": "State registration",
+        "postalCode": "Origin ZIP code",
+        "address": "Street",
+        "number": "Number",
+        "complement": "Complement",
+        "district": "District",
+        "city": "City",
+        "stateAbbr": "State",
+        "economicActivityCode": "CNAE",
+        "senderPhone": "Phone",
+        "senderEmail": "Email",
+        "recipientDocument": "CPF or CNPJ",
+        "recipientPhone": "Phone",
+        "recipientEmail": "Email"
+      },
+      "chooseFile": "Choose PDF",
+      "changeFile": "Change PDF",
+      "fileHint": "PDF up to 2 MB",
+      "accessKeyHint": "44 digits, as on the DANFE.",
+      "issuerCnpj": "Issuer CNPJ: {{cnpj}}",
+      "valueHint": "Products only, without shipping and fees.",
+      "postalCodeHint": "The same origin ZIP code used for shipping.",
+      "submit": "Attach invoice"
+    },
+    "tracking": {
+      "title": "Add tracking code",
+      "notice": "After you add the tracking code, the order can no longer be cancelled.",
+      "label": "Tracking code",
+      "placeholder": "E.g. AD284719305BR",
+      "submit": "Add tracking code"
+    },
+    "errors": {
+      "required": "Required field",
+      "tooShort": "Text too short",
+      "tooLong": "Text too long",
+      "fileRequired": "Choose the invoice PDF",
+      "accessKeyInvalid": "Invalid key: check the 44 digits",
+      "valueInvalid": "Enter an amount greater than zero",
+      "postalCodeInvalid": "Use the 8 ZIP code digits",
+      "stateInvalid": "Use the state abbreviation (e.g. CE)",
+      "phoneInvalid": "Use 10 to 13 digits, with area code",
+      "emailInvalid": "Invalid email",
+      "cnaeInvalid": "The CNAE has 7 digits",
+      "documentInvalid": "Use the 11 CPF digits or the 14 CNPJ digits",
+      "trackingInvalid": "Use 5 to 64 letters, numbers or hyphens",
+      "pdf": {
+        "tooLarge": "The PDF is larger than 2 MB",
+        "notPdf": "The file is not a valid PDF",
+        "unreadable": "The file could not be read"
+      },
+      "forbidden": "Your profile is not allowed to do this.",
+      "notFound": "Order not found.",
+      "conflict": "The order does not allow this action right now.",
+      "rejected": "The data was not accepted.",
+      "failed": "This could not be completed. Try again."
+    }
+  },
+  "BuyerOrders": {
+    "title": "My Orders",
+    "subtitle": "Track your organization's purchases.",
+    "stats": {
+      "total": "Orders",
+      "inProgress": "In progress",
+      "inEscrow": "In escrow",
+      "inCancellation": "Being cancelled"
+    },
+    "search": "Search orders",
+    "searchPlaceholder": "Search by product, order number or seller",
+    "seller": "Seller {{id}}",
+    "empty": "Your organization has no orders yet.",
+    "emptyFiltered": "No orders match this search.",
+    "retry": "Try again",
+    "errors": {
+      "forbidden": "Your Buyer profile is not allowed to see orders yet (order:read).",
+      "failed": "Orders could not be loaded. Try again."
     }
   },
   "CopyValue": {
