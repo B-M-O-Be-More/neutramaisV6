@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import OrderDetail, { type OrderDetailProps } from "@/components/OrderDetail";
+import { sellerShippingActions } from "@/functions/orderShipping";
 import type { CheckoutOrder, OrderShipping } from "@/services/orders.service";
 
 import { renderWithProviders, screen, within } from "../test-utils";
@@ -153,6 +154,166 @@ describe("OrderDetail", () => {
     expect(onDownloadInvoice).toHaveBeenCalledOnce();
     expect(
       screen.queryByRole("region", { name: "OrderDetail.contract.title" }),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe("OrderDetail · ações de envio do Seller", () => {
+  const PHYSICAL: CheckoutOrder = {
+    ...ORDER,
+    items: [
+      {
+        ...ORDER.items[0],
+        catalog: {
+          ...ORDER.items[0].catalog,
+          productType: "physical",
+          shippingPolicy: { automaticTracking: false },
+        },
+        productSubtotalMinor: 399000,
+        shippingMode: "delivery",
+      },
+    ],
+  };
+  const SHIPPING: OrderShipping = {
+    orderId: ORDER.id,
+    revision: 1,
+    accepted: false,
+    invoiceAttached: false,
+    invoiceKey: null,
+    received: false,
+    tracking: null,
+    labels: [],
+  };
+  const handlers = () => ({
+    onAccept: vi.fn(),
+    onAttachInvoice: vi.fn(),
+    onInformTracking: vi.fn(),
+    onPrintLabel: vi.fn(),
+  });
+
+  function renderSeller(shipping: OrderShipping, pending = null) {
+    const callbacks = handlers();
+    const view = renderDetail({
+      order: PHYSICAL,
+      shipping,
+      sellerShipping: {
+        actions: sellerShippingActions(PHYSICAL, shipping),
+        pending,
+        ...callbacks,
+      },
+    });
+    const invoice = screen.getByRole("region", {
+      name: "OrderDetail.invoice.title",
+    });
+    return { ...view, callbacks, invoice };
+  }
+
+  it("pedido pago sem aceite: só o botão de aceitar", async () => {
+    const { user, callbacks, invoice } = renderSeller(SHIPPING);
+
+    expect(invoice).toHaveTextContent("OrderShipping.accepted.no");
+    expect(
+      within(invoice).queryByRole("button", {
+        name: "OrderShipping.actions.attachInvoice",
+      }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      within(invoice).getByRole("button", {
+        name: "OrderShipping.actions.accept",
+      }),
+    );
+    expect(callbacks.onAccept).toHaveBeenCalledOnce();
+  });
+
+  it("aceito: anexar a NF; com NF: trocar NF, informar rastreio e baixar", async () => {
+    const accepted = renderSeller({ ...SHIPPING, accepted: true });
+    await accepted.user.click(
+      within(accepted.invoice).getByRole("button", {
+        name: "OrderShipping.actions.attachInvoice",
+      }),
+    );
+    expect(accepted.callbacks.onAttachInvoice).toHaveBeenCalledOnce();
+    expect(
+      within(accepted.invoice).queryByRole("button", {
+        name: "OrderShipping.actions.informTracking",
+      }),
+    ).not.toBeInTheDocument();
+    accepted.unmount();
+
+    const { user, callbacks, invoice } = renderSeller({
+      ...SHIPPING,
+      accepted: true,
+      invoiceAttached: true,
+      invoiceKey: "23261012345678000195550010000045121482139073",
+    });
+    expect(
+      within(invoice).getByRole("button", {
+        name: "OrderShipping.actions.replaceInvoice",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(invoice).getByRole("button", {
+        name: "OrderDetail.invoice.download",
+      }),
+    ).toBeInTheDocument();
+    await user.click(
+      within(invoice).getByRole("button", {
+        name: "OrderShipping.actions.informTracking",
+      }),
+    );
+    expect(callbacks.onInformTracking).toHaveBeenCalledOnce();
+  });
+
+  it("etiqueta pronta: imprime pelo id e mostra a situação de cada uma", async () => {
+    const { user, callbacks, invoice } = renderSeller({
+      ...SHIPPING,
+      accepted: true,
+      invoiceAttached: true,
+      labels: [
+        { id: "label-1", status: "ready", tracking: null },
+        {
+          id: "label-2",
+          status: "checkout_unknown",
+          tracking: null,
+          attentionRequired: true,
+        },
+      ],
+    });
+
+    expect(invoice).toHaveTextContent("OrderShipping.labels.status.ready");
+    expect(invoice).toHaveTextContent("OrderShipping.labels.status.unknown");
+    expect(invoice).toHaveTextContent("OrderShipping.labels.attention");
+    // A compra já começou: a NF não pode mais ser trocada.
+    expect(
+      within(invoice).queryByRole("button", {
+        name: "OrderShipping.actions.replaceInvoice",
+      }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      within(invoice).getByRole("button", {
+        name: "OrderShipping.actions.printLabel",
+      }),
+    );
+    expect(callbacks.onPrintLabel).toHaveBeenCalledWith("label-1");
+  });
+
+  it("Buyer não vê as ações do Seller", () => {
+    renderDetail({
+      order: PHYSICAL,
+      perspective: "buyer",
+      shipping: { ...SHIPPING, accepted: true },
+    });
+
+    expect(
+      screen.queryByRole("button", { name: "OrderShipping.actions.accept" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", {
+        name: "OrderShipping.actions.attachInvoice",
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("OrderShipping.accepted.no"),
     ).not.toBeInTheDocument();
   });
 });

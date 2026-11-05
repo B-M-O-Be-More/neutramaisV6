@@ -3562,7 +3562,7 @@
   "OrderDetail": {
     "back": {
       "seller": "Voltar aos pedidos",
-      "buyer": "Voltar ao início"
+      "buyer": "Voltar aos meus pedidos"
     },
     "number": "Pedido {{number}}",
     "createdAt": "Criado em {{date}}",
@@ -3697,6 +3697,132 @@
       "failed": "Não foi possível carregar o pedido. Tente de novo.",
       "invoiceMissing": "A nota fiscal ainda não foi anexada.",
       "invoiceFailed": "Não foi possível baixar a nota fiscal. Tente de novo."
+    }
+  },
+  "OrderShipping": {
+    "close": "Fechar",
+    "cancel": "Cancelar",
+    "dialogDescription": "Pedido {{number}}",
+    "accepted": {
+      "label": "Aceite do pedido",
+      "yes": "Aceito",
+      "no": "Aguardando o seu aceite"
+    },
+    "labels": {
+      "label_one": "Etiqueta",
+      "label_other": "Etiquetas",
+      "status": {
+        "pending": "Aguardando compra",
+        "cart": "No carrinho do Melhor Envio",
+        "paid": "Paga",
+        "ready": "Pronta para imprimir",
+        "cancelled": "Cancelada",
+        "unknown": "Situação incerta"
+      },
+      "attention": "A compra de uma etiqueta precisa de atenção do Financeiro da Neutra+. Você não precisa fazer nada."
+    },
+    "actions": {
+      "accept": "Aceitar pedido",
+      "attachInvoice": "Anexar nota fiscal",
+      "replaceInvoice": "Trocar nota fiscal",
+      "printLabel": "Imprimir etiqueta",
+      "printLabelNumber": "Imprimir etiqueta {{number}}",
+      "informTracking": "Informar rastreio",
+      "replaceTracking": "Trocar rastreio"
+    },
+    "success": {
+      "accepted": "Pedido aceito. Agora anexe a nota fiscal.",
+      "invoiceAttached": "Nota fiscal anexada. A etiqueta é comprada em seguida no Melhor Envio.",
+      "trackingInformed": "Rastreio informado ao comprador."
+    },
+    "invoice": {
+      "title": "Anexar nota fiscal",
+      "notice": "Envie o PDF da NF-e deste pedido. O Melhor Envio usa a chave e os dados de remetente e destinatário para gerar a etiqueta. Dá para trocar a NF até a compra da etiqueta começar.",
+      "sections": {
+        "invoice": "Nota fiscal",
+        "sender": "Remetente (sua empresa)",
+        "recipient": "Destinatário (comprador)"
+      },
+      "fields": {
+        "file": "PDF da nota fiscal",
+        "accessKey": "Chave de acesso",
+        "value": "Valor da NF (R$)",
+        "senderName": "Razão social",
+        "stateRegister": "Inscrição estadual",
+        "postalCode": "CEP de origem",
+        "address": "Logradouro",
+        "number": "Número",
+        "complement": "Complemento",
+        "district": "Bairro",
+        "city": "Cidade",
+        "stateAbbr": "UF",
+        "economicActivityCode": "CNAE",
+        "senderPhone": "Telefone",
+        "senderEmail": "E-mail",
+        "recipientDocument": "CPF ou CNPJ",
+        "recipientPhone": "Telefone",
+        "recipientEmail": "E-mail"
+      },
+      "chooseFile": "Escolher PDF",
+      "changeFile": "Trocar PDF",
+      "fileHint": "PDF de até 2 MB",
+      "accessKeyHint": "44 dígitos, como no DANFE.",
+      "issuerCnpj": "CNPJ do emitente: {{cnpj}}",
+      "valueHint": "Só os produtos, sem frete e sem taxas.",
+      "postalCodeHint": "O mesmo CEP de origem do frete.",
+      "submit": "Anexar nota fiscal"
+    },
+    "tracking": {
+      "title": "Informar rastreio",
+      "notice": "Depois de informar o rastreio, o pedido não pode mais ser cancelado.",
+      "label": "Código de rastreio",
+      "placeholder": "Ex.: AD284719305BR",
+      "submit": "Informar rastreio"
+    },
+    "errors": {
+      "required": "Campo obrigatório",
+      "tooShort": "Texto muito curto",
+      "tooLong": "Texto muito longo",
+      "fileRequired": "Escolha o PDF da nota fiscal",
+      "accessKeyInvalid": "Chave inválida: confira os 44 dígitos",
+      "valueInvalid": "Informe um valor maior que zero",
+      "postalCodeInvalid": "Use os 8 dígitos do CEP",
+      "stateInvalid": "Use a sigla da UF (ex.: CE)",
+      "phoneInvalid": "Use de 10 a 13 dígitos, com DDD",
+      "emailInvalid": "E-mail inválido",
+      "cnaeInvalid": "O CNAE tem 7 dígitos",
+      "documentInvalid": "Use os 11 dígitos do CPF ou os 14 do CNPJ",
+      "trackingInvalid": "Use de 5 a 64 letras, números ou hífen",
+      "pdf": {
+        "tooLarge": "O PDF passa de 2 MB",
+        "notPdf": "O arquivo não é um PDF válido",
+        "unreadable": "Não foi possível ler o arquivo"
+      },
+      "forbidden": "Seu perfil não tem permissão para esta ação.",
+      "notFound": "Pedido não encontrado.",
+      "conflict": "O pedido não permite esta ação agora.",
+      "rejected": "Os dados não foram aceitos.",
+      "failed": "Não foi possível concluir. Tente de novo."
+    }
+  },
+  "BuyerOrders": {
+    "title": "Meus Pedidos",
+    "subtitle": "Acompanhe as compras da sua organização.",
+    "stats": {
+      "total": "Pedidos",
+      "inProgress": "Em andamento",
+      "inEscrow": "Em escrow",
+      "inCancellation": "Em cancelamento"
+    },
+    "search": "Buscar pedidos",
+    "searchPlaceholder": "Buscar por produto, nº do pedido ou seller",
+    "seller": "Seller {{id}}",
+    "empty": "Sua organização ainda não tem pedidos.",
+    "emptyFiltered": "Nenhum pedido encontrado com essa busca.",
+    "retry": "Tentar de novo",
+    "errors": {
+      "forbidden": "Seu perfil Buyer ainda não tem permissão para ver pedidos (order:read).",
+      "failed": "Não foi possível carregar os pedidos. Tente de novo."
     }
   },
   "CopyValue": {

@@ -3571,7 +3571,7 @@
   "OrderDetail": {
     "back": {
       "seller": "Volver a los pedidos",
-      "buyer": "Volver al inicio"
+      "buyer": "Volver a mis pedidos"
     },
     "number": "Pedido {{number}}",
     "createdAt": "Creado el {{date}}",
@@ -3706,6 +3706,132 @@
       "failed": "No se pudo cargar el pedido. Inténtalo de nuevo.",
       "invoiceMissing": "La factura aún no fue adjuntada.",
       "invoiceFailed": "No se pudo descargar la factura. Inténtalo de nuevo."
+    }
+  },
+  "OrderShipping": {
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "dialogDescription": "Pedido {{number}}",
+    "accepted": {
+      "label": "Aceptación del pedido",
+      "yes": "Aceptado",
+      "no": "Esperando tu aceptación"
+    },
+    "labels": {
+      "label_one": "Etiqueta",
+      "label_other": "Etiquetas",
+      "status": {
+        "pending": "Esperando compra",
+        "cart": "En el carrito de Melhor Envio",
+        "paid": "Pagada",
+        "ready": "Lista para imprimir",
+        "cancelled": "Cancelada",
+        "unknown": "Situación incierta"
+      },
+      "attention": "La compra de una etiqueta necesita atención del área Financiera de Neutra+. No necesitas hacer nada."
+    },
+    "actions": {
+      "accept": "Aceptar pedido",
+      "attachInvoice": "Adjuntar factura",
+      "replaceInvoice": "Cambiar factura",
+      "printLabel": "Imprimir etiqueta",
+      "printLabelNumber": "Imprimir etiqueta {{number}}",
+      "informTracking": "Informar seguimiento",
+      "replaceTracking": "Cambiar seguimiento"
+    },
+    "success": {
+      "accepted": "Pedido aceptado. Ahora adjunta la factura.",
+      "invoiceAttached": "Factura adjuntada. La etiqueta se compra a continuación en Melhor Envio.",
+      "trackingInformed": "Código de seguimiento informado al comprador."
+    },
+    "invoice": {
+      "title": "Adjuntar factura",
+      "notice": "Sube el PDF de la NF-e de este pedido. Melhor Envio usa la clave y los datos de remitente y destinatario para generar la etiqueta. Puedes cambiar la factura hasta que empiece la compra de la etiqueta.",
+      "sections": {
+        "invoice": "Factura",
+        "sender": "Remitente (tu empresa)",
+        "recipient": "Destinatario (comprador)"
+      },
+      "fields": {
+        "file": "PDF de la factura",
+        "accessKey": "Clave de acceso",
+        "value": "Valor de la factura (R$)",
+        "senderName": "Razón social",
+        "stateRegister": "Inscripción estatal",
+        "postalCode": "Código postal de origen",
+        "address": "Calle",
+        "number": "Número",
+        "complement": "Complemento",
+        "district": "Barrio",
+        "city": "Ciudad",
+        "stateAbbr": "Estado",
+        "economicActivityCode": "CNAE",
+        "senderPhone": "Teléfono",
+        "senderEmail": "Correo electrónico",
+        "recipientDocument": "CPF o CNPJ",
+        "recipientPhone": "Teléfono",
+        "recipientEmail": "Correo electrónico"
+      },
+      "chooseFile": "Elegir PDF",
+      "changeFile": "Cambiar PDF",
+      "fileHint": "PDF de hasta 2 MB",
+      "accessKeyHint": "44 dígitos, como en el DANFE.",
+      "issuerCnpj": "CNPJ del emisor: {{cnpj}}",
+      "valueHint": "Solo los productos, sin envío y sin tasas.",
+      "postalCodeHint": "El mismo código postal de origen del envío.",
+      "submit": "Adjuntar factura"
+    },
+    "tracking": {
+      "title": "Informar seguimiento",
+      "notice": "Después de informar el seguimiento, el pedido ya no puede cancelarse.",
+      "label": "Código de seguimiento",
+      "placeholder": "Ej.: AD284719305BR",
+      "submit": "Informar seguimiento"
+    },
+    "errors": {
+      "required": "Campo obligatorio",
+      "tooShort": "Texto demasiado corto",
+      "tooLong": "Texto demasiado largo",
+      "fileRequired": "Elige el PDF de la factura",
+      "accessKeyInvalid": "Clave inválida: revisa los 44 dígitos",
+      "valueInvalid": "Indica un valor mayor que cero",
+      "postalCodeInvalid": "Usa los 8 dígitos del código postal",
+      "stateInvalid": "Usa la sigla del estado (ej.: CE)",
+      "phoneInvalid": "Usa de 10 a 13 dígitos, con código de área",
+      "emailInvalid": "Correo electrónico inválido",
+      "cnaeInvalid": "El CNAE tiene 7 dígitos",
+      "documentInvalid": "Usa los 11 dígitos del CPF o los 14 del CNPJ",
+      "trackingInvalid": "Usa de 5 a 64 letras, números o guiones",
+      "pdf": {
+        "tooLarge": "El PDF supera los 2 MB",
+        "notPdf": "El archivo no es un PDF válido",
+        "unreadable": "No se pudo leer el archivo"
+      },
+      "forbidden": "Tu perfil no tiene permiso para esta acción.",
+      "notFound": "Pedido no encontrado.",
+      "conflict": "El pedido no permite esta acción ahora.",
+      "rejected": "Los datos no fueron aceptados.",
+      "failed": "No se pudo completar. Inténtalo de nuevo."
+    }
+  },
+  "BuyerOrders": {
+    "title": "Mis Pedidos",
+    "subtitle": "Sigue las compras de tu organización.",
+    "stats": {
+      "total": "Pedidos",
+      "inProgress": "En curso",
+      "inEscrow": "En escrow",
+      "inCancellation": "En cancelación"
+    },
+    "search": "Buscar pedidos",
+    "searchPlaceholder": "Buscar por producto, nº de pedido o seller",
+    "seller": "Seller {{id}}",
+    "empty": "Tu organización aún no tiene pedidos.",
+    "emptyFiltered": "Ningún pedido coincide con esta búsqueda.",
+    "retry": "Intentar de nuevo",
+    "errors": {
+      "forbidden": "Tu perfil Buyer aún no tiene permiso para ver pedidos (order:read).",
+      "failed": "No se pudieron cargar los pedidos. Inténtalo de nuevo."
     }
   },
   "CopyValue": {

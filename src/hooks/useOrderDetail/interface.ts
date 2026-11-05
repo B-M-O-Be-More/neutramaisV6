@@ -8,4 +8,6 @@ export interface UseOrderDetailReturn {
   /** Chave i18n do erro da leitura do pedido; null sem erro. */
   errorKey: string | null;
   reload: () => void;
+  /** Troca o envio pelo que a orders-api devolveu numa ação do Seller. */
+  setShipping: (shipping: OrderShipping) => void;
 }
