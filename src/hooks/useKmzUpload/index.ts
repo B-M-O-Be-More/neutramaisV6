@@ -1,5 +1,15 @@
 import { useKmzUpload } from "./hook";
-import type { KmzUploadResult, UseKmzUploadReturn } from "./interface";
+import type {
+  KmzPreviewResult,
+  KmzUploadOptions,
+  KmzUploadResult,
+  UseKmzUploadReturn,
+} from "./interface";
 
 export { useKmzUpload };
-export type { KmzUploadResult, UseKmzUploadReturn };
+export type {
+  KmzPreviewResult,
+  KmzUploadOptions,
+  KmzUploadResult,
+  UseKmzUploadReturn,
+};

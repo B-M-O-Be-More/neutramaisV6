@@ -8,6 +8,9 @@ import { useTranslation } from "react-i18next";
 import { LuArrowUpRight } from "react-icons/lu";
 
 import KmzDropzone from "@/components/KmzDropzone";
+import KmzUploadConfirmDialog, {
+  type PendingKmzUpload,
+} from "@/components/KmzUploadConfirmDialog";
 import { useKmzUpload } from "@/hooks/useKmzUpload";
 import {
   SELLER_COVERAGE_DEFAULTS,
@@ -31,9 +34,12 @@ export function FormSellerCoverage({
   onSaved,
 }: FormSellerCoverageProps) {
   const { t } = useTranslation();
-  const { upload, isUploading } = useKmzUpload(organizationId);
+  const { upload, isUploading, preview, isPreviewing } =
+    useKmzUpload(organizationId);
   const [uploadError, setUploadError] = React.useState<string>();
-  const disabled = !canUpload || isUploading;
+  // KMZ com o consumo calculado, esperando o seller confirmar o envio.
+  const [pending, setPending] = React.useState<PendingKmzUpload | null>(null);
+  const disabled = !canUpload || isUploading || isPreviewing;
 
   const {
     control,
@@ -47,16 +53,28 @@ export function FormSellerCoverage({
 
   const tError = (message?: string) => (message ? t(message) : undefined);
 
+  // Salvar calcula o consumo na cota; o envio só sai depois de confirmado.
   const onSubmit = handleSubmit(async (values) => {
     setUploadError(undefined);
-    const result = await upload(values.file!);
+    const result = await preview(values.file!);
+    if (!result.ok) {
+      setUploadError(t(result.errorKey));
+      return;
+    }
+    setPending({ file: values.file!, preview: result.preview });
+  });
+
+  const confirmUpload = async () => {
+    if (!pending) return;
+    const result = await upload(pending.file);
+    setPending(null);
     if (!result.ok) {
       setUploadError(t(result.errorKey));
       return;
     }
     onSaved({ version: result.version, geometry: result.geometry });
     reset(SELLER_COVERAGE_DEFAULTS);
-  });
+  };
 
   return (
     <Stack
@@ -102,9 +120,13 @@ export function FormSellerCoverage({
           )}
         />
 
-        {isUploading && (
+        {(isPreviewing || isUploading) && (
           <Text color="#5A6478" fontSize="12px" lineHeight="18px" role="status">
-            {t("SellerOfferCreate.kmz.processing")}
+            {t(
+              isPreviewing
+                ? "SellerOfferCreate.kmz.confirm.previewing"
+                : "SellerOfferCreate.kmz.processing",
+            )}
           </Text>
         )}
 
@@ -139,7 +161,7 @@ export function FormSellerCoverage({
             fontWeight={700}
             boxShadow="0px 1.2px 1.8px rgba(0,0,0,0.1), 0px 1.2px 1.2px rgba(0,0,0,0.1)"
             disabled={!canUpload}
-            loading={isUploading}
+            loading={isPreviewing || isUploading}
             loadingText={t("SellerCoverage.form.saving")}
             _hover={{ bg: "#1646CC" }}
           >
@@ -147,6 +169,15 @@ export function FormSellerCoverage({
             <Icon as={LuArrowUpRight} boxSize="18px" />
           </Button>
         </Flex>
+
+        {/* Em portal: fica fora do <form> no DOM. */}
+        <KmzUploadConfirmDialog
+          pending={pending}
+          isUploading={isUploading}
+          locale={locale}
+          onConfirm={confirmUpload}
+          onClose={() => setPending(null)}
+        />
       </form>
     </Stack>
   );

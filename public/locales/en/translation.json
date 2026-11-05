@@ -4200,7 +4200,22 @@
       "bound": "Linked",
       "processing": "The geo-api imports the KMZ before responding. Large files take a few minutes: keep this page open.",
       "listLoading": "Loading the organization's KMZ files...",
-      "listEmpty": "No KMZ uploaded yet. Upload one to use in this offer."
+      "listEmpty": "No KMZ uploaded yet. Upload one to use in this offer.",
+      "confirm": {
+        "title": "Confirm KMZ upload",
+        "mb": "{{value}} MB",
+        "fileSize": "File size",
+        "required": "Space the import will use",
+        "usage": "Current quota usage",
+        "usageValue": "{{used}} of {{quota}}",
+        "availableAfter": "Remaining after upload",
+        "alreadyImported": "Your organization already imported this file: the upload takes no new space.",
+        "shortfall": "The KMZ does not fit in the quota: {{value}} missing. Delete old versions or contact Neutra+ to increase storage.",
+        "notReserved": "The preview does not reserve space. If another upload uses the quota first, this one may be refused.",
+        "cancel": "Cancel",
+        "submit": "Upload KMZ",
+        "previewing": "Calculating the space the KMZ will use..."
+      }
     },
     "preview": {
       "title": "Marketplace preview",

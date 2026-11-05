@@ -4179,7 +4179,22 @@
       "bound": "Vinculada",
       "processing": "A geo-api importa o KMZ antes de responder. Arquivos grandes levam alguns minutos: mantenha esta página aberta.",
       "listLoading": "Carregando os KMZs da organização...",
-      "listEmpty": "Nenhum KMZ enviado ainda. Envie um para usar nesta oferta."
+      "listEmpty": "Nenhum KMZ enviado ainda. Envie um para usar nesta oferta.",
+      "confirm": {
+        "title": "Confirmar envio do KMZ",
+        "mb": "{{value}} MB",
+        "fileSize": "Tamanho do arquivo",
+        "required": "Espaço que a importação vai usar",
+        "usage": "Uso atual da cota",
+        "usageValue": "{{used}} de {{quota}}",
+        "availableAfter": "Saldo depois do envio",
+        "alreadyImported": "Este arquivo já foi importado pela organização: o envio não ocupa espaço novo.",
+        "shortfall": "O KMZ não cabe na cota: faltam {{value}}. Apague versões antigas ou fale com a Neutra+ para ampliar o armazenamento.",
+        "notReserved": "A prévia não reserva espaço. Se outro envio usar a cota antes, este pode ser recusado.",
+        "cancel": "Cancelar",
+        "submit": "Enviar KMZ",
+        "previewing": "Calculando o espaço que o KMZ vai usar..."
+      }
     },
     "preview": {
       "title": "Preview do marketplace",

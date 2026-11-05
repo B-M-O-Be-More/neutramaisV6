@@ -189,6 +189,41 @@ export interface UploadKmzInput {
   predecessorId?: string;
 }
 
+/**
+ * Prévia do consumo de um KMZ (`POST /coverageVersion/kmz/preview`). Não
+ * reserva espaço: a cota pode mudar até o envio. MB = 1.000.000 bytes.
+ */
+export interface KmzUploadPreview {
+  organizationId: string;
+  fileSizeBytes: number;
+  fileSizeMb: number;
+  /** Espaço adicional da importação; zero se o arquivo já foi importado. */
+  requiredBytes: number;
+  requiredMb: number;
+  currentUsageMb: number;
+  quotaMb: number;
+  availableMb: number;
+  projectedUsageMb: number;
+  availableAfterUploadMb: number;
+  /** Quanto falta na cota; zero quando cabe. */
+  shortfallMb: number;
+  canUpload: boolean;
+  /** O mesmo conteúdo (SHA-256) já existe na organização. */
+  alreadyImported: boolean;
+  requiresReindex: boolean;
+  isReservation: boolean;
+  breakdown: { originalsMb: number; geometriesMb: number; metadataMb: number };
+}
+
+/** Multipart do envio e da prévia de KMZ. */
+function kmzForm({ organizationId, file, predecessorId }: UploadKmzInput) {
+  const form = new FormData();
+  form.append("organization_id", organizationId);
+  form.append("file", file, file.name);
+  if (predecessorId) form.append("predecessor_id", predecessorId);
+  return form;
+}
+
 export const geoCoverageService = {
   /**
    * Envia um KMZ e cria uma versão imutável. O mesmo arquivo de novo devolve
@@ -196,20 +231,31 @@ export const geoCoverageService = {
    * a cota de armazenamento da organização acabou e 429 quando outro KMZ
    * ainda está sendo importado.
    */
-  uploadKmz: ({ organizationId, file, predecessorId }: UploadKmzInput) => {
-    const form = new FormData();
-    form.append("organization_id", organizationId);
-    form.append("file", file, file.name);
-    if (predecessorId) form.append("predecessor_id", predecessorId);
-    return withProfileSession(() =>
-      api.post<CoverageVersion>("/geo/coverageVersion/kmz", form, {
+  uploadKmz: (input: UploadKmzInput) =>
+    withProfileSession(() =>
+      api.post<CoverageVersion>("/geo/coverageVersion/kmz", kmzForm(input), {
         // A geo-api importa o KMZ antes de responder: um arquivo grande leva
         // minutos (~4 min no "KMZ Geral" do benchmark). Espera o mesmo que o
         // gateway da geo-api (900 s).
         timeoutMs: 900_000,
       }),
-    );
-  },
+    ),
+
+  /**
+   * Calcula o consumo do KMZ na cota antes do envio, sem gravar nada. 200
+   * também quando não cabe (`canUpload: false`); 422 com `detail` para KMZ
+   * inválido; 429 enquanto outra importação roda. O mesmo arquivo segue
+   * depois para `uploadKmz`.
+   */
+  previewKmz: (input: UploadKmzInput) =>
+    withProfileSession(() =>
+      api.post<KmzUploadPreview>(
+        "/geo/coverageVersion/kmz/preview",
+        kmzForm(input),
+        // A prévia lê o arquivo inteiro: num KMZ grande, leva minutos.
+        { timeoutMs: 900_000 },
+      ),
+    ),
 
   /** Metadados de uma versão (sem geometria). 404/403 fora da organização. */
   getVersion: (versionId: string, options: { signal?: AbortSignal } = {}) =>
