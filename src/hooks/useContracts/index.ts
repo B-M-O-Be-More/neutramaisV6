@@ -1,5 +1,5 @@
-import { daysUntil, useContracts } from "./hook";
+import { attachOrders, contractsErrorKey, useContracts } from "./hook";
 import type { UseContractsReturn } from "./interface";
 
-export { daysUntil, useContracts };
+export { attachOrders, contractsErrorKey, useContracts };
 export type { UseContractsReturn };

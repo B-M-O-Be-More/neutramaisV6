@@ -272,7 +272,9 @@ describe("BFF da sessão de perfil (/api/auth/context)", () => {
       expect(init.headers.Authorization).toBe("Bearer login-token");
     });
 
-    it("a leitura da oferta segue com o token do login", async () => {
+    // Só as telas do seller leem o detalhe: o token do perfil se renova
+    // sozinho, o do login não.
+    it("a leitura da oferta vai com o token do perfil", async () => {
       jar.profile_access_token = "seller-access";
       fetchMock.mockResolvedValue(json({ data: { id: OFFERING_ID } }));
 
@@ -287,7 +289,7 @@ describe("BFF da sessão de perfil (/api/auth/context)", () => {
       );
 
       const [, init] = fetchMock.mock.calls[0];
-      expect(init.headers.Authorization).toBe("Bearer login-token");
+      expect(init.headers.Authorization).toBe("Bearer seller-access");
     });
   });
 });

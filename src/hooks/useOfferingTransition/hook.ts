@@ -16,8 +16,15 @@ const ERROR_KEYS: Record<string, string> = {
   MKT_KYC_NOT_VERIFIED: "SellerOffers.errors.kycNotVerified",
   MKT_OFFER_COVERAGE_REQUIRED: "SellerOffers.errors.coverageRequired",
   MKT_OFFER_SHIPPING_REQUIRED: "SellerOffers.errors.shippingRequired",
+  MKT_OFFER_ACCEPTANCE_SLA_REQUIRED:
+    "SellerOffers.errors.acceptanceSlaRequired",
+  MKT_OFFER_ACCEPTANCE_SLA_INVALID: "SellerOffers.errors.acceptanceSlaRequired",
+  MKT_OFFER_STOCK_REQUIRED: "SellerOffers.errors.stockRequired",
+  MKT_OFFER_PRICE_REQUIRED: "SellerOffers.errors.priceRequired",
+  MKT_OFFER_EXPIRED: "SellerOffers.errors.expired",
   MKT_OFFER_INVALID_TRANSITION: "SellerOffers.errors.invalidTransition",
   MKT_OFFER_ARCHIVED: "SellerOfferEdit.errors.readOnly",
+  MKT_RULE_VALUES_REQUIRED: "SellerOffers.errors.ruleValuesRequired",
 };
 
 /**

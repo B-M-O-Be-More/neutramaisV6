@@ -1,4 +1,5 @@
 import type { SellerOfferValues } from "@/schemas/sellerOffer";
+import type { OfferTemplate } from "@/functions/templateFields";
 
 export type PublishOfferingOutcome =
   /** Criada e publicada. */
@@ -25,5 +26,9 @@ export interface UsePublishOfferingReturn {
   isPublishing: boolean;
   /** Oferta já criada numa tentativa anterior (retomada sem duplicar). */
   createdOfferingId: string | null;
-  publish: (values: SellerOfferValues) => Promise<PublishOfferingOutcome>;
+  /** `template`: campos genéricos e regras do template da categoria. */
+  publish: (
+    values: SellerOfferValues,
+    template?: OfferTemplate,
+  ) => Promise<PublishOfferingOutcome>;
 }

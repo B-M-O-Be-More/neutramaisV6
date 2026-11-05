@@ -80,21 +80,46 @@ export function locationsToCoverageNetworkPoints(
   return { points, invalid };
 }
 
+/**
+ * Pontos salvos de um `GET /offerCoverage/{id}`: em `coverageNetworkPoints`
+ * ou, no formato atual da geo-api, em `publicSelection.networkPoints`.
+ */
+export function savedCoverageNetworkPointsOf(
+  coverage:
+    | {
+        coverageNetworkPoints?: unknown;
+        publicSelection?: unknown;
+      }
+    | null
+    | undefined,
+): CoverageNetworkPoint[] {
+  const points = coverageNetworkPointsOf(coverage?.coverageNetworkPoints);
+  if (points.length) return points;
+  const selection = coverage?.publicSelection;
+  return selection && typeof selection === "object"
+    ? coverageNetworkPointsOf(
+        (selection as Record<string, unknown>).networkPoints,
+      )
+    : [];
+}
+
 /** "-23.56000, -46.65500" (latitude, longitude), para nomear o ponto. */
 export function formatCoordinates(longitude: number, latitude: number): string {
   return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
 }
 
 /**
- * `coverageNetworkPoints` salvos → localidades do formulário. A API não guarda o
- * endereço: o rótulo é a coordenada. O raio vai para km com uma casa, como a
- * máscara do campo ("1,5").
+ * `coverageNetworkPoints` salvos → localidades do formulário. A cobertura não
+ * guarda o endereço: o rótulo é o da especificação na mesma posição
+ * (`labels`, A e Z) ou, sem ele, a coordenada. O raio vai para km com uma
+ * casa, como a máscara do campo ("1,5").
  */
 export function coverageNetworkPointsToLocations(
   points: readonly CoverageNetworkPoint[],
+  labels: readonly (string | undefined)[] = [],
 ): OfferLocation[] {
-  return points.map(({ longitude, latitude, radiusMeters }) => ({
-    label: formatCoordinates(longitude, latitude),
+  return points.map(({ longitude, latitude, radiusMeters }, index) => ({
+    label: labels[index]?.trim() || formatCoordinates(longitude, latitude),
     longitude,
     latitude,
     radiusKm: (Math.round(radiusMeters / 100) / 10)

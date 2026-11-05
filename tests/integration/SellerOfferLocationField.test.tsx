@@ -11,7 +11,11 @@ import {
 } from "@/schemas/sellerOffer";
 import { mapboxGeocodingService } from "@/services/mapboxGeocoding.service";
 
-import { renderWithProviders, screen, waitFor } from "../test-utils";
+import { fireEvent, renderWithProviders, screen, waitFor } from "../test-utils";
+
+// As sugestões chegam depois da pausa da digitação e da busca: com a suíte
+// inteira em paralelo, passam do 1 s padrão do findBy.
+const OPTIONS_TIMEOUT = { timeout: 5_000 };
 
 vi.mock("@/services/mapboxGeocoding.service", () => ({
   mapboxGeocodingService: {
@@ -63,10 +67,22 @@ function Harness() {
 }
 
 // O rótulo nomeia o campo e a lista de sugestões: busca pelo papel.
-// O combobox do Chakra sincroniza o texto no tick seguinte: teclas
-// instantâneas (padrão do user-event) se perdem no jsdom. Com 30 ms entre
-// teclas — ainda mais rápido que uma pessoa — o texto chega inteiro.
-const typist = () => userEvent.setup({ delay: 30 });
+// O combobox do Chakra sincroniza o texto no tick seguinte: tecla a tecla,
+// letras se perdem no jsdom com a máquina carregada (a busca saía
+// "A om Lus"). O endereço entra inteiro, menos a última letra, numa mudança
+// só; a última vem do teclado, porque o combobox decide abrir a lista pelo
+// texto anterior à tecla.
+const typist = () => userEvent.setup();
+
+async function typeAddress(
+  user: ReturnType<typeof typist>,
+  input: HTMLElement,
+  text: string,
+) {
+  await user.click(input);
+  fireEvent.change(input, { target: { value: text.slice(0, -1) } });
+  await user.type(input, text.slice(-1));
+}
 
 const addressInput = () =>
   screen.getByRole("combobox", {
@@ -78,7 +94,7 @@ const addButton = () =>
     name: "SellerOfferCreate.coverage.locationAdd",
   });
 
-describe("SellerOfferLocationField", () => {
+describe("SellerOfferLocationField", { timeout: 20_000 }, () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(mapboxGeocodingService.search).mockResolvedValue(RESULTS);
@@ -92,11 +108,13 @@ describe("SellerOfferLocationField", () => {
       screen.queryByLabelText(/SellerOfferCreate.coverage.radiusLabel/),
     ).not.toBeInTheDocument();
 
-    await user.type(addressInput(), "Av Dom Luis");
+    await typeAddress(user, addressInput(), "Av Dom Luis");
 
-    const option = await screen.findByRole("option", {
-      name: /Av\. Dom Luís, 300/,
-    });
+    const option = await screen.findByRole(
+      "option",
+      { name: /Av\. Dom Luís, 300/ },
+      OPTIONS_TIMEOUT,
+    );
     expect(mapboxGeocodingService.search).toHaveBeenCalledWith(
       "Av Dom Luis",
       expect.anything(),
@@ -115,9 +133,13 @@ describe("SellerOfferLocationField", () => {
     renderWithProviders(<Harness />);
     const user = typist();
 
-    await user.type(addressInput(), "Av Dom Luis");
+    await typeAddress(user, addressInput(), "Av Dom Luis");
     await user.click(
-      await screen.findByRole("option", { name: /Av\. Dom Luís, 300/ }),
+      await screen.findByRole(
+        "option",
+        { name: /Av\. Dom Luís, 300/ },
+        OPTIONS_TIMEOUT,
+      ),
     );
     expect(screen.getByTestId("point")).toHaveTextContent("-38.4931");
 
@@ -153,9 +175,13 @@ describe("SellerOfferLocationField", () => {
       }),
     ).not.toBeInTheDocument();
 
-    await user.type(addressInput(), "Av Dom Luis");
+    await typeAddress(user, addressInput(), "Av Dom Luis");
     await user.click(
-      await screen.findByRole("option", { name: /Av\. Dom Luís, 300/ }),
+      await screen.findByRole(
+        "option",
+        { name: /Av\. Dom Luís, 300/ },
+        OPTIONS_TIMEOUT,
+      ),
     );
     await user.click(addButton());
 
@@ -175,9 +201,13 @@ describe("SellerOfferLocationField", () => {
       }),
     ).toHaveLength(1);
 
-    await user.type(second, "Av Dom Luis");
+    await typeAddress(user, second, "Av Dom Luis");
     await user.click(
-      await screen.findByRole("option", { name: /Av\. Dom Luís, 500/ }),
+      await screen.findByRole(
+        "option",
+        { name: /Av\. Dom Luís, 500/ },
+        OPTIONS_TIMEOUT,
+      ),
     );
     expect(screen.getByTestId("labels")).toHaveTextContent(
       "Av. Dom Luís, 300, Fortaleza - CE|Av. Dom Luís, 500, Fortaleza - CE",

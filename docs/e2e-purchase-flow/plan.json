@@ -1,0 +1,2287 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-05",
+  "title": "Compra completa em lote",
+  "sources": [
+    "Portal de documentação (hom-api.neutramais.com/documentacao), conferência de 26/10/2026 e changelogs até 04/11/2026",
+    "Jornadas entre APIs: J1, J3, J4, J7, J9a, J9b, J9c e J10",
+    "Front V6, branch feature/neu-399 (1569519)"
+  ],
+  "legend": {
+    "v6": {
+      "pronto": "A tela e o proxy existem e chamam a API.",
+      "parcial": "Existe tela ou proxy, mas falta parte do fluxo ou a tela usa dados de exemplo.",
+      "falta": "Sem tela e sem proxy no V6. É uma demanda de front.",
+      "backend": "Depende de rota ou evento que o backend ainda não entrega.",
+      "validar": "Não exige código novo. É só execução e conferência no lote."
+    },
+    "run": {
+      "pendente": "Ainda não executado. Informe o motivo quando estiver parado por algo.",
+      "em_andamento": "Em execução no lote.",
+      "passou": "Critério de aceite conferido.",
+      "falhou": "Executado e o resultado não bate com o critério. Motivo obrigatório.",
+      "bloqueado": "Não dá para executar por dependência. Motivo obrigatório."
+    }
+  },
+  "params": [
+    {
+      "key": "RUN_ID",
+      "label": "Identificador do lote",
+      "example": "L01",
+      "note": "Prefixo de tudo que o lote cria: E2E-{RUN_ID}-{caso}."
+    },
+    {
+      "key": "API_BASE",
+      "label": "Ambiente das APIs",
+      "example": "https://hom-api.neutramais.com",
+      "note": "Homologação."
+    },
+    {
+      "key": "FRONT_URL",
+      "label": "Front V6",
+      "example": "http://localhost:3000",
+      "note": "Front local apontando para homologação."
+    },
+    {
+      "key": "SELLER_ORG",
+      "label": "Organização Seller",
+      "example": "E2E Seller {RUN_ID} Ltda",
+      "note": "CNPJ válido de teste."
+    },
+    {
+      "key": "SELLER_OWNER",
+      "label": "Seller Dono (seller_owner)",
+      "example": "e-mail da conta",
+      "note": "MFA ativo. Faz onboarding Stripe."
+    },
+    {
+      "key": "SELLER_COMMERCIAL",
+      "label": "Seller Comercial (seller_commercial)",
+      "example": "e-mail da conta",
+      "note": "Cria e publica ofertas."
+    },
+    {
+      "key": "SELLER_OPERATIONS",
+      "label": "Seller Operações (seller_operations)",
+      "example": "e-mail da conta",
+      "note": "Só preço, estoque e SLA."
+    },
+    {
+      "key": "SELLER_TECHNICAL",
+      "label": "Seller Técnico (seller_technical)",
+      "example": "e-mail da conta",
+      "note": "Executa a ordem de serviço."
+    },
+    {
+      "key": "BUYER_ORG",
+      "label": "Organização Buyer",
+      "example": "E2E Buyer {RUN_ID} Ltda",
+      "note": "País BR e CNPJ ativo para ativação automática."
+    },
+    {
+      "key": "BUYER_OWNER",
+      "label": "Buyer Dono (buyer_owner)",
+      "example": "e-mail da conta",
+      "note": "Configura alçada e aprova."
+    },
+    {
+      "key": "BUYER_FINANCE",
+      "label": "Buyer Financeiro (buyer_finance)",
+      "example": "e-mail da conta",
+      "note": "Paga (payment:create)."
+    },
+    {
+      "key": "BUYER_PURCHASER",
+      "label": "Buyer Operações (buyer_purchaser)",
+      "example": "e-mail da conta",
+      "note": "Compra dentro da alçada."
+    },
+    {
+      "key": "BUYER_TECHNICAL",
+      "label": "Buyer Técnico (buyer_technical)",
+      "example": "e-mail da conta",
+      "note": "Acompanha OS e tickets."
+    },
+    {
+      "key": "ADMIN_COMPLIANCE",
+      "label": "Admin Compliance",
+      "example": "e-mail da conta",
+      "note": "kyc:approve com MFA."
+    },
+    {
+      "key": "ADMIN_SUPER",
+      "label": "Admin super_admin",
+      "example": "e-mail da conta",
+      "note": "Categorias, selo, taxas e calendário."
+    },
+    {
+      "key": "ADMIN_FINANCE",
+      "label": "Admin Financeiro (finance)",
+      "example": "e-mail da conta",
+      "note": "Conciliação e repasse."
+    },
+    {
+      "key": "KMZ_POLYGONS",
+      "label": "KMZ com polígonos e placemarks",
+      "example": "e2e-cobertura-poligonos.kmz",
+      "note": "Até 50 MB. Pelo menos 3 áreas para recorte."
+    },
+    {
+      "key": "KMZ_POINTS",
+      "label": "KMZ com pontos de rede",
+      "example": "e2e-cobertura-pontos.kmz",
+      "note": "CTO, POP e OLT como placemarks."
+    },
+    {
+      "key": "KMZ_INVALID",
+      "label": "KMZ inválido",
+      "example": "e2e-invalido.kmz",
+      "note": "Arquivo corrompido para teste negativo."
+    },
+    {
+      "key": "ADDRESS_IN",
+      "label": "Endereço dentro do recorte",
+      "example": "endereço com CEP",
+      "note": "Tem de cair dentro da área publicada."
+    },
+    {
+      "key": "ADDRESS_IN_KMZ_OUT_CUT",
+      "label": "Endereço no KMZ e fora do recorte",
+      "example": "endereço com CEP",
+      "note": "Prova que o recorte vale."
+    },
+    {
+      "key": "ADDRESS_OUT",
+      "label": "Endereço fora do KMZ",
+      "example": "endereço com CEP",
+      "note": "Não pode achar oferta de serviço."
+    },
+    {
+      "key": "ORIGIN_POSTAL_CODE",
+      "label": "CEP de origem do físico",
+      "example": "01310-100",
+      "note": "Pacote de envio do Hardware."
+    },
+    {
+      "key": "DEST_POSTAL_CODE",
+      "label": "CEP de entrega",
+      "example": "20040-020",
+      "note": "Cotação de frete."
+    },
+    {
+      "key": "CARD_OK",
+      "label": "Cartão Stripe aprovado",
+      "example": "4242 4242 4242 4242",
+      "note": "Modo de teste."
+    },
+    {
+      "key": "CARD_DECLINED",
+      "label": "Cartão Stripe recusado",
+      "example": "4000 0000 0000 0002",
+      "note": "Modo de teste."
+    },
+    {
+      "key": "CARD_3DS",
+      "label": "Cartão Stripe com 3DS",
+      "example": "4000 0025 0000 3155",
+      "note": "Modo de teste."
+    },
+    {
+      "key": "PURCHASER_LIMIT",
+      "label": "Teto por compra do buyer_purchaser",
+      "example": "R$ 500,00",
+      "note": "Um caso abaixo e um acima."
+    },
+    {
+      "key": "SLA_SHORT",
+      "label": "SLA de aceite curto",
+      "example": "1 hora",
+      "note": "Para testar expiração do aceite."
+    }
+  ],
+  "phases": [
+    {
+      "id": "F0",
+      "title": "Preparação do lote",
+      "roles": [
+        "Admin",
+        "Seller",
+        "Buyer"
+      ],
+      "goal": "Deixar parâmetros, contas, arquivos e categorias prontos antes de criar qualquer oferta.",
+      "tasks": [
+        {
+          "id": "F0-01",
+          "role": "QA",
+          "title": "Preencher os parâmetros do lote (RUN_ID, contas, KMZ, endereços, cartões)",
+          "screen": "",
+          "endpoints": [],
+          "v6": "validar",
+          "demand": "",
+          "accept": "Todos os parâmetros obrigatórios preenchidos no registro do lote."
+        },
+        {
+          "id": "F0-02",
+          "role": "QA",
+          "title": "Conferir /health das APIs do fluxo (Identity, Compliance, Marketplace, Geo, Orders, Payment, Wallet, Contracts, Service Ordering, Notification)",
+          "screen": "",
+          "endpoints": [
+            "GET /<api>/health"
+          ],
+          "v6": "validar",
+          "demand": "",
+          "accept": "Todas respondem 200 e o SHA bate com a develop."
+        },
+        {
+          "id": "F0-03",
+          "role": "Admin",
+          "title": "Ler árvore de categorias e template de cada uma, e atualizar a matriz de ofertas",
+          "screen": "",
+          "endpoints": [
+            "GET /api/v2/productCatalog/category?tree=true",
+            "GET /api/v2/productCatalog/category/{id}"
+          ],
+          "v6": "pronto",
+          "demand": "D-09",
+          "accept": "Matriz da F3 cobre toda categoria e subcategoria ativa, com os campos e regras do template vigente. O assistente lista a árvore da API."
+        },
+        {
+          "id": "F0-04",
+          "role": "QA",
+          "title": "Confirmar que a entrega de eventos entre APIs está ligada (outbox de Orders, Payment, Contracts e Service Ordering)",
+          "screen": "",
+          "endpoints": [],
+          "v6": "backend",
+          "demand": "B-01",
+          "accept": "Um evento de teste sai do outbox e chega no destino sem ação manual."
+        }
+      ]
+    },
+    {
+      "id": "F1",
+      "title": "Habilitação do Seller",
+      "roles": [
+        "Seller",
+        "Admin"
+      ],
+      "goal": "Seller com KYC verificado, conta Stripe ativa e equipe com os papéis certos.",
+      "tasks": [
+        {
+          "id": "F1-01",
+          "role": "Seller",
+          "title": "Cadastrar a organização Seller com telefone E.164",
+          "screen": "/register",
+          "endpoints": [
+            "POST /api/v1/organizations/register"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Organização criada com status pending e kyc_level pending."
+        },
+        {
+          "id": "F1-02",
+          "role": "Seller",
+          "title": "Confirmar e-mail (link de 15 min) e telefone",
+          "screen": "/register/confirm-email",
+          "endpoints": [
+            "POST /api/v1/auth/confirm-email",
+            "POST /api/v1/auth/confirm-phone"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "E-mail e telefone confirmados. Seller segue pending até o KYC."
+        },
+        {
+          "id": "F1-03",
+          "role": "Seller",
+          "title": "Ativar MFA do Seller Dono",
+          "screen": "/profile",
+          "endpoints": [
+            "POST /api/v1/users/me/mfa/enroll",
+            "POST /api/v1/users/me/mfa/confirm"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Token traz MFA. Rotas com MFA deixam de responder 403."
+        },
+        {
+          "id": "F1-04",
+          "role": "Seller",
+          "title": "Enviar documentos de KYC e submeter para revisão",
+          "screen": "/kyc",
+          "endpoints": [
+            "POST /api/v1/organizations/{org_id}/kyc/artifacts",
+            "POST /api/v1/organizations/{org_id}/kyc/submit"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Solicitação aparece na fila da Compliance."
+        },
+        {
+          "id": "F1-05",
+          "role": "Admin",
+          "title": "Revisar e decidir o KYC (iniciar revisão, decidir documentos, decidir conta)",
+          "screen": "/admin/kyc/[organizationId]",
+          "endpoints": [
+            "POST /api/v1/admin/kyc/requests/{id}/start-review",
+            "POST /api/v1/admin/kyc/requests/{id}/documents/{doc}/decision",
+            "POST /api/v1/admin/kyc/requests/{id}/decision"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Identity grava kyc_level verified e status active."
+        },
+        {
+          "id": "F1-06",
+          "role": "Seller",
+          "title": "Renovar o token e conferir kyc_level verified",
+          "screen": "/dashboard",
+          "endpoints": [
+            "POST /api/v1/auth/refresh",
+            "POST /api/v1/auth/context/refresh"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Token novo com kyc_level verified. Telas de oferta liberam publicar."
+        },
+        {
+          "id": "F1-07",
+          "role": "Seller",
+          "title": "Convidar a equipe (Comercial, Operações, Técnico)",
+          "screen": "/profile",
+          "endpoints": [
+            "POST /api/v1/organizations/{org_id}/members"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Cada usuário entra com o papel certo e vê só o que o papel permite."
+        },
+        {
+          "id": "F1-08",
+          "role": "Seller",
+          "title": "Fazer onboarding Stripe Connect do Seller Dono",
+          "screen": "/seller/wallet",
+          "endpoints": [
+            "POST /api/v2/payment/onboarding",
+            "POST /api/v2/payment/onboarding/refresh",
+            "GET /api/v2/payment/access/{organization_id}"
+          ],
+          "v6": "falta",
+          "demand": "D-10",
+          "accept": "GET access diz conta ativa. Sem isso o Seller não recebe repasse."
+        },
+        {
+          "id": "F1-09",
+          "role": "Seller",
+          "title": "Configurar SLA da organização e aceite automático da conta",
+          "screen": "/seller/offers",
+          "endpoints": [
+            "PATCH /api/v2/productCatalog/slaConfig",
+            "PUT /api/v2/productCatalog/productOffering/account/shippingPolicy"
+          ],
+          "v6": "falta",
+          "demand": "D-11",
+          "accept": "Valores gravados e devolvidos no GET. Aceite automático muda o fluxo da F6."
+        },
+        {
+          "id": "F1-10",
+          "role": "Admin",
+          "title": "Dar o selo de verificação ao Seller (opcional)",
+          "screen": "/admin/organizations/[organizationId]",
+          "endpoints": [
+            "PUT /api/v2/productCatalog/verification/{organization_id}"
+          ],
+          "v6": "falta",
+          "demand": "D-17",
+          "accept": "Selo aparece na vitrine e no card do Seller."
+        }
+      ]
+    },
+    {
+      "id": "F2",
+      "title": "Cobertura e área de viabilidade",
+      "roles": [
+        "Seller"
+      ],
+      "goal": "Subir os KMZ, ver os elementos e escolher a área de viabilidade que cada oferta vai usar.",
+      "tasks": [
+        {
+          "id": "F2-01",
+          "role": "Seller",
+          "title": "Pré-visualizar o consumo de armazenamento do KMZ",
+          "screen": "/seller/coverage",
+          "endpoints": [
+            "POST /api/v2/geo/coverageVersion/kmz/preview"
+          ],
+          "v6": "falta",
+          "demand": "D-22",
+          "accept": "Tela mostra o espaço que o arquivo vai ocupar antes do envio."
+        },
+        {
+          "id": "F2-02",
+          "role": "Seller",
+          "title": "Enviar KMZ_POLYGONS e KMZ_POINTS",
+          "screen": "/seller/coverage",
+          "endpoints": [
+            "POST /api/v2/geo/coverageVersion/kmz"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Cada envio cria uma versão de cobertura imutável."
+        },
+        {
+          "id": "F2-03",
+          "role": "Seller",
+          "title": "Abrir o arquivo, ver versões e pré-visualização",
+          "screen": "/seller/coverage/[fileId]",
+          "endpoints": [
+            "GET /api/v2/geo/coverageFile",
+            "GET /api/v2/geo/coverageFile/{id}/versions",
+            "GET /api/v2/geo/coverageFile/{id}/preview"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Mapa mostra os polígonos e pontos do KMZ."
+        },
+        {
+          "id": "F2-04",
+          "role": "Seller",
+          "title": "Listar elementos do KMZ e escolher as áreas de viabilidade",
+          "screen": "/seller/offers/new",
+          "endpoints": [
+            "GET /api/v2/geo/coverageVersion/{id}/elements"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Índices das áreas escolhidas batem com os elementos do KMZ."
+        },
+        {
+          "id": "F2-05",
+          "role": "Seller",
+          "title": "Desenhar polígono próprio dentro do KMZ",
+          "screen": "/seller/offers/new",
+          "endpoints": [],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Polígono fica dentro dos polígonos do KMZ. Fora dele, erro claro."
+        },
+        {
+          "id": "F2-06",
+          "role": "Seller",
+          "title": "Marcar pontos de rede com raio",
+          "screen": "/seller/offers/new",
+          "endpoints": [
+            "POST /api/v2/geo/networkPoint",
+            "POST /api/v2/geo/networkPoint/nearby"
+          ],
+          "v6": "parcial",
+          "demand": "D-19",
+          "accept": "Pontos com raio entre 1 e 100.000 m, centro dentro do KMZ."
+        },
+        {
+          "id": "F2-07",
+          "role": "Seller",
+          "title": "Validar a classificação dos elementos (CTO, cabo, poste)",
+          "screen": "/seller/coverage/[fileId]",
+          "endpoints": [
+            "GET /api/v2/geo/coverageVersion/{id}/classifications",
+            "POST /api/v2/geo/coverageVersion/{id}/classifications/{index}/validation"
+          ],
+          "v6": "falta",
+          "demand": "D-19",
+          "accept": "Classificação revisada fica no histórico."
+        },
+        {
+          "id": "F2-08",
+          "role": "Seller",
+          "title": "Arquivar e restaurar um arquivo, e conferir a cota",
+          "screen": "/seller/coverage/[fileId]",
+          "endpoints": [
+            "POST /api/v2/geo/coverageFile/{id}/archive",
+            "POST /api/v2/geo/coverageFile/{id}/restore",
+            "GET /api/v2/geo/organizations/{id}/storage"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Arquivo arquivado some da escolha de cobertura e volta ao restaurar."
+        },
+        {
+          "id": "F2-09",
+          "role": "Seller",
+          "title": "Enviar KMZ_INVALID e um arquivo acima de 50 MB",
+          "screen": "/seller/coverage",
+          "endpoints": [
+            "POST /api/v2/geo/coverageVersion/kmz"
+          ],
+          "v6": "validar",
+          "demand": "",
+          "accept": "Erro claro na tela. Nenhuma versão criada."
+        }
+      ]
+    },
+    {
+      "id": "F3",
+      "title": "Ofertas em lote",
+      "roles": [
+        "Seller"
+      ],
+      "goal": "Criar e publicar uma oferta para cada caso da matriz: toda categoria, toda variante de cobertura e todo valor de cada opção.",
+      "tasks": [
+        {
+          "id": "F3-01",
+          "role": "Seller",
+          "title": "Criar a especificação com os valores do template da categoria",
+          "screen": "/seller/offers/new",
+          "endpoints": [
+            "POST /api/v2/productCatalog/productSpecification"
+          ],
+          "v6": "pronto",
+          "demand": "D-09",
+          "accept": "API aceita characteristics sem MKT_TEMPLATE_FIELD_*. O assistente mostra subcategorias e os campos do template sem tela própria."
+        },
+        {
+          "id": "F3-02",
+          "role": "Seller",
+          "title": "Criar a oferta em rascunho",
+          "screen": "/seller/offers/new",
+          "endpoints": [
+            "POST /api/v2/productCatalog/productOffering"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Oferta com status draft e coverageRequired igual ao da categoria."
+        },
+        {
+          "id": "F3-03",
+          "role": "Seller",
+          "title": "Preencher as regras condicionais do template (ruleValues)",
+          "screen": "/seller/offers/new",
+          "endpoints": [
+            "POST /api/v2/productCatalog/productOffering",
+            "PATCH /api/v2/productCatalog/productOffering/{id}"
+          ],
+          "v6": "pronto",
+          "demand": "D-08",
+          "accept": "Oferta traz badges e ruleFields. Regra obrigatória vazia bloqueia publicar com 409 MKT_RULE_VALUES_REQUIRED."
+        },
+        {
+          "id": "F3-04",
+          "role": "Seller",
+          "title": "Vincular a cobertura com a variante do caso (CV1 a CV5)",
+          "screen": "/seller/offers/new",
+          "endpoints": [
+            "PUT /api/v2/productCatalog/productOffering/{id}/coverageVersion"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Área pública (GET offerCoverage) igual ao recorte escolhido."
+        },
+        {
+          "id": "F3-05",
+          "role": "Seller",
+          "title": "Enviar, confirmar e ordenar imagens",
+          "screen": "/seller/offers/new",
+          "endpoints": [
+            "POST .../images",
+            "POST .../images/{id}/confirm",
+            "PUT .../images/order"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Ordem das imagens na vitrine igual à definida."
+        },
+        {
+          "id": "F3-06",
+          "role": "Seller",
+          "title": "Publicar a oferta",
+          "screen": "/seller/offers/[offeringId]",
+          "endpoints": [
+            "POST /api/v2/productCatalog/productOffering/{id}/publish"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Status published. Aparece na busca pública com os campos do template."
+        },
+        {
+          "id": "F3-07",
+          "role": "Seller",
+          "title": "Editar preço, estoque e SLA com o papel Operações",
+          "screen": "/seller/offers/[offeringId]/edit",
+          "endpoints": [
+            "PATCH /api/v2/productCatalog/productOffering/{id}"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Operações altera só preço, estoque e SLA. Outros campos dão 403."
+        },
+        {
+          "id": "F3-08",
+          "role": "Seller",
+          "title": "Gerenciar histórico de preços (adicionar, alterar, encerrar)",
+          "screen": "/seller/offers/[offeringId]",
+          "endpoints": [
+            "POST .../price",
+            "PATCH .../price/{id}",
+            "DELETE .../price/{id}"
+          ],
+          "v6": "falta",
+          "demand": "D-20",
+          "accept": "Preço vigente no snapshot de checkout é o último ativo."
+        },
+        {
+          "id": "F3-09",
+          "role": "Seller",
+          "title": "Ciclo de vida: pausar, despublicar, arquivar, remover rascunho e destacar",
+          "screen": "/seller/offers",
+          "endpoints": [
+            "POST .../pause",
+            "POST .../unpublish",
+            "POST .../archive",
+            "DELETE .../{id}",
+            "PUT .../promotion"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Cada transição reflete na vitrine e na lista do Seller."
+        },
+        {
+          "id": "F3-10",
+          "role": "Seller",
+          "title": "Importar ofertas por XLSX da categoria (caminho alternativo do lote)",
+          "screen": "/seller/offers",
+          "endpoints": [
+            "GET /api/v2/productCatalog/productOffering/bulk/template",
+            "POST /api/v2/productCatalog/productOffering/bulk"
+          ],
+          "v6": "falta",
+          "demand": "D-21",
+          "accept": "Resposta por linha (applied ou invalid). Tela não trata 200 como tudo gravado."
+        },
+        {
+          "id": "F3-11",
+          "role": "Seller",
+          "title": "Executar todos os casos da matriz de ofertas",
+          "screen": "/seller/offers/new",
+          "endpoints": [],
+          "v6": "validar",
+          "demand": "",
+          "accept": "Todo caso OF-* com resultado igual ao esperado."
+        },
+        {
+          "id": "F3-12",
+          "role": "Buyer",
+          "title": "Conferir a vitrine pública de cada oferta publicada",
+          "screen": "/offers",
+          "endpoints": [
+            "GET /api/v2/productCatalog/productOffering/search",
+            "GET /api/v2/productCatalog/productOffering/public/{id}",
+            "GET /api/v2/productCatalog/productOffering/featured"
+          ],
+          "v6": "parcial",
+          "demand": "D-09",
+          "accept": "Oferta aparece com categoria, selos e campos públicos. Vitrine de campanhas ainda usa dados de exemplo."
+        }
+      ]
+    },
+    {
+      "id": "F4",
+      "title": "Descoberta e carrinho",
+      "roles": [
+        "Buyer"
+      ],
+      "goal": "Buyer ativo encontra as ofertas pela região, prova a viabilidade e monta o carrinho.",
+      "tasks": [
+        {
+          "id": "F4-01",
+          "role": "Buyer",
+          "title": "Cadastrar o Buyer, confirmar e-mail e telefone, ativar MFA",
+          "screen": "/register",
+          "endpoints": [
+            "POST /api/v1/organizations/register",
+            "POST /api/v1/auth/confirm-email",
+            "POST /api/v1/auth/confirm-phone"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Buyer BR com CNPJ ativo fica active sem revisão manual."
+        },
+        {
+          "id": "F4-02",
+          "role": "Buyer",
+          "title": "Convidar Financeiro, Operações e Técnico",
+          "screen": "/profile",
+          "endpoints": [
+            "POST /api/v1/organizations/{org_id}/members"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Cada papel entra com as permissões do mapa da Identity."
+        },
+        {
+          "id": "F4-03",
+          "role": "Buyer",
+          "title": "Configurar a alçada do buyer_purchaser",
+          "screen": "/profile",
+          "endpoints": [
+            "GET /api/v2/wallet/spendingLimits",
+            "PUT /api/v2/wallet/spendingLimits/{user_id}"
+          ],
+          "v6": "falta",
+          "demand": "D-04",
+          "accept": "GET spendingLimits/me do purchaser mostra o teto PURCHASER_LIMIT."
+        },
+        {
+          "id": "F4-04",
+          "role": "Buyer",
+          "title": "Converter endereço em ponto",
+          "screen": "/search-network",
+          "endpoints": [
+            "POST /api/v2/productCatalog/productOffering/resolveLocation"
+          ],
+          "v6": "falta",
+          "demand": "D-01",
+          "accept": "Endereço vira latitude e longitude."
+        },
+        {
+          "id": "F4-05",
+          "role": "Buyer",
+          "title": "Buscar ofertas por localização com ADDRESS_IN, ADDRESS_IN_KMZ_OUT_CUT e ADDRESS_OUT",
+          "screen": "/search-network",
+          "endpoints": [
+            "POST /api/v2/productCatalog/productOffering/searchByLocation",
+            "GET /api/v2/productCatalog/operations/{operation_id}"
+          ],
+          "v6": "falta",
+          "demand": "D-01",
+          "accept": "ADDRESS_IN acha a oferta. Os outros dois não acham. Cada busca devolve searchEvidenceId."
+        },
+        {
+          "id": "F4-06",
+          "role": "Buyer",
+          "title": "Ver detalhe público e área da oferta no mapa",
+          "screen": "/offers",
+          "endpoints": [
+            "GET /api/v2/productCatalog/productOffering/public/{id}",
+            "GET /api/v2/geo/offerCoverage/{offering_id}"
+          ],
+          "v6": "parcial",
+          "demand": "D-01",
+          "accept": "Mapa mostra o recorte público, não o KMZ inteiro."
+        },
+        {
+          "id": "F4-07",
+          "role": "Buyer",
+          "title": "Validar condições de compra e cotar frete do físico",
+          "screen": "/cart",
+          "endpoints": [
+            "POST .../productOffering/{id}/validatePurchase",
+            "POST .../productOffering/{id}/shippingQuote"
+          ],
+          "v6": "falta",
+          "demand": "D-11",
+          "accept": "Cotação com prazo e valor para DEST_POSTAL_CODE. Oferta inválida bloqueia o carrinho."
+        },
+        {
+          "id": "F4-08",
+          "role": "Buyer",
+          "title": "Montar carrinho com serviço (com evidência), sem cobertura e físico",
+          "screen": "/cart",
+          "endpoints": [
+            "GET .../productOffering/{id}/checkoutSnapshot"
+          ],
+          "v6": "parcial",
+          "demand": "D-02",
+          "accept": "Snapshot schemaVersion=3 lido para cada item. Totais batem com preço e setup."
+        }
+      ]
+    },
+    {
+      "id": "F5",
+      "title": "Checkout e pagamento",
+      "roles": [
+        "Buyer"
+      ],
+      "goal": "Transformar o carrinho em pedidos pagos, com alçada e pagamento Stripe em modo de teste.",
+      "tasks": [
+        {
+          "id": "F5-01",
+          "role": "Buyer",
+          "title": "Criar o checkout com MFA e Idempotency-Key",
+          "screen": "/cart",
+          "endpoints": [
+            "POST /api/v2/productOrder/checkout",
+            "GET /api/v2/productOrder/operations/checkout"
+          ],
+          "v6": "falta",
+          "demand": "D-02",
+          "accept": "Um pedido por Seller e por lugar, todos awaitingPayment."
+        },
+        {
+          "id": "F5-02",
+          "role": "Buyer",
+          "title": "Acompanhar o progresso do checkout",
+          "screen": "/cart",
+          "endpoints": [
+            "GET /api/v2/productOrder/checkout/{id}/progress",
+            "GET /api/v2/productOrder/checkout/{id}"
+          ],
+          "v6": "falta",
+          "demand": "D-02",
+          "accept": "Tela de espera mostra a etapa e termina no resultado."
+        },
+        {
+          "id": "F5-03",
+          "role": "Buyer",
+          "title": "Compra do purchaser acima da alçada: aprovar e recusar",
+          "screen": "/orders",
+          "endpoints": [
+            "GET /api/v2/productOrder/checkoutApprovals",
+            "POST .../checkout/{id}/approval",
+            "POST .../checkout/{id}/rejection",
+            "GET .../checkout/{id}/approval"
+          ],
+          "v6": "falta",
+          "demand": "D-04",
+          "accept": "Checkout fica awaitingApproval. Aprovação volta para awaitingPayment. Recusa cancela sem cobrança."
+        },
+        {
+          "id": "F5-04",
+          "role": "Buyer",
+          "title": "Autorizar o pagamento (reserva na Wallet)",
+          "screen": "/cart",
+          "endpoints": [
+            "POST /api/v2/productOrder/checkout/{id}/fundingAuthorization"
+          ],
+          "v6": "falta",
+          "demand": "D-03",
+          "accept": "Saldo reservado aparece em GET wallet/balance. Comando assinado devolvido."
+        },
+        {
+          "id": "F5-05",
+          "role": "Buyer",
+          "title": "Pagar com CARD_OK, com parte do saldo da Wallet",
+          "screen": "/cart",
+          "endpoints": [
+            "POST /api/v2/payment",
+            "GET /api/v2/payment/checkout/{checkoutId}/progress"
+          ],
+          "v6": "falta",
+          "demand": "D-03",
+          "accept": "Webhook do Stripe confirma. Pedidos vão para paid_in_escrow com acceptanceDeadline."
+        },
+        {
+          "id": "F5-06",
+          "role": "Buyer",
+          "title": "Listar pedidos do Buyer e abrir o detalhe com o pagamento",
+          "screen": "/orders/[orderId]",
+          "endpoints": [
+            "GET /api/v2/productOrder/buyer",
+            "GET /api/v2/productOrder/{id}",
+            "GET /api/v2/payment/order/{order_id}"
+          ],
+          "v6": "parcial",
+          "demand": "D-12",
+          "accept": "Lista mostra todos os pedidos do lote. Detalhe mostra Wallet, cartão e retenção."
+        },
+        {
+          "id": "F5-07",
+          "role": "Buyer",
+          "title": "Conferir extrato da Wallet do Buyer",
+          "screen": "/wallet/transactions",
+          "endpoints": [
+            "GET /api/v2/wallet/transactions"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Débito do checkout aparece com o valor usado do saldo."
+        }
+      ]
+    },
+    {
+      "id": "F6",
+      "title": "Aceite do pedido",
+      "roles": [
+        "Seller"
+      ],
+      "goal": "Seller decide cada pedido pago dentro do SLA de aceite.",
+      "tasks": [
+        {
+          "id": "F6-01",
+          "role": "Seller",
+          "title": "Ver pedidos pagos com o prazo de aceite",
+          "screen": "/seller/orders",
+          "endpoints": [
+            "GET /api/v2/productOrder/seller"
+          ],
+          "v6": "parcial",
+          "demand": "D-05",
+          "accept": "Pedido paid_in_escrow mostra o prazo acceptanceDeadline."
+        },
+        {
+          "id": "F6-02",
+          "role": "Seller",
+          "title": "Aceitar pedido de serviço",
+          "screen": "/seller/orders/[orderId]",
+          "endpoints": [
+            "POST /api/v2/productOrder/{order_id}/accept"
+          ],
+          "v6": "falta",
+          "demand": "D-05",
+          "accept": "Pedido accepted. Orders publica o evento que gera a OS."
+        },
+        {
+          "id": "F6-03",
+          "role": "Seller",
+          "title": "Recusar pedido com motivo",
+          "screen": "/seller/orders/[orderId]",
+          "endpoints": [
+            "POST /api/v2/productOrder/{order_id}/reject"
+          ],
+          "v6": "falta",
+          "demand": "D-05",
+          "accept": "Pedido rejected. Buyer recebe crédito Neutra na Wallet."
+        },
+        {
+          "id": "F6-04",
+          "role": "Seller",
+          "title": "Aceitar pedido físico, anexar NF e imprimir etiqueta",
+          "screen": "/seller/orders/[orderId]",
+          "endpoints": [
+            "POST .../{order_id}/shipping/accept",
+            "POST .../{order_id}/shipping/invoice",
+            "GET .../shipping/labels/{label_id}.pdf"
+          ],
+          "v6": "parcial",
+          "demand": "",
+          "accept": "NF anexada libera a compra da etiqueta. PDF da etiqueta abre."
+        },
+        {
+          "id": "F6-05",
+          "role": "Seller",
+          "title": "Venda automática: pedido entra aceito",
+          "screen": "/seller/orders",
+          "endpoints": [],
+          "v6": "validar",
+          "demand": "",
+          "accept": "Com aceite automático, pedido vai direto para accepted sem ação do Seller."
+        },
+        {
+          "id": "F6-06",
+          "role": "Seller",
+          "title": "Deixar o prazo SLA_SHORT expirar",
+          "screen": "/seller/orders",
+          "endpoints": [],
+          "v6": "validar",
+          "demand": "",
+          "accept": "Pedido expired. Buyer recebe crédito Neutra."
+        }
+      ]
+    },
+    {
+      "id": "F7",
+      "title": "Ordem de serviço e contrato",
+      "roles": [
+        "Seller",
+        "Buyer"
+      ],
+      "goal": "Depois do pagamento e do aceite, a OS nasce. O Seller sobe o contrato, o Buyer assina e o Seller executa até concluir.",
+      "tasks": [
+        {
+          "id": "F7-01",
+          "role": "Seller",
+          "title": "Ver a OS criada após o aceite (acknowledged)",
+          "screen": "/seller/service-orders",
+          "endpoints": [
+            "GET /api/v2/serviceOrder/seller",
+            "GET /api/v2/serviceOrder/{id}"
+          ],
+          "v6": "falta",
+          "demand": "D-06",
+          "accept": "OS do pedido aparece com status acknowledged. Hoje a tela usa dados de exemplo."
+        },
+        {
+          "id": "F7-02",
+          "role": "Seller",
+          "title": "Subir o contrato da OS para assinatura",
+          "screen": "/seller/service-orders/[orderId]",
+          "endpoints": [
+            "rota a confirmar com o backend"
+          ],
+          "v6": "falta",
+          "demand": "D-07",
+          "accept": "Contrato do pedido criado e visível para o Buyer."
+        },
+        {
+          "id": "F7-03",
+          "role": "Buyer",
+          "title": "Assinar o contrato pela Autentique (sandbox)",
+          "screen": "/contracts/[contractId]",
+          "endpoints": [
+            "GET /api/v2/order-contracts?orderId=",
+            "POST /api/v2/order-contracts/{id}/sign"
+          ],
+          "v6": "parcial",
+          "demand": "D-07",
+          "accept": "Link pessoal abre a Autentique. Webhook marca a assinatura."
+        },
+        {
+          "id": "F7-04",
+          "role": "Buyer",
+          "title": "Conferir contrato assinado e baixar o PDF",
+          "screen": "/contracts/[contractId]",
+          "endpoints": [
+            "GET /api/v2/order-contracts/{id}",
+            "GET /api/v2/order-contracts/{id}/document"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Status assinado, hash do documento e signatários corretos."
+        },
+        {
+          "id": "F7-05",
+          "role": "Seller",
+          "title": "Iniciar a execução",
+          "screen": "/seller/service-orders/[orderId]",
+          "endpoints": [
+            "POST /api/v2/serviceOrder/{id}/start"
+          ],
+          "v6": "falta",
+          "demand": "D-06",
+          "accept": "OS inProgress com startedAt."
+        },
+        {
+          "id": "F7-06",
+          "role": "Seller",
+          "title": "Registrar andamento com observação e percentual",
+          "screen": "/seller/service-orders/[orderId]",
+          "endpoints": [
+            "PATCH /api/v2/serviceOrder/{id}/note"
+          ],
+          "v6": "falta",
+          "demand": "D-06",
+          "accept": "Observação e percentual visíveis para o Buyer."
+        },
+        {
+          "id": "F7-07",
+          "role": "Seller",
+          "title": "Concluir a execução",
+          "screen": "/seller/service-orders/[orderId]",
+          "endpoints": [
+            "POST /api/v2/serviceOrder/{id}/complete"
+          ],
+          "v6": "falta",
+          "demand": "D-06",
+          "accept": "OS completed com completionReference. Recebível fica elegível no Payment."
+        },
+        {
+          "id": "F7-08",
+          "role": "Buyer",
+          "title": "Acompanhar a OS pelo lado do Buyer",
+          "screen": "/orders/[orderId]",
+          "endpoints": [
+            "GET /api/v2/serviceOrder/buyer"
+          ],
+          "v6": "falta",
+          "demand": "D-06",
+          "accept": "Buyer Dono e Técnico veem a OS. Financeiro e Operações recebem 403."
+        },
+        {
+          "id": "F7-09",
+          "role": "Seller",
+          "title": "Trocar mensagens na sala do pedido (opcional)",
+          "screen": "/seller/service-orders/[orderId]",
+          "endpoints": [
+            "POST /api/v2/communication/rooms",
+            "GET /ws/orders/{order_id}/chat"
+          ],
+          "v6": "falta",
+          "demand": "D-16",
+          "accept": "Mensagens chegam nas duas pontas."
+        }
+      ]
+    },
+    {
+      "id": "F8",
+      "title": "Pós-venda do Buyer",
+      "roles": [
+        "Buyer",
+        "Seller"
+      ],
+      "goal": "Recebimento, avaliação, suporte e cancelamentos depois da compra.",
+      "tasks": [
+        {
+          "id": "F8-01",
+          "role": "Buyer",
+          "title": "Confirmar ou contestar o recebimento do físico",
+          "screen": "/orders/[orderId]",
+          "endpoints": [
+            "POST .../{order_id}/shipping/received",
+            "POST .../{order_id}/shipping/contest"
+          ],
+          "v6": "falta",
+          "demand": "D-13",
+          "accept": "Confirmação libera o repasse após 7 dias. Contestação bloqueia."
+        },
+        {
+          "id": "F8-02",
+          "role": "Buyer",
+          "title": "Dar o aceite técnico do serviço",
+          "screen": "/orders/[orderId]",
+          "endpoints": [],
+          "v6": "backend",
+          "demand": "B-04",
+          "accept": "Planejado na RN. Sem rota hoje."
+        },
+        {
+          "id": "F8-03",
+          "role": "Buyer",
+          "title": "Avaliar o Seller e conferir a reputação",
+          "screen": "/orders/[orderId]",
+          "endpoints": [
+            "POST /api/v2/productCatalog/review",
+            "GET /api/v2/productCatalog/review/order/{order_id}",
+            "GET /api/v2/productCatalog/reputation/{organization_id}"
+          ],
+          "v6": "falta",
+          "demand": "D-15",
+          "accept": "Avaliação gravada e refletida na reputação."
+        },
+        {
+          "id": "F8-04",
+          "role": "Buyer",
+          "title": "Abrir ticket, Seller reconhece e resolve, Buyer fecha",
+          "screen": "/tickets",
+          "endpoints": [
+            "POST /api/v2/troubleTicket",
+            "POST .../{id}/acknowledge",
+            "POST .../{id}/resolve",
+            "POST .../{id}/close"
+          ],
+          "v6": "falta",
+          "demand": "D-14",
+          "accept": "Ticket passa pelos quatro estados. Hoje a tela usa dados de exemplo."
+        },
+        {
+          "id": "F8-05",
+          "role": "Buyer",
+          "title": "Cancelar pedido antes da execução",
+          "screen": "/orders/[orderId]",
+          "endpoints": [
+            "POST /api/v2/productOrder/{order_id}/cancel"
+          ],
+          "v6": "falta",
+          "demand": "D-18",
+          "accept": "Pedido cancelado, crédito Neutra na Wallet, payment.funding.compensated."
+        },
+        {
+          "id": "F8-06",
+          "role": "Buyer",
+          "title": "Pedir cancelamento com execução iniciada e Seller decidir",
+          "screen": "/orders/[orderId]",
+          "endpoints": [
+            "POST .../{order_id}/cancellationRequests",
+            "POST .../cancellationRequests/{id}/decision"
+          ],
+          "v6": "falta",
+          "demand": "D-18",
+          "accept": "Aprovação cancela. Recusa mantém o pedido."
+        }
+      ]
+    },
+    {
+      "id": "F9",
+      "title": "Financeiro e fechamento",
+      "roles": [
+        "Seller",
+        "Admin"
+      ],
+      "goal": "Fechar o dinheiro da compra: recebível, repasse, antecipação e conciliação.",
+      "tasks": [
+        {
+          "id": "F9-01",
+          "role": "Seller",
+          "title": "Ver o recebível do pedido concluído",
+          "screen": "/seller/wallet",
+          "endpoints": [
+            "GET /api/v2/payment/seller/receivables"
+          ],
+          "v6": "pronto",
+          "demand": "",
+          "accept": "Recebível do pedido aparece elegível ao repasse."
+        },
+        {
+          "id": "F9-02",
+          "role": "Seller",
+          "title": "Simular e confirmar antecipação e saque",
+          "screen": "/seller/wallet/withdraw",
+          "endpoints": [
+            "POST /api/v2/payment/seller/advances/quote",
+            "POST /api/v2/payment/seller/advances",
+            "POST /api/v2/payment/seller/withdrawals/quote",
+            "POST /api/v2/payment/seller/withdrawals"
+          ],
+          "v6": "parcial",
+          "demand": "D-23",
+          "accept": "Simulação mostra bruto, taxa e líquido. Confirmação envia para a conta Stripe."
+        },
+        {
+          "id": "F9-03",
+          "role": "Admin",
+          "title": "Rodar o repasse do mês (operador)",
+          "screen": "",
+          "endpoints": [
+            "processo de repasse do Payment (linha de comando)"
+          ],
+          "v6": "backend",
+          "demand": "B-07",
+          "accept": "Lote de repasse criado e transferido pelo Stripe Connect."
+        },
+        {
+          "id": "F9-04",
+          "role": "Seller",
+          "title": "Conferir o lote de repasse",
+          "screen": "/seller/wallet",
+          "endpoints": [
+            "GET /api/v2/payment/seller/payouts",
+            "GET /api/v2/payment/seller/payouts/{id}"
+          ],
+          "v6": "falta",
+          "demand": "D-23",
+          "accept": "Lote traz o pedido do lote com descontos."
+        },
+        {
+          "id": "F9-05",
+          "role": "Admin",
+          "title": "Conciliar pagamentos, repasses, saques e créditos de cancelamento",
+          "screen": "/admin",
+          "endpoints": [
+            "GET /api/v2/payment/operations/payouts",
+            "GET /api/v2/payment/operations/cashouts",
+            "GET /api/v2/wallet/operations/cancellationCredits"
+          ],
+          "v6": "falta",
+          "demand": "D-17",
+          "accept": "Valores do lote batem entre Payment, Wallet e Orders."
+        },
+        {
+          "id": "F9-06",
+          "role": "Admin",
+          "title": "Ajustar calendário de repasse e taxas de antecipação",
+          "screen": "/admin",
+          "endpoints": [
+            "PATCH /api/v2/payment/payoutSchedule",
+            "PUT /api/v2/payment/operations/cashoutRates/{organization_id}"
+          ],
+          "v6": "falta",
+          "demand": "D-17",
+          "accept": "Nova versão vale a partir de effectiveFrom."
+        },
+        {
+          "id": "F9-07",
+          "role": "QA",
+          "title": "Fechar o lote: conferir a compra completa de cada trilha CP-*",
+          "screen": "",
+          "endpoints": [],
+          "v6": "validar",
+          "demand": "",
+          "accept": "Toda trilha CP-* passou do checkout ao recebível."
+        }
+      ]
+    }
+  ],
+  "matrix": {
+    "rule": "Cada valor de cada opção aparece em pelo menos uma oferta. Cada categoria ativa tem pelo menos uma oferta publicada. Categoria com requiresCoverage=true passa por todas as variantes de cobertura. Atualize a lista com GET /category?tree=true antes do lote (F0-03).",
+    "dimensions": [
+      {
+        "key": "coverage",
+        "label": "Cobertura",
+        "values": [
+          "CV1 KMZ inteiro",
+          "CV2 áreas do KMZ (coverageAreaIndexes)",
+          "CV3 polígono desenhado (publicGeometry)",
+          "CV4 pontos de rede com raio (coverageNetworkPoints)",
+          "CV5 áreas mais pontos",
+          "SEM sem KMZ (requiresCoverage=false)"
+        ]
+      },
+      {
+        "key": "pricingModel",
+        "label": "Modelo de preço",
+        "values": [
+          "monthly",
+          "annual",
+          "oneTime"
+        ]
+      },
+      {
+        "key": "currency",
+        "label": "Moeda",
+        "values": [
+          "BRL",
+          "USD"
+        ]
+      },
+      {
+        "key": "setupFee",
+        "label": "Taxa de instalação",
+        "values": [
+          "zero",
+          "maior que zero"
+        ]
+      },
+      {
+        "key": "acceptanceSla",
+        "label": "SLA de aceite (horas)",
+        "values": [
+          "1",
+          "24",
+          "72"
+        ]
+      },
+      {
+        "key": "images",
+        "label": "Imagens",
+        "values": [
+          "0",
+          "1",
+          "3 com reordenação"
+        ]
+      },
+      {
+        "key": "speedUnit",
+        "label": "Velocidade",
+        "values": [
+          "Mbps",
+          "Gbps"
+        ]
+      },
+      {
+        "key": "soldUnit",
+        "label": "Unidade vendida (Infra física)",
+        "values": [
+          "port",
+          "fiber",
+          "rack_unit",
+          "square_meter",
+          "meter",
+          "unit"
+        ]
+      },
+      {
+        "key": "hardwareCondition",
+        "label": "Condição (Hardware)",
+        "values": [
+          "new",
+          "used",
+          "refurbished"
+        ]
+      },
+      {
+        "key": "serialized",
+        "label": "Serializado (Hardware)",
+        "values": [
+          "yes",
+          "no"
+        ]
+      },
+      {
+        "key": "shippingMode",
+        "label": "Frete (Hardware)",
+        "values": [
+          "integration",
+          "freeShipping",
+          "pickup",
+          "cargo",
+          "toBeAgreed"
+        ]
+      },
+      {
+        "key": "dispatch",
+        "label": "Tempo para postagem (Hardware)",
+        "values": [
+          "sameDay",
+          "oneDay",
+          "twoDays",
+          "threeDays",
+          "onDemand"
+        ]
+      },
+      {
+        "key": "resourceType",
+        "label": "Tipo de recurso (Recursos numéricos)",
+        "values": [
+          "ipv4",
+          "ipv6",
+          "asn",
+          "e164"
+        ]
+      },
+      {
+        "key": "registry",
+        "label": "Registro (Recursos numéricos)",
+        "values": [
+          "lacnic",
+          "nic_br",
+          "arin",
+          "ripe",
+          "apnic",
+          "afrinic",
+          "anatel"
+        ]
+      },
+      {
+        "key": "attributeType",
+        "label": "Atributo adicional",
+        "values": [
+          "text",
+          "number",
+          "mbps",
+          "gbps",
+          "ms",
+          "percent"
+        ]
+      },
+      {
+        "key": "templateRules",
+        "label": "Regras do template",
+        "values": [
+          "sem regra",
+          "regra preenchida",
+          "regra obrigatória vazia"
+        ]
+      }
+    ],
+    "offers": [
+      {
+        "id": "OF-CON-01",
+        "category": "Conectividade",
+        "coverage": "CV1",
+        "options": "monthly, BRL, 500 Mbps, setup zero, SLA 72, 0 imagens",
+        "expect": "Publica. Área pública igual ao KMZ inteiro.",
+        "deps": []
+      },
+      {
+        "id": "OF-CON-02",
+        "category": "Conectividade",
+        "coverage": "CV2",
+        "options": "annual, BRL, 1 Gbps, setup maior que zero, SLA 24, 3 imagens reordenadas",
+        "expect": "Publica. Área pública só com as áreas escolhidas.",
+        "deps": []
+      },
+      {
+        "id": "OF-CON-03",
+        "category": "Conectividade",
+        "coverage": "CV3",
+        "options": "oneTime, USD, localidades A e Z, IPs incluídos",
+        "expect": "Publica. Área pública igual ao polígono.",
+        "deps": []
+      },
+      {
+        "id": "OF-CON-04",
+        "category": "Conectividade",
+        "coverage": "CV4",
+        "options": "monthly, BRL, SLA 1 (SLA_SHORT)",
+        "expect": "Publica. Usada no teste de expiração do aceite.",
+        "deps": []
+      },
+      {
+        "id": "OF-CON-05",
+        "category": "Conectividade",
+        "coverage": "CV5",
+        "options": "monthly, BRL, aceite automático ligado",
+        "expect": "Publica. Pedido entra accepted direto.",
+        "deps": []
+      },
+      {
+        "id": "OF-CON-06",
+        "category": "Subcategoria de Conectividade (ex.: Link dedicado)",
+        "coverage": "CV2",
+        "options": "campos herdados mais campos próprios",
+        "expect": "Publica com os campos da subcategoria.",
+        "deps": [
+          "D-09"
+        ]
+      },
+      {
+        "id": "OF-INF-01",
+        "category": "Infra física",
+        "coverage": "CV1",
+        "options": "soldUnit port, monthly",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-INF-02",
+        "category": "Infra física",
+        "coverage": "CV2",
+        "options": "soldUnit fiber, annual",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-INF-03",
+        "category": "Infra física",
+        "coverage": "CV3",
+        "options": "soldUnit rack_unit, oneTime",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-INF-04",
+        "category": "Infra física",
+        "coverage": "CV4",
+        "options": "soldUnit square_meter, monthly, USD",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-INF-05",
+        "category": "Infra física",
+        "coverage": "CV5",
+        "options": "soldUnit meter, monthly",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-INF-06",
+        "category": "Infra física",
+        "coverage": "CV1",
+        "options": "soldUnit unit, annual, atributos text e number",
+        "expect": "Publica com os atributos.",
+        "deps": []
+      },
+      {
+        "id": "OF-HW-01",
+        "category": "Hardware e CPE",
+        "coverage": "SEM",
+        "options": "new, serializado, integration, sameDay, estoque 10",
+        "expect": "Publica como physical.",
+        "deps": []
+      },
+      {
+        "id": "OF-HW-02",
+        "category": "Hardware e CPE",
+        "coverage": "SEM",
+        "options": "used, não serializado, freeShipping, oneDay",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-HW-03",
+        "category": "Hardware e CPE",
+        "coverage": "SEM",
+        "options": "refurbished, pickup com endereço e horário, twoDays",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-HW-04",
+        "category": "Hardware e CPE",
+        "coverage": "SEM",
+        "options": "new, cargo com preço e prazo, threeDays",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-HW-05",
+        "category": "Hardware e CPE",
+        "coverage": "SEM",
+        "options": "new, toBeAgreed, onDemand 10 dias",
+        "expect": "Publica. Compra depende da RFQ (B-03).",
+        "deps": []
+      },
+      {
+        "id": "OF-NUM-01",
+        "category": "Recursos numéricos",
+        "coverage": "SEM",
+        "options": "ipv4, lacnic, estoque 1",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-NUM-02",
+        "category": "Recursos numéricos",
+        "coverage": "SEM",
+        "options": "ipv6, nic_br",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-NUM-03",
+        "category": "Recursos numéricos",
+        "coverage": "SEM",
+        "options": "asn, arin",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-NUM-04",
+        "category": "Recursos numéricos",
+        "coverage": "SEM",
+        "options": "e164, anatel",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-NUM-05",
+        "category": "Recursos numéricos",
+        "coverage": "SEM",
+        "options": "ipv4, ripe",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-NUM-06",
+        "category": "Recursos numéricos",
+        "coverage": "SEM",
+        "options": "ipv6, apnic",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-NUM-07",
+        "category": "Recursos numéricos",
+        "coverage": "SEM",
+        "options": "asn, afrinic",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-SW-01",
+        "category": "Softwares e gerenciamento",
+        "coverage": "SEM",
+        "options": "monthly, BRL",
+        "expect": "Publica sem KMZ.",
+        "deps": []
+      },
+      {
+        "id": "OF-SW-02",
+        "category": "Softwares e gerenciamento",
+        "coverage": "SEM",
+        "options": "annual, USD, atributos percent e ms",
+        "expect": "Publica com os atributos.",
+        "deps": []
+      },
+      {
+        "id": "OF-PRO-01",
+        "category": "Protocolos e serviços",
+        "coverage": "SEM",
+        "options": "oneTime, BRL, atributos mbps e gbps",
+        "expect": "Publica sem KMZ.",
+        "deps": []
+      },
+      {
+        "id": "OF-PRO-02",
+        "category": "Protocolos e serviços",
+        "coverage": "SEM",
+        "options": "monthly, BRL, setup maior que zero",
+        "expect": "Publica.",
+        "deps": []
+      },
+      {
+        "id": "OF-RULE-01",
+        "category": "Toda categoria com templateRules",
+        "coverage": "conforme categoria",
+        "options": "regra preenchida",
+        "expect": "Oferta traz badges e ruleFields. Snapshot v3 traz checkoutEffects.",
+        "deps": [
+          "D-08",
+          "D-17"
+        ]
+      },
+      {
+        "id": "OF-RULE-02",
+        "category": "Toda categoria com templateRules",
+        "coverage": "conforme categoria",
+        "options": "regra obrigatória vazia",
+        "expect": "Publicar dá 409 MKT_RULE_VALUES_REQUIRED.",
+        "deps": [
+          "D-08",
+          "D-17"
+        ]
+      },
+      {
+        "id": "NEG-01",
+        "category": "Conectividade",
+        "coverage": "CV1",
+        "options": "SLA de aceite 73",
+        "expect": "422 na criação ou edição.",
+        "deps": []
+      },
+      {
+        "id": "NEG-02",
+        "category": "Conectividade",
+        "coverage": "sem vínculo",
+        "options": "publicar sem cobertura",
+        "expect": "409. Oferta continua draft.",
+        "deps": []
+      },
+      {
+        "id": "NEG-03",
+        "category": "Conectividade",
+        "coverage": "CV3",
+        "options": "polígono fora do KMZ",
+        "expect": "Erro de geometria. Vínculo não gravado.",
+        "deps": []
+      },
+      {
+        "id": "NEG-04",
+        "category": "Conectividade",
+        "coverage": "CV2 mais CV3",
+        "options": "coverageAreaIndexes junto com publicGeometry",
+        "expect": "422.",
+        "deps": []
+      },
+      {
+        "id": "NEG-05",
+        "category": "Hardware e CPE",
+        "coverage": "SEM",
+        "options": "sem estoque",
+        "expect": "Publicar recusado (hasNumericStock).",
+        "deps": []
+      },
+      {
+        "id": "NEG-06",
+        "category": "Qualquer",
+        "coverage": "qualquer",
+        "options": "Seller sem kyc_level verified",
+        "expect": "Publicar recusado.",
+        "deps": []
+      }
+    ],
+    "purchases": [
+      {
+        "id": "CP-01",
+        "title": "Serviço com cobertura recortada",
+        "offer": "OF-CON-02",
+        "buyer": "BUYER_FINANCE",
+        "path": "ADDRESS_IN, CARD_OK, Seller aceita, OS, contrato, executa, conclui",
+        "expect": "Recebível elegível. Pedido fechado.",
+        "deps": [
+          "D-01",
+          "D-02",
+          "D-03",
+          "D-05",
+          "D-06",
+          "D-07",
+          "B-02"
+        ]
+      },
+      {
+        "id": "CP-02",
+        "title": "Serviço sem cobertura",
+        "offer": "OF-SW-01",
+        "buyer": "BUYER_FINANCE",
+        "path": "CARD_OK, Seller aceita, OS, contrato, executa, conclui",
+        "expect": "Recebível elegível.",
+        "deps": [
+          "D-02",
+          "D-03",
+          "D-05",
+          "D-06",
+          "D-07",
+          "B-02"
+        ]
+      },
+      {
+        "id": "CP-03",
+        "title": "Recurso numérico com estoque",
+        "offer": "OF-NUM-01",
+        "buyer": "BUYER_OWNER",
+        "path": "CARD_OK, Seller aceita, OS, contrato, conclui",
+        "expect": "Recebível elegível. Conferir baixa de estoque (D-26 da documentação).",
+        "deps": [
+          "D-02",
+          "D-03",
+          "D-05",
+          "D-06",
+          "D-07",
+          "B-02"
+        ]
+      },
+      {
+        "id": "CP-04",
+        "title": "Físico com frete integrado",
+        "offer": "OF-HW-01",
+        "buyer": "BUYER_FINANCE",
+        "path": "shippingQuote, CARD_OK, aceite físico, NF, etiqueta, entrega, recebimento",
+        "expect": "Repasse liberado após recebimento mais 7 dias.",
+        "deps": [
+          "D-02",
+          "D-03",
+          "D-11",
+          "D-13"
+        ]
+      },
+      {
+        "id": "CP-05",
+        "title": "Físico com retirada",
+        "offer": "OF-HW-03",
+        "buyer": "BUYER_OWNER",
+        "path": "CARD_OK, aceite físico, NF, retirada, recebimento",
+        "expect": "Recebimento com receivedSource pickup.",
+        "deps": [
+          "D-02",
+          "D-03",
+          "D-13"
+        ]
+      },
+      {
+        "id": "CP-06",
+        "title": "Carrinho com dois lugares",
+        "offer": "OF-CON-01 e OF-INF-02",
+        "buyer": "BUYER_FINANCE",
+        "path": "dois endereços dentro da cobertura, um checkout",
+        "expect": "Um pedido por Seller e por lugar.",
+        "deps": [
+          "D-01",
+          "D-02",
+          "D-03"
+        ]
+      },
+      {
+        "id": "CP-07",
+        "title": "Compra dentro da alçada",
+        "offer": "OF-PRO-02",
+        "buyer": "BUYER_PURCHASER",
+        "path": "valor abaixo de PURCHASER_LIMIT",
+        "expect": "Checkout segue sem aprovação.",
+        "deps": [
+          "D-02",
+          "D-03",
+          "D-04"
+        ]
+      },
+      {
+        "id": "CP-08",
+        "title": "Compra acima da alçada aprovada",
+        "offer": "OF-CON-03",
+        "buyer": "BUYER_PURCHASER",
+        "path": "valor acima de PURCHASER_LIMIT, Dono aprova, Financeiro paga",
+        "expect": "awaitingApproval, depois awaitingPayment, depois paid_in_escrow.",
+        "deps": [
+          "D-02",
+          "D-03",
+          "D-04"
+        ]
+      },
+      {
+        "id": "ALT-01",
+        "title": "Cartão recusado",
+        "offer": "OF-SW-02",
+        "buyer": "BUYER_FINANCE",
+        "path": "CARD_DECLINED",
+        "expect": "Pedido segue awaitingPayment. Reserva da Wallet liberada.",
+        "deps": [
+          "D-02",
+          "D-03"
+        ]
+      },
+      {
+        "id": "ALT-02",
+        "title": "Cartão com 3DS",
+        "offer": "OF-SW-02",
+        "buyer": "BUYER_FINANCE",
+        "path": "CARD_3DS",
+        "expect": "Desafio 3DS concluído e pedido pago.",
+        "deps": [
+          "D-02",
+          "D-03"
+        ]
+      },
+      {
+        "id": "ALT-03",
+        "title": "Seller recusa",
+        "offer": "OF-INF-01",
+        "buyer": "BUYER_FINANCE",
+        "path": "CARD_OK, Seller recusa com motivo",
+        "expect": "rejected e crédito Neutra ao Buyer.",
+        "deps": [
+          "D-02",
+          "D-03",
+          "D-05"
+        ]
+      },
+      {
+        "id": "ALT-04",
+        "title": "Prazo de aceite expira",
+        "offer": "OF-CON-04",
+        "buyer": "BUYER_FINANCE",
+        "path": "CARD_OK, esperar SLA_SHORT",
+        "expect": "expired e crédito Neutra ao Buyer.",
+        "deps": [
+          "D-02",
+          "D-03"
+        ]
+      },
+      {
+        "id": "ALT-05",
+        "title": "Venda automática",
+        "offer": "OF-CON-05",
+        "buyer": "BUYER_FINANCE",
+        "path": "CARD_OK",
+        "expect": "accepted sem ação do Seller.",
+        "deps": [
+          "D-02",
+          "D-03",
+          "D-11"
+        ]
+      },
+      {
+        "id": "ALT-06",
+        "title": "Alçada recusada",
+        "offer": "OF-CON-03",
+        "buyer": "BUYER_PURCHASER",
+        "path": "acima do teto, Financeiro recusa",
+        "expect": "Checkout cancelled. Nada cobrado.",
+        "deps": [
+          "D-02",
+          "D-04"
+        ]
+      },
+      {
+        "id": "ALT-07",
+        "title": "Cancelamento antes da execução",
+        "offer": "OF-PRO-01",
+        "buyer": "BUYER_OWNER",
+        "path": "pago e aceito, Buyer cancela",
+        "expect": "Crédito Neutra e payment.funding.compensated.",
+        "deps": [
+          "D-02",
+          "D-03",
+          "D-05",
+          "D-18"
+        ]
+      },
+      {
+        "id": "ALT-08",
+        "title": "Cancelamento com execução iniciada",
+        "offer": "OF-INF-03",
+        "buyer": "BUYER_OWNER",
+        "path": "OS inProgress, Buyer pede, Seller decide",
+        "expect": "Cancelamento direto recusado. Pedido de cancelamento segue a decisão.",
+        "deps": [
+          "D-02",
+          "D-03",
+          "D-05",
+          "D-06",
+          "D-18"
+        ]
+      },
+      {
+        "id": "ALT-09",
+        "title": "Busca sem oferta na região",
+        "offer": "nenhuma",
+        "buyer": "BUYER_OWNER",
+        "path": "ADDRESS_OUT",
+        "expect": "Nenhuma oferta de serviço. RFQ não existe (B-03).",
+        "deps": [
+          "D-01",
+          "B-03"
+        ]
+      },
+      {
+        "id": "ALT-10",
+        "title": "Checkout repetido com a mesma Idempotency-Key",
+        "offer": "OF-SW-01",
+        "buyer": "BUYER_FINANCE",
+        "path": "reenviar o POST",
+        "expect": "Mesmo checkout. Nenhum pedido duplicado.",
+        "deps": [
+          "D-02"
+        ]
+      },
+      {
+        "id": "ALT-11",
+        "title": "Oferta pausada depois de ir ao carrinho",
+        "offer": "OF-PRO-02",
+        "buyer": "BUYER_FINANCE",
+        "path": "Seller pausa, Buyer faz checkout",
+        "expect": "Checkout recusa o item com motivo claro.",
+        "deps": [
+          "D-02"
+        ]
+      }
+    ]
+  },
+  "demands": [
+    {
+      "id": "D-01",
+      "title": "Busca por endereço com prova de viabilidade",
+      "roles": "Buyer",
+      "scope": "Proxies e tela para resolveLocation, searchByLocation (X-Operation-ID e progresso) e evidência. Mapa da área pública da oferta.",
+      "tasks": [
+        "F4-04",
+        "F4-05",
+        "F4-06"
+      ]
+    },
+    {
+      "id": "D-02",
+      "title": "Checkout real",
+      "roles": "Buyer",
+      "scope": "Trocar o aviso 'em breve' do carrinho por POST checkout com MFA e Idempotency-Key, tela de progresso e recuperação pela chave.",
+      "tasks": [
+        "F4-08",
+        "F5-01",
+        "F5-02"
+      ]
+    },
+    {
+      "id": "D-03",
+      "title": "Pagamento do checkout",
+      "roles": "Buyer",
+      "scope": "fundingAuthorization, POST /payment com clientSecret no Stripe Elements, uso do saldo da Wallet e progresso do pagamento.",
+      "tasks": [
+        "F5-04",
+        "F5-05"
+      ]
+    },
+    {
+      "id": "D-04",
+      "title": "Alçada de compra",
+      "roles": "Buyer",
+      "scope": "Configurar spendingLimits por usuário. Lista de checkouts aguardando aprovação, aprovar e recusar.",
+      "tasks": [
+        "F4-03",
+        "F5-03"
+      ]
+    },
+    {
+      "id": "D-05",
+      "title": "Aceite e recusa do pedido de serviço",
+      "roles": "Seller",
+      "scope": "Botões de aceitar e recusar com motivo, prazo acceptanceDeadline visível na lista e no detalhe.",
+      "tasks": [
+        "F6-01",
+        "F6-02",
+        "F6-03"
+      ]
+    },
+    {
+      "id": "D-06",
+      "title": "Ordens de serviço reais",
+      "roles": "Seller, Buyer",
+      "scope": "Trocar o SellerServiceOrdersContext de exemplo pela Service Ordering API: listar, ler, iniciar, andamento e concluir. Visão do Buyer.",
+      "tasks": [
+        "F7-01",
+        "F7-05",
+        "F7-06",
+        "F7-07",
+        "F7-08"
+      ]
+    },
+    {
+      "id": "D-07",
+      "title": "Contrato na OS",
+      "roles": "Seller, Buyer",
+      "scope": "Seller sobe o contrato na OS. Buyer assina pela Autentique. Status e PDF ligados à OS. Depende da rota de upload (B-02).",
+      "tasks": [
+        "F7-02",
+        "F7-03"
+      ]
+    },
+    {
+      "id": "D-08",
+      "title": "Regras condicionais do template",
+      "roles": "Seller",
+      "scope": "Feito no assistente (PR #15 para a dev): seção Regras da categoria (obrigatória sempre ligada, opcional com interruptor), validação de todos os campos de valor, ruleValues no POST e PATCH (o BFF passou a repassar), reabertura na edição, selos no detalhe da oferta e mensagens para 409 MKT_RULE_VALUES_REQUIRED e 422 MKT_RULE_*. Em homologação nenhuma categoria tem regra: o teste OF-RULE-* depende de um super_admin criar uma (sem tela no V6, ver D-17).",
+      "tasks": [
+        "F3-03"
+      ]
+    },
+    {
+      "id": "D-09",
+      "title": "Categorias vindas da API",
+      "roles": "Seller, Buyer",
+      "scope": "Feito no assistente do Seller (PR #15 para a dev): árvore e template da API, subcategorias, categoria nova (família custom), flags requiresCoverage e hasNumericStock da API e campos genéricos do template. Falta a vitrine pública filtrar por subcategoria (F3-12). Rótulos, opções e unidades do template traduzidos em pt, en e es.",
+      "tasks": [
+        "F0-03",
+        "F3-01",
+        "F3-12"
+      ]
+    },
+    {
+      "id": "D-10",
+      "title": "Onboarding Stripe do Seller",
+      "roles": "Seller",
+      "scope": "Iniciar onboarding, voltar do Stripe com refresh e mostrar se a conta está ativa.",
+      "tasks": [
+        "F1-08"
+      ]
+    },
+    {
+      "id": "D-11",
+      "title": "Configurações de venda e validações do carrinho",
+      "roles": "Seller, Buyer",
+      "scope": "slaConfig e aceite automático da conta. validatePurchase e shippingQuote no carrinho.",
+      "tasks": [
+        "F1-09",
+        "F4-07"
+      ]
+    },
+    {
+      "id": "D-12",
+      "title": "Pedidos do Buyer",
+      "roles": "Buyer",
+      "scope": "Lista de pedidos do Buyer e detalhe com o pagamento do pedido.",
+      "tasks": [
+        "F5-06"
+      ]
+    },
+    {
+      "id": "D-13",
+      "title": "Recebimento do físico",
+      "roles": "Buyer",
+      "scope": "Confirmar e contestar recebimento.",
+      "tasks": [
+        "F8-01"
+      ]
+    },
+    {
+      "id": "D-14",
+      "title": "Tickets reais",
+      "roles": "Buyer, Seller",
+      "scope": "Trocar os tickets de exemplo pela Trouble Ticket API: abrir, notas, reconhecer, resolver, fechar e cancelar.",
+      "tasks": [
+        "F8-04"
+      ]
+    },
+    {
+      "id": "D-15",
+      "title": "Avaliação e reputação",
+      "roles": "Buyer",
+      "scope": "Avaliar o Seller pelo pedido e mostrar a reputação no card e na página do Seller.",
+      "tasks": [
+        "F8-03"
+      ]
+    },
+    {
+      "id": "D-16",
+      "title": "Chat do pedido",
+      "roles": "Buyer, Seller",
+      "scope": "Sala do pedido, mensagens e WebSocket.",
+      "tasks": [
+        "F7-09"
+      ]
+    },
+    {
+      "id": "D-17",
+      "title": "Telas de Admin do marketplace e do financeiro",
+      "roles": "Admin",
+      "scope": "Categorias, templates e catálogos (super_admin), selo de verificação, raio de proximidade, conciliação de pagamentos, repasses, saques e créditos, calendário e taxas.",
+      "tasks": [
+        "F1-10",
+        "F9-05",
+        "F9-06"
+      ]
+    },
+    {
+      "id": "D-18",
+      "title": "Cancelamento de pedido",
+      "roles": "Buyer, Seller",
+      "scope": "Cancelar direto, pedir cancelamento e decisão do Seller.",
+      "tasks": [
+        "F8-05",
+        "F8-06"
+      ]
+    },
+    {
+      "id": "D-19",
+      "title": "Pontos de rede e classificação do KMZ",
+      "roles": "Seller",
+      "scope": "CRUD de networkPoint e revisão da classificação dos elementos.",
+      "tasks": [
+        "F2-06",
+        "F2-07"
+      ]
+    },
+    {
+      "id": "D-20",
+      "title": "Histórico de preços da oferta",
+      "roles": "Seller",
+      "scope": "Adicionar, alterar e encerrar preços pelas rotas /price.",
+      "tasks": [
+        "F3-08"
+      ]
+    },
+    {
+      "id": "D-21",
+      "title": "Importação XLSX de ofertas",
+      "roles": "Seller",
+      "scope": "Baixar modelo por categoria, enviar e mostrar o resultado por linha.",
+      "tasks": [
+        "F3-10"
+      ]
+    },
+    {
+      "id": "D-22",
+      "title": "Pré-visualização do consumo do KMZ",
+      "roles": "Seller",
+      "scope": "Chamar kmz/preview antes do envio.",
+      "tasks": [
+        "F2-01"
+      ]
+    },
+    {
+      "id": "D-23",
+      "title": "Antecipação, saque e repasses do Seller",
+      "roles": "Seller",
+      "scope": "Ligar a tela de saque às rotas de quote e confirmação, e listar os lotes de repasse.",
+      "tasks": [
+        "F9-02",
+        "F9-04"
+      ]
+    }
+  ],
+  "backend": [
+    {
+      "id": "B-01",
+      "title": "Entrega de eventos entre APIs",
+      "impact": "Sem o envio do outbox, pagamento, aceite, contrato e OS não avançam sozinhos.",
+      "state": "Informado como tratado. Validar em F0-04."
+    },
+    {
+      "id": "B-02",
+      "title": "Rota para o Seller subir o contrato na OS",
+      "impact": "O portal só documenta listar, ler, baixar e assinar (Buyer). Sem a rota, F7-02 fica bloqueada.",
+      "state": "Backend criando a rota (informado em 05/11/2026)."
+    },
+    {
+      "id": "B-03",
+      "title": "RFQ sem rotas de negócio",
+      "impact": "Frete a combinar e busca sem oferta não fecham compra.",
+      "state": "Planejado."
+    },
+    {
+      "id": "B-04",
+      "title": "Aceite técnico do Buyer",
+      "impact": "RN prevê 72 horas úteis. Sem rota.",
+      "state": "Planejado."
+    },
+    {
+      "id": "B-05",
+      "title": "Orders não recebe serviceOrder.completed",
+      "impact": "Pedido pode não ir para concluído mesmo com a OS concluída.",
+      "state": "Conferir em CP-01."
+    },
+    {
+      "id": "B-06",
+      "title": "Notificações de pedido",
+      "impact": "Nenhuma API chama a Notification para pedido pago, aceito ou falha.",
+      "state": "Planejado."
+    },
+    {
+      "id": "B-07",
+      "title": "Repasse por operador",
+      "impact": "Repasse roda por linha de comando.",
+      "state": "Combinar janela com o backend para F9-03."
+    },
+    {
+      "id": "B-08",
+      "title": "Ordem entre contrato e OS",
+      "impact": "A documentação diz que contract.signed gera a OS. O fluxo combinado é OS primeiro e contrato depois, subido pelo Seller.",
+      "state": "Fluxo confirmado em 05/11/2026: OS primeiro, contrato subido pelo Seller na OS."
+    }
+  ]
+}

@@ -11,14 +11,24 @@ const UPDATE_FIELDS = [
   "specificationId",
   "monthlyPrice",
   "installationPrice",
+  // Moeda dos preços (troca exige reenviar os preços: price:change).
+  "currency",
   "speed",
   "durationMonths",
   "isCorporate",
   "stateCode",
   "isCapital",
   "metadata",
+  // Estoque: obrigatório para publicar em categoria com estoque numérico.
+  "stockQuantity",
+  // SLA de aceite (obrigatório para publicar) e cancelamento, públicos.
+  "acceptanceSlaHours",
+  "cancellationTerms",
   // Produto físico: troca o pacote de envio inteiro. `productType` não muda.
   "shipping",
+  // Valores das regras condicionais do template; `{regra: null}` desliga
+  // uma regra opcional.
+  "ruleValues",
 ] as const;
 
 const invalidId = () =>
@@ -27,7 +37,8 @@ const invalidId = () =>
 // BFF: GET /api/productCatalog/productOffering/{offeringId}
 //   → marketplace-api GET /productCatalog/productOffering/{id}
 // Detalhe de uma oferta da organização do usuário logado (403 de outra
-// organização, 404 inexistente).
+// organização, 404 inexistente). Só nas telas do seller: vai com o token do
+// perfil Seller, que se renova sozinho.
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ offeringId: string }> },
@@ -39,6 +50,7 @@ export async function GET(
     method: "GET",
     path: `/productCatalog/productOffering/${offeringId}`,
     authenticated: true,
+    profileSession: true,
   });
 }
 

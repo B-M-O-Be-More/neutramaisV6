@@ -24,9 +24,14 @@ vi.mock("@/services/geoCoverage.service", () => ({
 
 vi.mock("@/services/productCatalog.service", () => ({
   productCatalogService: {
+    // Sem a árvore, o assistente usa as famílias fixas; o template da
+    // categoria não tem campos genéricos.
+    listCategories: vi.fn(() => Promise.reject(new Error("offline"))),
+    getCategory: vi.fn(() => Promise.resolve({ template: [], rules: [] })),
     listSpecifications: vi.fn(),
     getCatalog: vi.fn(),
     createSpecification: vi.fn(),
+    updateSpecification: vi.fn(),
     createOffering: vi.fn(),
     updateOffering: vi.fn(),
     bindCoverage: vi.fn(),
@@ -81,6 +86,7 @@ const OTHER = "0193f1e2-9999-7c8d-9e0f-1a2b3c4d5e6f";
 const CONNECTIVITY: ProductOffering = {
   ...OFFERING,
   specificationId: "spec-connectivity",
+  categoryId: "0193a000-0000-7000-8000-000000000c01",
   name: "Link Dedicado 1 Gbps",
   speed: "1 Gbps",
   coverageVersionId: BOUND,
@@ -91,7 +97,10 @@ function renderConnectivityEdit() {
     <FormSellerOffer
       mode="edit"
       offering={CONNECTIVITY}
-      initialValues={offeringToFormValues(CONNECTIVITY, "Conectividade")}
+      initialValues={offeringToFormValues(CONNECTIVITY, "Conectividade", {
+        bandwidthMbps: 1000,
+        includedIps: 8,
+      })}
       images={[]}
       organizationId="org-1"
       locale="pt-BR"
@@ -125,20 +134,12 @@ const saveButton = () =>
 describe("FormSellerOffer em modo edição", { timeout: 20_000 }, () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(productCatalogService.listSpecifications).mockResolvedValue([
-      {
-        id: "spec-software",
-        organizationId: "org-1",
-        catalogId: "cat-1",
-        name: "Softwares e Gerenciamento",
-        description: null,
-        estimatedInstallationDays: null,
-        capacity: null,
-        isActive: true,
-        createdAt: "",
-        updatedAt: "",
-      },
-    ]);
+    vi.mocked(productCatalogService.updateSpecification).mockResolvedValue({
+      id: "spec-software",
+    } as never);
+    vi.mocked(productCatalogService.createSpecification).mockResolvedValue({
+      id: "spec-new",
+    } as never);
     vi.mocked(productCatalogService.updateOffering).mockResolvedValue(OFFERING);
     // Vínculo salvo com o KMZ inteiro (sem recorte).
     vi.mocked(geoCoverageService.getOfferCoverage).mockResolvedValue({
@@ -223,7 +224,8 @@ describe("FormSellerOffer em modo edição", { timeout: 20_000 }, () => {
           {
             coverageVersionId: OTHER,
             publicGeometry: null,
-            coverageNetworkPoints: [],
+            // Sem pontos o campo não vai (a API recusa lista vazia).
+            coverageNetworkPoints: undefined,
           },
         ),
       );
@@ -231,6 +233,15 @@ describe("FormSellerOffer em modo edição", { timeout: 20_000 }, () => {
     });
 
     it("'Salvar alterações' não vincula e avisa da cobertura não confirmada", async () => {
+      // A localidade A (obrigatória) volta com a cobertura salva.
+      vi.mocked(geoCoverageService.getOfferCoverage).mockResolvedValue({
+        offeringId: CONNECTIVITY.id,
+        coverageVersionId: BOUND,
+        publicGeometry: null,
+        coverageNetworkPoints: [
+          { longitude: -38.4931, latitude: -3.7375, radiusMeters: 10_000 },
+        ],
+      });
       const { user } = renderConnectivityEdit();
 
       const group = await screen.findByRole("radiogroup", {
@@ -256,6 +267,47 @@ describe("FormSellerOffer em modo edição", { timeout: 20_000 }, () => {
       );
       expect(productCatalogService.updateOffering).toHaveBeenCalled();
       expect(productCatalogService.bindCoverage).not.toHaveBeenCalled();
+      // Mesma categoria: a especificação atual recebe o template inteiro.
+      expect(productCatalogService.updateSpecification).toHaveBeenCalledWith(
+        "spec-connectivity",
+        {
+          categoryId: "0193a000-0000-7000-8000-000000000c01",
+          characteristics: expect.objectContaining({
+            bandwidthMbps: 1000,
+            includedIps: 8,
+          }),
+        },
+      );
+    });
+
+    it("não salva sem a localidade A e os IPs inclusos", async () => {
+      const { user } = renderWithProviders(
+        <FormSellerOffer
+          mode="edit"
+          offering={CONNECTIVITY}
+          initialValues={offeringToFormValues(CONNECTIVITY, "Conectividade")}
+          images={[]}
+          organizationId="org-1"
+          locale="pt-BR"
+          onCancel={vi.fn()}
+          onSaved={onSaved}
+        />,
+      );
+
+      await user.click(screen.getByText("SellerOfferCreate.steps.review"));
+      await user.click(
+        await screen.findByRole("button", {
+          name: /SellerOfferEdit.actions.save/,
+        }),
+      );
+
+      expect(
+        await screen.findByText(
+          "SellerOfferCreate.publish.errors.reviewInvalid",
+        ),
+      ).toBeInTheDocument();
+      expect(productCatalogService.updateSpecification).not.toHaveBeenCalled();
+      expect(productCatalogService.updateOffering).not.toHaveBeenCalled();
     });
   });
 
@@ -280,8 +332,16 @@ describe("FormSellerOffer em modo edição", { timeout: 20_000 }, () => {
         monthlyPrice: "1890.00",
       }),
     );
-    // Mesma categoria: o PATCH sai direto, sem ler os planos antes.
+    // Mesma categoria: edita a especificação atual, sem ler nem criar planos.
+    expect(productCatalogService.updateSpecification).toHaveBeenCalledWith(
+      "spec-software",
+      {
+        categoryId: "0193a000-0000-7000-8000-000000000c05",
+        characteristics: {},
+      },
+    );
     expect(productCatalogService.listSpecifications).not.toHaveBeenCalled();
+    expect(productCatalogService.createSpecification).not.toHaveBeenCalled();
     expect(productCatalogService.createOffering).not.toHaveBeenCalled();
     expect(productCatalogService.transitionOffering).not.toHaveBeenCalled();
     expect(productCatalogService.bindCoverage).not.toHaveBeenCalled();
@@ -289,6 +349,31 @@ describe("FormSellerOffer em modo edição", { timeout: 20_000 }, () => {
     // Imagens iguais às salvas: nenhuma chamada de imagem.
     expect(productCatalogService.deleteImage).not.toHaveBeenCalled();
     expect(productCatalogService.reorderImages).not.toHaveBeenCalled();
+  });
+
+  it("trocar a categoria cria uma especificação nova na categoria escolhida", async () => {
+    const { user } = renderEdit();
+
+    await user.click(
+      screen.getByRole("radio", {
+        name: /SellerOfferCreate.categories.protocols.label/,
+      }),
+    );
+    await user.click(screen.getByText("SellerOfferCreate.steps.review"));
+    await screen.findByText("SellerOfferCreate.review.truthfulnessNotice");
+    await user.click(saveButton());
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith([]));
+    expect(productCatalogService.createSpecification).toHaveBeenCalledWith({
+      name: "Protocolos e Serviços",
+      categoryId: "0193a000-0000-7000-8000-000000000c06",
+      characteristics: {},
+    });
+    expect(productCatalogService.updateSpecification).not.toHaveBeenCalled();
+    expect(productCatalogService.updateOffering).toHaveBeenCalledWith(
+      OFFERING.id,
+      expect.objectContaining({ specificationId: "spec-new" }),
+    );
   });
 
   describe("área de fotos", () => {

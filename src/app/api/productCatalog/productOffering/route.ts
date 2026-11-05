@@ -41,15 +41,24 @@ const CREATE_FIELDS = [
   "specificationId",
   "monthlyPrice",
   "installationPrice",
+  // Moeda dos preços: obrigatória com eles em serviço (MKT_CURRENCY_REQUIRED).
+  "currency",
   "speed",
   "durationMonths",
   "isCorporate",
   "stateCode",
   "isCapital",
   "metadata",
+  // Estoque: obrigatório para publicar em categoria com estoque numérico.
+  "stockQuantity",
+  // SLA de aceite (obrigatório para publicar) e cancelamento, públicos.
+  "acceptanceSlaHours",
+  "cancellationTerms",
   // Hardware / CPE: produto físico com o pacote de envio.
   "productType",
   "shipping",
+  // Valores das regras condicionais do template ({regra: {campo: valor}}).
+  "ruleValues",
 ] as const;
 
 // BFF: POST /api/productCatalog/productOffering

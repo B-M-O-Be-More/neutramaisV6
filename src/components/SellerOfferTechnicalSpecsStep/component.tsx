@@ -22,7 +22,10 @@ import OfferMaskedInput, {
 } from "@/components/OfferMaskedInput";
 import SellerOfferAttributesFields from "@/components/SellerOfferAttributesFields";
 import SellerOfferHardwareFields from "@/components/SellerOfferHardwareFields";
+import SellerOfferInfraFields from "@/components/SellerOfferInfraFields";
 import SellerOfferNumberingFields from "@/components/SellerOfferNumberingFields";
+import SellerOfferRuleFields from "@/components/SellerOfferRuleFields";
+import SellerOfferTemplateFields from "@/components/SellerOfferTemplateFields";
 import { offerCategory } from "@/data/offerCategories";
 import {
   OFFER_ACCEPTANCE_SLA_MAX,
@@ -39,10 +42,15 @@ import { SellerOfferTechnicalSpecsStepProps } from "./interface";
  * - Velocidade e latência só aceitam dígitos; a velocidade só é obrigatória
  *   para Conectividade.
  * - SLA técnico é um percentual (0–100, vírgula decimal, "%" fixo).
+ * - Conectividade pede os IPs inclusos; Infra Física, capacidade, unidade
+ *   vendida e energia/espaço/porta (campos obrigatórios do template).
  * - Hardware / CPE ganha o bloco de fabricante, modelo e condição (Figma
  *   2074-56987). O envio (peso, medidas, origem) fica na etapa Logística.
  * - Recursos Numéricos não têm banda nem latência: aparece a documentação
  *   LACNIC/ANATEL no lugar (Figma 2074-59682).
+ * - Os campos do template sem tela própria (subcategoria, categoria nova,
+ *   opcionais da família) vêm em "Campos da categoria", pelo tipo da API;
+ *   as regras condicionais do template, em "Regras da categoria".
  * - Todas as categorias terminam nos Atributos (metadados livres), nas cores
  *   da categoria (Figma 3009-74313 e 2879-92995).
  */
@@ -50,6 +58,7 @@ export function SellerOfferTechnicalSpecsStep({
   control,
   register,
   errors,
+  template,
 }: SellerOfferTechnicalSpecsStepProps) {
   const { t } = useTranslation();
   const category = useWatch({ control, name: "category" });
@@ -63,6 +72,7 @@ export function SellerOfferTechnicalSpecsStep({
   const acceptanceError = tError(errors.acceptanceSla?.message);
   const technicalError = tError(errors.technicalSla?.message);
   const deliveryError = tError(errors.deliveryTime?.message);
+  const includedIpsError = tError(errors.includedIps?.message);
   const acceptanceHelper = t(
     "SellerOfferCreate.technicalSpecs.acceptanceSlaHelper",
     {
@@ -262,6 +272,43 @@ export function SellerOfferTechnicalSpecsStep({
         </InputGroup>
       </OfferFormField>
 
+      {category === "connectivity" && (
+        <OfferFormField
+          id="offer-included-ips"
+          label={t("SellerOfferCreate.technicalSpecs.includedIpsLabel")}
+          required
+          error={includedIpsError}
+        >
+          <Controller
+            control={control}
+            name="includedIps"
+            render={({ field }) => (
+              <OfferMaskedInput
+                id="offer-included-ips"
+                ref={field.ref}
+                name={field.name}
+                maskOptions={DIGITS_MASK}
+                value={field.value ?? ""}
+                onAccept={field.onChange}
+                onBlur={field.onBlur}
+                inputMode="numeric"
+                placeholder={t(
+                  "SellerOfferCreate.technicalSpecs.includedIpsPlaceholder",
+                )}
+                aria-invalid={!!includedIpsError}
+                aria-describedby={offerFieldDescribedBy("offer-included-ips", {
+                  error: includedIpsError,
+                })}
+                h="47px"
+                fontSize="14px"
+                borderColor={border(includedIpsError)}
+                {...OFFER_INPUT_STYLES}
+              />
+            )}
+          />
+        </OfferFormField>
+      )}
+
       <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
         <OfferFormField
           id="offer-delivery-time"
@@ -288,6 +335,12 @@ export function SellerOfferTechnicalSpecsStep({
         </OfferFormField>
       </Flex>
 
+      {category === "physicalInfra" && (
+        <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
+          <SellerOfferInfraFields register={register} errors={errors} />
+        </Flex>
+      )}
+
       {category === "hardware" && (
         <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
           <SellerOfferHardwareFields register={register} errors={errors} />
@@ -297,6 +350,31 @@ export function SellerOfferTechnicalSpecsStep({
       {category === "numberingResources" && (
         <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
           <SellerOfferNumberingFields register={register} errors={errors} />
+        </Flex>
+      )}
+
+      {tone && (
+        <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
+          <SellerOfferTemplateFields
+            control={control}
+            errors={errors}
+            fields={template.fields}
+            isLoading={template.isLoading}
+            hasError={template.hasError}
+            onRetry={template.onRetry}
+            tone={tone}
+          />
+        </Flex>
+      )}
+
+      {tone && template.rules.length > 0 && (
+        <Flex direction="column" gridColumn={{ md: "1 / -1" }}>
+          <SellerOfferRuleFields
+            control={control}
+            errors={errors}
+            rules={template.rules}
+            tone={tone}
+          />
         </Flex>
       )}
 

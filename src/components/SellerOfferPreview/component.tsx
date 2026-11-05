@@ -18,6 +18,7 @@ const NEUTRAL_TONE = { fg: "#8A9AB5", bg: "#F4F6F9", border: "#E5E8EE" };
  */
 export function SellerOfferPreview({
   category,
+  categoryLabel: chosenLabel,
   name,
   description,
   imageUrl,
@@ -32,9 +33,11 @@ export function SellerOfferPreview({
   const definition = offerCategory(category);
   const tone = definition?.tone ?? NEUTRAL_TONE;
   const CategoryIcon = definition?.icon ?? LuPackage;
-  const categoryLabel = definition
-    ? t(`SellerOfferCreate.categories.${definition.key}.label`)
-    : t("SellerOfferCreate.preview.noCategory");
+  const categoryLabel =
+    chosenLabel ||
+    (definition
+      ? t(`SellerOfferCreate.categories.${definition.key}.label`)
+      : t("SellerOfferCreate.preview.noCategory"));
 
   const price = new Intl.NumberFormat(locale, {
     style: "currency",

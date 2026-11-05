@@ -112,6 +112,32 @@ export interface OfferingShippingInput {
   insuranceValue?: number;
 }
 
+/** Selo de uma regra condicional (`applyBadge`). */
+export interface OfferingBadge {
+  /** snake_case; é o valor do filtro `badge` da busca pública. */
+  code: string;
+  label: string;
+}
+
+/**
+ * Valores das regras do template na oferta: `{regra: {campo: valor}}`.
+ * `{regra: null}` desliga uma regra opcional.
+ */
+export type OfferingRuleValues = Record<
+  string,
+  SpecificationCharacteristics | null
+>;
+
+/** Resultado da avaliação das regras (visão do dono). */
+export interface OfferingRuleEffects {
+  badges: OfferingBadge[];
+  fields: Record<string, unknown>;
+  /** Chaves das regras que dispararam. */
+  rules: string[];
+  templateVersion: number | null;
+  evaluatedAt: string;
+}
+
 /** Oferta retornada pelas rotas de `/productCatalog/productOffering`. */
 export interface ProductOffering {
   id: string;
@@ -119,6 +145,15 @@ export interface ProductOffering {
   revision?: number;
   organizationId: string;
   specificationId: string;
+  /** Categoria da especificação (árvore da plataforma). */
+  categoryId?: string | null;
+  /** Estoque disponível; `null` sem estoque numérico. */
+  stockQuantity?: number | null;
+  /** Horas para aceitar um pedido pago (1–72). */
+  acceptanceSlaHours?: number | null;
+  cancellationTerms?: string | null;
+  /** Moeda ISO 4217 dos preços ativos; `null` sem preço. */
+  currency?: string | null;
   name: string;
   monthlyPrice: DecimalValue;
   installationPrice: DecimalValue;
@@ -133,8 +168,14 @@ export interface ProductOffering {
   /** UF, duas letras (ex.: "SP"). */
   stateCode: string | null;
   isCapital: boolean | null;
-  /** Versão de cobertura (KMZ) vinculada; obrigatória para publicar. */
+  /** Versão de cobertura (KMZ) vinculada. */
   coverageVersionId?: string | null;
+  /**
+   * A oferta precisa de cobertura para publicar e vender: `false` em produto
+   * físico e em serviço de categoria sem cobertura (Software, Protocolos,
+   * Recursos Numéricos). Ausente nas respostas antigas.
+   */
+  coverageRequired?: boolean;
   /** Atributos livres definidos pela especificação (ex.: { ipFixo: true }). */
   metadata: Record<string, unknown> | null;
   isActive: boolean;
@@ -144,6 +185,14 @@ export interface ProductOffering {
   productType?: OfferingProductType;
   /** Pacote de envio — só em produto físico. */
   shipping?: OfferingShipping | null;
+  /** Selos das regras condicionais que valem para a oferta. */
+  badges?: OfferingBadge[];
+  /** Campos do template que as regras mudaram (valor efetivo). */
+  ruleFields?: Record<string, unknown>;
+  /** Só na visão do dono: valores das regras, por regra; `null` sem valores. */
+  ruleValues?: OfferingRuleValues | null;
+  /** Só na visão do dono: última avaliação das regras da etapa `offer`. */
+  ruleEffects?: OfferingRuleEffects | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -162,13 +211,26 @@ export interface OfferingsSummary {
 }
 
 /**
- * Especificação de produto da organização (`GET /productSpecification`). É a
- * "categoria" da oferta na interface — cada seller define as suas.
+ * Valores do template da categoria numa especificação (`characteristics`):
+ * chaves do template, campos do Seller e atributos livres.
+ */
+export type SpecificationCharacteristics = Record<
+  string,
+  string | number | boolean | (string | number | boolean)[]
+>;
+
+/**
+ * Especificação de produto da organização (`GET /productSpecification`): o
+ * SKU técnico da oferta, instância do template da categoria.
  */
 export interface ProductSpecification {
   id: string;
   organizationId: string;
-  catalogId: string;
+  /** Obsoleto: `null` nas especificações novas. */
+  catalogId: string | null;
+  categoryId?: string | null;
+  templateVersion?: number;
+  characteristics?: SpecificationCharacteristics;
   name: string;
   description: string | null;
   estimatedInstallationDays: number | null;
@@ -176,6 +238,78 @@ export interface ProductSpecification {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Tipos de campo de um template de categoria (marketplace-api). */
+export const CATEGORY_TEMPLATE_FIELD_TYPES = [
+  "short_text",
+  "long_text",
+  "number",
+  "number_with_unit",
+  "single_choice",
+  "multiple_choice",
+  "boolean",
+  "date",
+  "attachment",
+  "link",
+] as const;
+
+export type CategoryTemplateFieldType =
+  (typeof CATEGORY_TEMPLATE_FIELD_TYPES)[number];
+
+/**
+ * Campo do template (`characteristics` da especificação) ou campo de valor de
+ * uma regra (`ruleValues` da oferta) — os dois têm o mesmo formato.
+ */
+export interface CategoryTemplateField {
+  key: string;
+  label: string;
+  type: CategoryTemplateFieldType;
+  required: boolean;
+  options?: string[] | null;
+  unit?: string | null;
+  min?: number | null;
+  max?: number | null;
+  maxLength?: number | null;
+  /** Só nos campos do template: false esconde o valor na página pública. */
+  visibleOnMarketplace?: boolean;
+  displayOrder?: number;
+  categoryId?: string;
+  inherited?: boolean;
+}
+
+/**
+ * Regra condicional do template como o Seller e o Buyer a recebem: a lógica
+ * (condições e ação) só vem para o super_admin.
+ */
+export interface CategoryTemplateRule {
+  key: string;
+  name: string;
+  description?: string | null;
+  /** true: publicar sem valores responde 409 MKT_RULE_VALUES_REQUIRED. */
+  required: boolean;
+  valueFields: CategoryTemplateField[];
+}
+
+/** Categoria da árvore da plataforma (`GET /category`, `GET /category/{id}`). */
+export interface ProductCategory {
+  id: string;
+  parentId: string | null;
+  name: string;
+  description: string | null;
+  templateVersion: number;
+  /** true: a oferta de serviço precisa de cobertura (KMZ) para publicar. */
+  requiresCoverage: boolean;
+  /** true: a oferta precisa de `stockQuantity` para publicar. */
+  hasNumericStock: boolean;
+  isActive: boolean;
+  displayOrder: number;
+  /** Só em `GET /category/{id}`; null na lista. */
+  template: CategoryTemplateField[] | null;
+  /** Só em `GET /category/{id}`; null na lista. */
+  rules: CategoryTemplateRule[] | null;
+  /** Só com `tree=true`: as filhas; null sem filhas. */
+  children: ProductCategory[] | null;
 }
 
 /** Catálogo da organização (`GET /catalog`). */
@@ -192,6 +326,9 @@ export interface ProductCatalog {
 /** Corpo de `POST /productSpecification`. */
 export interface CreateSpecificationInput {
   name: string;
+  /** Categoria ativa; a API valida `characteristics` com o template dela. */
+  categoryId: string;
+  characteristics?: SpecificationCharacteristics;
   description?: string | null;
   estimatedInstallationDays?: number | null;
   capacity?: number | null;
@@ -205,6 +342,11 @@ export interface CreateOfferingInput {
   monthlyPrice: string;
   /** Decimal com 2 casas, a partir de zero. */
   installationPrice?: string;
+  /**
+   * Moeda ISO 4217 dos preços (BRL, USD, EUR). Obrigatória com os preços em
+   * serviço (422 MKT_CURRENCY_REQUIRED); produto físico aceita só BRL.
+   */
+  currency?: string;
   /** Texto livre, ex.: "500 Mbps". */
   speed?: string | null;
   durationMonths?: 1 | 3 | 6 | 12 | 24 | 36 | 48 | 60;
@@ -213,10 +355,28 @@ export interface CreateOfferingInput {
   isCapital?: boolean;
   /** Atributos livres da oferta (guardados sem validação de esquema). */
   metadata?: Record<string, unknown> | null;
+  /**
+   * Estoque disponível (0–10.000.000). Obrigatório para publicar em
+   * categoria com estoque numérico (Hardware, Recursos Numéricos).
+   */
+  stockQuantity?: number | null;
+  /**
+   * Horas para aceitar um pedido pago (1–72). Obrigatório para publicar
+   * (409 MKT_OFFER_ACCEPTANCE_SLA_REQUIRED).
+   */
+  acceptanceSlaHours?: number | null;
+  /** Condições de cancelamento (até 5000 caracteres). */
+  cancellationTerms?: string | null;
   /** Default `service`. */
   productType?: OfferingProductType;
   /** Só produto físico (422 em serviço). */
   shipping?: OfferingShippingInput;
+  /**
+   * Valores das regras condicionais do template (`offer:publish`). O POST
+   * define todas; regra obrigatória vazia bloqueia a publicação (409
+   * `MKT_RULE_VALUES_REQUIRED`).
+   */
+  ruleValues?: OfferingRuleValues;
 }
 
 /** Filtros de `GET /productCatalog/productOffering/search` (combinados por AND). */
@@ -333,9 +493,11 @@ export const productCatalogService = {
     offeringId: string,
     options: Pick<RequestOptions, "signal"> = {},
   ) =>
-    api.get<ProductOffering>(
-      `/productCatalog/productOffering/${encodeURIComponent(offeringId)}`,
-      { signal: options.signal },
+    withProfileSession(() =>
+      api.get<ProductOffering>(
+        `/productCatalog/productOffering/${encodeURIComponent(offeringId)}`,
+        { signal: options.signal },
+      ),
     ),
 
   /**
@@ -352,9 +514,11 @@ export const productCatalogService = {
 
   /** Contadores do catálogo da organização do usuário logado. */
   getOfferingsSummary: (options: Pick<RequestOptions, "signal"> = {}) =>
-    api.get<OfferingsSummary>("/productCatalog/productOffering/summary", {
-      signal: options.signal,
-    }),
+    withProfileSession(() =>
+      api.get<OfferingsSummary>("/productCatalog/productOffering/summary", {
+        signal: options.signal,
+      }),
+    ),
 
   /**
    * Especificações de produto da organização do usuário logado (sem
@@ -368,6 +532,26 @@ export const productCatalogService = {
     ),
 
   /**
+   * Árvore de categorias ativas da plataforma, raízes primeiro e filhas em
+   * `children`, na ordem de `displayOrder`. Não traz o template.
+   */
+  listCategories: (options: Pick<RequestOptions, "signal"> = {}) =>
+    api.get<ProductCategory[]>("/productCatalog/category", {
+      params: { tree: true },
+      signal: options.signal,
+    }),
+
+  /** Categoria com o template efetivo e as regras condicionais. */
+  getCategory: (
+    categoryId: string,
+    options: Pick<RequestOptions, "signal"> = {},
+  ) =>
+    api.get<ProductCategory>(
+      `/productCatalog/category/${encodeURIComponent(categoryId)}`,
+      { signal: options.signal },
+    ),
+
+  /**
    * Catálogo da organização. A API cria um ("Default Catalog") na primeira
    * leitura — criar especificação exige que ele exista. Vai com a sessão de
    * perfil Seller.
@@ -377,11 +561,30 @@ export const productCatalogService = {
       api.get<ProductCatalog>("/productCatalog/catalog"),
     ),
 
-  /** Cria um plano (especificação) no catálogo, com a sessão de perfil Seller. */
+  /**
+   * Cria a especificação na categoria, com a sessão de perfil Seller. 422
+   * `MKT_TEMPLATE_FIELD_REQUIRED`/`_INVALID` quando `characteristics` não
+   * segue o template.
+   */
   createSpecification: (input: CreateSpecificationInput) =>
     withProfileSession(() =>
       api.post<ProductSpecification>(
         "/productCatalog/productSpecification",
+        input,
+      ),
+    ),
+
+  /**
+   * Edita a especificação. `characteristics` substitui o objeto inteiro e é
+   * validado de novo com o template atual. Sessão de perfil Seller.
+   */
+  updateSpecification: (
+    specificationId: string,
+    input: Partial<CreateSpecificationInput>,
+  ) =>
+    withProfileSession(() =>
+      api.patch<ProductSpecification>(
+        `/productCatalog/productSpecification/${encodeURIComponent(specificationId)}`,
         input,
       ),
     ),

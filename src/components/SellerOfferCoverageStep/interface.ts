@@ -1,5 +1,11 @@
-import type { Control, FieldErrors, UseFormRegister } from "react-hook-form";
+import type {
+  Control,
+  FieldErrors,
+  UseFormRegister,
+  UseFormSetValue,
+} from "react-hook-form";
 
+import type { UseOfferCategoriesReturn } from "@/hooks/useOfferCategories";
 import type { UseOfferingCoverageEditorReturn } from "@/hooks/useOfferingCoverageEditor";
 import type { SellerOfferValues } from "@/schemas/sellerOffer";
 
@@ -7,6 +13,9 @@ export interface SellerOfferCoverageStepProps {
   control: Control<SellerOfferValues>;
   register: UseFormRegister<SellerOfferValues>;
   errors: FieldErrors<SellerOfferValues>;
+  setValue: UseFormSetValue<SellerOfferValues>;
+  /** Árvore de categorias da plataforma (`useOfferCategories`). */
+  categories: UseOfferCategoriesReturn;
   /** Organização do seller — dona dos KMZs. */
   organizationId: string | null;
   /**

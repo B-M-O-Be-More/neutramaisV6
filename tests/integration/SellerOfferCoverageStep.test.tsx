@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import SellerOfferCoverageSection from "@/components/SellerOfferCoverageSection";
 import SellerOfferCoverageStep from "@/components/SellerOfferCoverageStep";
+import { offerCategory } from "@/data/offerCategories";
+import { staticCategoryIndex } from "@/functions/offerCategoryTree";
 import { useOfferingCoverageEditor } from "@/hooks/useOfferingCoverageEditor";
 import {
   SELLER_OFFER_DEFAULTS,
@@ -55,6 +57,14 @@ const VERSION = {
 };
 
 const NO_FILES = { items: [], total: 0, offset: 0, limit: 200 };
+
+// Árvore fixa: as famílias conhecidas, sem subcategorias.
+const CATEGORIES = {
+  ...staticCategoryIndex(),
+  isLoading: false,
+  hasError: false,
+  refetch: () => {},
+};
 // Arquivo da organização: o `activeVersionId` é a versão vinculada.
 const ONE_FILE = {
   items: [
@@ -78,12 +88,20 @@ function StepHarness({
   category: SellerOfferValues["category"];
   offering?: ProductOffering;
 }) {
+  const family = offerCategory(category);
   const {
     control,
     register,
+    setValue,
     formState: { errors },
   } = useForm<SellerOfferValues>({
-    defaultValues: { ...SELLER_OFFER_DEFAULTS, category },
+    defaultValues: {
+      ...SELLER_OFFER_DEFAULTS,
+      category,
+      categoryId: family?.categoryId ?? "",
+      requiresCoverage: !!family?.requiresCoverage,
+      hasNumericStock: !!family?.hasNumericStock,
+    },
   });
   const editor = useOfferingCoverageEditor(offering ?? null);
   return (
@@ -91,6 +109,8 @@ function StepHarness({
       control={control}
       register={register}
       errors={errors}
+      setValue={setValue}
+      categories={CATEGORIES}
       organizationId={ORGANIZATION}
       coverageEditor={offering ? editor : undefined}
       locale="pt-BR"
@@ -279,7 +299,8 @@ describe("SellerOfferCoverageSection — KMZs da organização", () => {
       {
         coverageVersionId: BOUND,
         publicGeometry: null,
-        coverageNetworkPoints: [],
+        // Sem pontos o campo não vai (a API recusa lista vazia).
+        coverageNetworkPoints: undefined,
       },
     );
     expect(

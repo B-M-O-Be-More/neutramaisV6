@@ -1,25 +1,30 @@
+import { buildSpecificationPayload } from "@/functions/buildSpecificationPayload";
+import type { SellerOfferValues } from "@/schemas/sellerOffer";
 import {
   productCatalogService,
-  type ProductSpecification,
+  type CategoryTemplateField,
 } from "@/services/productCatalog.service";
 
-const sameName = (a: string, b: string) =>
-  a.trim().toLocaleLowerCase("pt-BR") === b.trim().toLocaleLowerCase("pt-BR");
-
 /**
- * Plano da categoria: o mais recente com o mesmo nome (a API não impede
- * nomes repetidos) ou um novo. Criar plano exige o catálogo — `GET /catalog`
- * cria o da organização na primeira leitura.
+ * Especificação da oferta (o SKU técnico, com os valores do template da
+ * categoria). Na criação, ou quando a edição troca a categoria, é uma nova;
+ * na mesma categoria, a atual recebe os valores do formulário — o PATCH
+ * substitui `characteristics` inteiro. `templateFields` são os campos
+ * genéricos do template (sem tela própria).
  */
-export async function resolveOfferSpecification(name: string): Promise<string> {
-  const specifications: ProductSpecification[] =
-    (await productCatalogService.listSpecifications()) ?? [];
-  const existing =
-    specifications.find((spec) => spec.isActive && sameName(spec.name, name)) ??
-    specifications.find((spec) => sameName(spec.name, name));
-  if (existing) return existing.id;
-
-  await productCatalogService.getCatalog();
-  const created = await productCatalogService.createSpecification({ name });
+export async function resolveOfferSpecification(
+  values: SellerOfferValues,
+  current?: { specificationId: string },
+  templateFields: CategoryTemplateField[] = [],
+): Promise<string> {
+  const payload = buildSpecificationPayload(values, templateFields);
+  if (current) {
+    await productCatalogService.updateSpecification(current.specificationId, {
+      categoryId: payload.categoryId,
+      characteristics: payload.characteristics,
+    });
+    return current.specificationId;
+  }
+  const created = await productCatalogService.createSpecification(payload);
   return created!.id;
 }

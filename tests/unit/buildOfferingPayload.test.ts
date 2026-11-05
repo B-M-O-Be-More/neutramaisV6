@@ -10,6 +10,13 @@ import type { ProductOffering } from "@/services/productCatalog.service";
 
 const BASE: SellerOfferValues = {
   category: "connectivity",
+  categoryId: "0193a000-0000-7000-8000-000000000c01",
+  categoryLabel: "Conectividade",
+  requiresCoverage: true,
+  hasNumericStock: false,
+  templateValues: {},
+  rulesEnabled: {},
+  ruleValues: {},
   locations: [
     {
       label: "Av. Dom Luís, 300, Caucaia - CE",
@@ -33,9 +40,13 @@ const BASE: SellerOfferValues = {
   hardwareCondition: "new",
   hardwareWarranty: "",
   hardwareSerialization: "",
-  numberingResourceType: "IPv6",
+  includedIps: "",
+  infraCapacity: "",
+  infraSoldUnit: "",
+  infraPowerSpacePort: "",
+  numberingResourceType: "ipv6",
   numberingBlock: "/48",
-  numberingHolder: "LACNIC",
+  numberingHolder: "Cessão definitiva",
   // Linha vazia do formulário: não vai no payload.
   attributes: [{ name: "", type: "", values: "" }],
   productType: "",
@@ -85,7 +96,11 @@ describe("buildOfferingPayload", () => {
       specificationId: "spec-1",
       monthlyPrice: "1890.00",
       installationPrice: "500.50",
+      currency: "BRL",
       speed: "1 Gbps",
+      // Exigido para publicar (MKT_OFFER_ACCEPTANCE_SLA_REQUIRED).
+      acceptanceSlaHours: 48,
+      cancellationTerms: "30 dias corridos",
     });
     expect(payload.metadata).toEqual({
       shortDescription: "Link simétrico com SLA",
@@ -98,6 +113,14 @@ describe("buildOfferingPayload", () => {
       currency: "BRL",
       cancellationTerms: "30 dias corridos",
       validUntil: "2026-12-31",
+      serviceLocations: [
+        {
+          label: "Av. Dom Luís, 300, Caucaia - CE",
+          longitude: -38.65,
+          latitude: -3.73,
+          radiusKm: "10",
+        },
+      ],
     });
   });
 
@@ -120,18 +143,43 @@ describe("buildOfferingPayload", () => {
     ]);
   });
 
-  it("não envia categoria, localidade, região nem imagem", () => {
+  it("não envia categoria, região nem imagem", () => {
     const payload = buildOfferingPayload(
-      { ...BASE, coverageRegion: "Brasil (LACNIC)" },
+      { ...BASE, coverageRegion: "lacnic" },
       "spec-1",
     );
     const json = JSON.stringify(payload);
 
     expect(json).not.toContain("connectivity");
-    expect(json).not.toContain("Caucaia");
-    expect(json).not.toContain("-38.65");
-    expect(json).not.toContain("LACNIC");
+    expect(json).not.toContain("lacnic");
     expect(payload.metadata).not.toHaveProperty("images");
+  });
+
+  it("categoria com cobertura guarda as localidades com ponto e raio no metadata", () => {
+    const payload = buildOfferingPayload(
+      {
+        ...BASE,
+        locations: [
+          ...BASE.locations,
+          // Sem endereço escolhido: fica de fora.
+          { label: "Digitado", longitude: null, latitude: null, radiusKm: "" },
+        ],
+      },
+      "spec-1",
+    );
+
+    expect(payload.metadata?.serviceLocations).toEqual([
+      {
+        label: "Av. Dom Luís, 300, Caucaia - CE",
+        longitude: -38.65,
+        latitude: -3.73,
+        radiusKm: "10",
+      },
+    ]);
+    expect(
+      buildOfferingPayload({ ...BASE, requiresCoverage: false }, "spec-1")
+        .metadata,
+    ).not.toHaveProperty("serviceLocations");
   });
 
   it("inclui os dados de Hardware só nessa categoria", () => {
@@ -156,7 +204,11 @@ describe("buildOfferingPayload", () => {
     expect(payload.speed).toBeNull();
     expect(payload.metadata).not.toHaveProperty("maxLatencyMs");
     expect(payload.metadata).toMatchObject({
-      numbering: { resourceType: "IPv6", block: "/48", holder: "LACNIC" },
+      numbering: {
+        resourceType: "ipv6",
+        block: "/48",
+        holder: "Cessão definitiva",
+      },
     });
   });
 
@@ -286,6 +338,18 @@ describe("buildOfferingPayload", () => {
     expect(payload.shipping).not.toHaveProperty("insuranceValue");
   });
 
+  it("estoque vai em `stockQuantity` só nas categorias com estoque numérico", () => {
+    expect(
+      buildOfferingPayload(
+        { ...BASE, category: "hardware", hasNumericStock: true, stock: "25" },
+        "s",
+      ).stockQuantity,
+    ).toBe(25);
+    expect(
+      buildOfferingPayload({ ...BASE, stock: "25" }, "s"),
+    ).not.toHaveProperty("stockQuantity");
+  });
+
   it("setup vazio vira zero e estoque preenchido vira número", () => {
     const payload = buildOfferingPayload(
       { ...BASE, setupFee: "", stock: "12" },
@@ -339,5 +403,31 @@ describe("buildOfferingUpdate", () => {
     expect(payload.metadata).not.toHaveProperty("shippingPolicy");
     // Chaves de outras telas continuam.
     expect(payload.metadata).toMatchObject({ extra: 1 });
+  });
+
+  it("regras do template vão em ruleValues só quando a categoria tem regras", () => {
+    const rules = [
+      {
+        key: "fastActivation",
+        name: "Ativação rápida",
+        required: true,
+        valueFields: [
+          {
+            key: "maxAcceptanceHours",
+            label: "Horas",
+            type: "number" as const,
+            required: true,
+          },
+        ],
+      },
+    ];
+    const values = {
+      ...BASE,
+      ruleValues: { fastActivation: { maxAcceptanceHours: "48" } },
+    };
+    expect(buildOfferingPayload(values, "s", rules).ruleValues).toEqual({
+      fastActivation: { maxAcceptanceHours: 48 },
+    });
+    expect(buildOfferingPayload(values, "s")).not.toHaveProperty("ruleValues");
   });
 });

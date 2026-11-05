@@ -4,47 +4,42 @@ import { Flex, Text } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 
 import ContractDetailPanel from "@/components/ContractDetailPanel";
-import { formatAdjustment, formatPercent } from "@/functions/contractFormat";
-import {
-  formatProposalMoney,
-  formatShortDate,
-} from "@/functions/proposalFormat";
+import { contractDate, orderTotal, shortId } from "@/functions/contractFormat";
 
 import { ContractSummaryProps } from "./interface";
 
-/** "Dados do contrato" da coluna lateral do detalhe (Figma 2190-14321). */
-export function ContractSummary({ contract, locale }: ContractSummaryProps) {
+/** "Dados do contrato" da coluna lateral do detalhe. */
+export function ContractSummary({ entry, locale }: ContractSummaryProps) {
   const { t } = useTranslation();
+  const { contract, order } = entry;
+  const date = contractDate(entry);
+  const total = order ? orderTotal(order, locale) : null;
 
   const rows: { key: string; value: string }[] = [
-    { key: "startDate", value: formatShortDate(contract.startDate, locale) },
+    { key: "contract", value: shortId(contract.contractId) },
+    { key: "order", value: shortId(contract.orderId) },
     {
-      key: "nextBilling",
-      value: contract.nextBillingDate
-        ? formatShortDate(contract.nextBillingDate, locale)
+      key: "createdAt",
+      value: date ? new Intl.DateTimeFormat(locale).format(date) : "—",
+    },
+    {
+      key: "total",
+      value: total
+        ? `${total.value}${total.monthly ? t("Contracts.card.perMonth") : ""}`
         : "—",
     },
-    { key: "renewsAt", value: formatShortDate(contract.renewsAt, locale) },
     {
-      key: "price",
-      value: `${formatProposalMoney(contract.price, locale)}${t(`Contracts.card.per.${contract.billingCycle}`)}`,
-    },
-    { key: "sla", value: formatPercent(contract.slaPercent, locale) },
-    {
-      key: "loyalty",
-      value: t("Contracts.months", { count: contract.loyaltyMonths }),
-    },
-    {
-      key: "exitFee",
-      value: contract.exitFee
-        ? formatProposalMoney(contract.exitFee, locale)
-        : t("Contracts.details.noExitFee"),
+      key: "policy",
+      value: t(
+        contract.policy === "buyer-only-v1"
+          ? "Contracts.summary.policies.buyerOnly"
+          : "Contracts.summary.policies.other",
+        { policy: contract.policy },
+      ),
     },
     {
-      key: "adjustment",
-      value: contract.adjustment
-        ? formatAdjustment(contract.adjustment, locale)
-        : "—",
+      key: "documentVersion",
+      value: String(contract.documentVersion),
     },
   ];
 

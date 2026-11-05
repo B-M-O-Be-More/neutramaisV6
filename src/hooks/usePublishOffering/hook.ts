@@ -5,6 +5,10 @@ import React from "react";
 import { offerCategory } from "@/data/offerCategories";
 import { buildOfferingPayload } from "@/functions/buildOfferingPayload";
 import { resolveOfferSpecification } from "@/functions/resolveOfferSpecification";
+import {
+  EMPTY_OFFER_TEMPLATE,
+  type OfferTemplate,
+} from "@/functions/templateFields";
 import type { SellerOfferValues } from "@/schemas/sellerOffer";
 import { ApiError, ForbiddenError, upstreamErrorCode } from "@/services/errors";
 import { productCatalogService } from "@/services/productCatalog.service";
@@ -22,8 +26,23 @@ const PUBLISH_ERROR_KEYS: Record<string, string> = {
   MKT_KYC_NOT_VERIFIED: "SellerOffers.errors.kycNotVerified",
   MKT_OFFER_COVERAGE_REQUIRED: "SellerOffers.errors.coverageRequired",
   MKT_OFFER_SHIPPING_REQUIRED: "SellerOffers.errors.shippingRequired",
+  MKT_OFFER_ACCEPTANCE_SLA_REQUIRED:
+    "SellerOffers.errors.acceptanceSlaRequired",
+  MKT_OFFER_ACCEPTANCE_SLA_INVALID: "SellerOffers.errors.acceptanceSlaRequired",
+  MKT_OFFER_STOCK_REQUIRED: "SellerOffers.errors.stockRequired",
+  MKT_OFFER_PRICE_REQUIRED: "SellerOffers.errors.priceRequired",
+  MKT_OFFER_EXPIRED: "SellerOffers.errors.expired",
   MKT_OFFER_INVALID_TRANSITION: "SellerOffers.errors.invalidTransition",
+  MKT_RULE_VALUES_REQUIRED: "SellerOffers.errors.ruleValuesRequired",
 };
+
+// Valores de regra recusados na criação (422): template mudou ou valor fora
+// do que a regra aceita.
+const RULE_ERROR_CODES = new Set([
+  "MKT_RULE_UNKNOWN",
+  "MKT_RULE_VALUES_INCOMPLETE",
+  "MKT_RULE_VALUE_INVALID",
+]);
 
 /** Progresso de uma oferta já criada — permite retomar sem duplicar. */
 interface Progress {
@@ -32,8 +51,12 @@ interface Progress {
 }
 
 function createErrorKey(error: unknown): string {
-  if (upstreamErrorCode(error) === "MKT_SELLER_NOT_APPROVED") {
+  const code = upstreamErrorCode(error);
+  if (code === "MKT_SELLER_NOT_APPROVED") {
     return "SellerOffers.errors.sellerNotApproved";
+  }
+  if (code && RULE_ERROR_CODES.has(code)) {
+    return "SellerOfferCreate.publish.errors.ruleInvalid";
   }
   if (error instanceof ApiError && error.status === 422) {
     return "SellerOfferCreate.publish.errors.invalid";
@@ -46,10 +69,10 @@ function createErrorKey(error: unknown): string {
  * 1. plano da categoria (encontra ou cria);
  * 2. oferta como rascunho, com os dados extras em `metadata`;
  * 3. patrocínio, quando pedido (falha não impede a publicação);
- * 4. publicação — menos em Conectividade e Infra Física: sem cobertura a
- *    API recusa (`MKT_OFFER_COVERAGE_REQUIRED`), e ela só é vinculada à
- *    oferta já criada. Essas ficam como rascunho (`needsCoverage`) e seguem
- *    para a área de cobertura da edição.
+ * 4. publicação — menos nas categorias com cobertura (`requiresCoverage` da
+ *    API): sem ela a API recusa (`MKT_OFFER_COVERAGE_REQUIRED`), e ela só é
+ *    vinculada à oferta já criada. Essas ficam como rascunho
+ *    (`needsCoverage`) e seguem para a área de cobertura da edição.
  *
  * Fotos e cobertura não entram aqui: têm áreas próprias na edição.
  *
@@ -68,7 +91,10 @@ export function usePublishOffering(): UsePublishOfferingReturn {
   };
 
   const publish = React.useCallback(
-    async (values: SellerOfferValues): Promise<PublishOfferingOutcome> => {
+    async (
+      values: SellerOfferValues,
+      template: OfferTemplate = EMPTY_OFFER_TEMPLATE,
+    ): Promise<PublishOfferingOutcome> => {
       const category = offerCategory(values.category);
       if (!category) {
         return {
@@ -84,10 +110,12 @@ export function usePublishOffering(): UsePublishOfferingReturn {
         if (!progressRef.current) {
           try {
             const specificationId = await resolveOfferSpecification(
-              category.specificationName,
+              values,
+              undefined,
+              template.fields,
             );
             const offering = await productCatalogService.createOffering(
-              buildOfferingPayload(values, specificationId),
+              buildOfferingPayload(values, specificationId, template.rules),
             );
             saveProgress({ offeringId: offering!.id, promoted: false });
           } catch (error) {
@@ -118,7 +146,7 @@ export function usePublishOffering(): UsePublishOfferingReturn {
         }
 
         // 4. Publicação — sem cobertura ainda, fica como rascunho.
-        if (category.requiresCoverage) {
+        if (values.requiresCoverage) {
           return {
             status: "needsCoverage",
             offeringId: current.offeringId,

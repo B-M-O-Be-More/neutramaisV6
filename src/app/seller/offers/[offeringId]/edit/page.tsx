@@ -16,7 +16,9 @@ import {
   useSellerSession,
 } from "@/contexts/SellerSessionContext";
 import { currencyLocale } from "@/functions/currencyLocale";
+import { selectionForCategoryId } from "@/functions/offerCategoryTree";
 import { offeringToFormValues } from "@/functions/offeringToFormValues";
+import { useOfferCategories } from "@/hooks/useOfferCategories";
 import { useOffering } from "@/hooks/useOffering";
 import { useOfferingImages } from "@/hooks/useOfferingImages";
 import { useProductSpecifications } from "@/hooks/useProductSpecifications";
@@ -33,18 +35,25 @@ function EditOfferContent() {
     useOffering(offeringId);
   const specs = useProductSpecifications();
   const images = useOfferingImages(offeringId);
+  const categories = useOfferCategories();
   const detailHref = `/seller/offers/${encodeURIComponent(offeringId)}`;
 
-  // A categoria vem do plano e as fotos salvas abrem a área de fotos: espera
-  // as duas listas para abrir o assistente. Sem a lista de fotos, confirmar
-  // poderia duplicar ou desordenar — vira erro com nova tentativa.
-  const ready = !!offering && !specs.isLoading && !images.isLoading;
+  // A categoria vem do plano e da árvore da API (subcategoria e flags), e as
+  // fotos salvas abrem a área de fotos: espera as três listas para abrir o
+  // assistente. Sem a lista de fotos, confirmar poderia duplicar ou
+  // desordenar — vira erro com nova tentativa. Sem a árvore, a categoria cai
+  // na família conhecida.
+  const ready =
+    !!offering &&
+    !specs.isLoading &&
+    !images.isLoading &&
+    !categories.isLoading;
   const loadFailed = hasError || images.hasError;
   // Arquivada é só leitura (409 MKT_OFFER_ARCHIVED): nem abre o assistente.
   const isArchived = offering?.status === "archived";
-  const specificationName = specs.specifications.find(
+  const specification = specs.specifications.find(
     (spec) => spec.id === offering?.specificationId,
-  )?.name;
+  );
 
   return (
     <Stack
@@ -105,7 +114,19 @@ function EditOfferContent() {
           key={offering.id}
           mode="edit"
           offering={offering}
-          initialValues={offeringToFormValues(offering, specificationName)}
+          initialValues={offeringToFormValues(
+            offering,
+            specification?.name,
+            specification?.characteristics,
+            selectionForCategoryId(
+              categories,
+              offering.categoryId ?? specification?.categoryId,
+              (family) =>
+                family === "custom"
+                  ? undefined
+                  : t(`SellerOfferCreate.categories.${family}.label`),
+            ),
+          )}
           images={images.images}
           initialStep={openPhotos ? 1 : 0}
           organizationId={organizationId}
@@ -125,7 +146,9 @@ function EditOfferContent() {
       ) : (
         <SellerOfferLoadState
           status={
-            isLoading || (offering && (specs.isLoading || images.isLoading))
+            isLoading ||
+            (offering &&
+              (specs.isLoading || images.isLoading || categories.isLoading))
               ? "loading"
               : notFound || !loadFailed
                 ? "notFound"

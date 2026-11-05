@@ -1,9 +1,19 @@
-import { OFFER_CATEGORIES } from "@/data/offerCategories";
+import { OFFER_CATEGORIES, offerCategoryById } from "@/data/offerCategories";
+import type { OfferCategorySelection } from "@/functions/offerCategoryTree";
+import {
+  FAMILY_TEMPLATE_KEYS,
+  ruleValuesToForm,
+  templateValuesToForm,
+} from "@/functions/templateFields";
 import { SHIPPING_PACKAGE_SIZES } from "@/data/shippingPackagePresets";
 import { SHIPPING_MODE_TO_API } from "@/functions/buildOfferingPayload";
 import {
   EMPTY_OFFER_ATTRIBUTE,
+  EMPTY_OFFER_LOCATION,
   HARDWARE_CONDITIONS,
+  INFRA_SOLD_UNITS,
+  NUMBERING_REGISTRIES,
+  NUMBERING_RESOURCE_TYPES,
   OFFER_ATTRIBUTE_TYPES,
   OFFER_CURRENCIES,
   OFFER_POSTING_DAYS,
@@ -11,11 +21,15 @@ import {
   OFFER_SPEED_UNITS,
   SELLER_OFFER_DEFAULTS,
   type OfferAttribute,
+  type OfferLocation,
   type OfferShippingDispatchTime,
   type OfferShippingMode,
   type SellerOfferValues,
 } from "@/schemas/sellerOffer";
-import type { ProductOffering } from "@/services/productCatalog.service";
+import type {
+  ProductOffering,
+  SpecificationCharacteristics,
+} from "@/services/productCatalog.service";
 
 type Metadata = Record<string, unknown>;
 
@@ -107,6 +121,26 @@ function attributesOf(additionalProps: unknown): OfferAttribute[] {
   return rows.length ? rows : [{ ...EMPTY_OFFER_ATTRIBUTE }];
 }
 
+/** Inteiro do template como texto do campo ("16"); outro valor, vazio. */
+const integerText = (value: unknown) =>
+  typeof value === "number" && Number.isInteger(value) ? String(value) : "";
+
+/** `metadata.serviceLocations` → localidades; itens sem ponto ficam de fora. */
+function serviceLocationsOf(value: unknown): OfferLocation[] {
+  return (Array.isArray(value) ? value : [])
+    .map(record)
+    .filter(
+      (item) =>
+        typeof item.longitude === "number" && typeof item.latitude === "number",
+    )
+    .map((item) => ({
+      label: text(item.label),
+      longitude: item.longitude as number,
+      latitude: item.latitude as number,
+      radiusKm: text(item.radiusKm),
+    }));
+}
+
 /** "500 Mbps" → ["500", "Mbps"]. */
 function splitSpeed(speed: string | null) {
   const match = speed?.trim().match(/^([\d.,]+)\s*(\w+)?$/);
@@ -119,40 +153,93 @@ function splitSpeed(speed: string | null) {
 }
 
 /**
- * Valores do assistente a partir de uma oferta salva (edição). A categoria
- * vem do nome do plano; o resto, das colunas da oferta e do `metadata` que o
- * assistente gravou (ver `buildOfferingPayload`). O que a API não guarda
- * (localidades, região) volta vazio. Fotos e cobertura ficam fora do
- * formulário (áreas com botão próprio).
+ * Categoria de uma oferta salva sem a árvore da API: a família pelo
+ * `categoryId` da raiz conhecida (ofertas antigas: pelo nome do plano), com
+ * as flags fixas da família.
  */
-export function offeringToFormValues(
+function fallbackSelection(
   offering: ProductOffering,
   specificationName: string | undefined,
-): SellerOfferValues {
-  const metadata = record(offering.metadata);
-  const hardware = record(metadata.hardware);
-  const numbering = record(metadata.numbering);
-  const category =
+): OfferCategorySelection | null {
+  const family =
+    offerCategoryById(offering.categoryId) ??
     OFFER_CATEGORIES.find(
       (item) =>
         specificationName !== undefined &&
         item.specificationName.toLocaleLowerCase("pt-BR") ===
           specificationName.trim().toLocaleLowerCase("pt-BR"),
-    )?.key ?? "";
+    );
+  if (!family) return null;
+  return {
+    category: family.key,
+    categoryId: family.categoryId,
+    categoryLabel: family.specificationName,
+    requiresCoverage: family.requiresCoverage,
+    hasNumericStock: !!family.hasNumericStock,
+  };
+}
+
+/**
+ * Valores do assistente a partir de uma oferta salva (edição). A categoria
+ * vem de `selection` (a categoria da oferta na árvore da API, raiz ou
+ * subcategoria); sem ela, da família conhecida (ver `fallbackSelection`).
+ * Os campos do template vêm das `characteristics` da especificação — os com
+ * tela própria nos campos da família, o resto em `templateValues`; o resto,
+ * das colunas da oferta e do `metadata` que o assistente gravou (ver
+ * `buildOfferingPayload`). As localidades voltam da cobertura vinculada.
+ * Fotos e cobertura ficam fora do formulário (áreas com botão próprio).
+ */
+export function offeringToFormValues(
+  offering: ProductOffering,
+  specificationName: string | undefined,
+  characteristics: SpecificationCharacteristics = {},
+  selection?: OfferCategorySelection | null,
+): SellerOfferValues {
+  const metadata = record(offering.metadata);
+  const hardware = record(metadata.hardware);
+  const numbering = record(metadata.numbering);
+  const spec = characteristics as Metadata;
+  const chosen = selection ?? fallbackSelection(offering, specificationName);
+  const category = chosen?.category ?? "";
+  const managedKeys = new Set(category ? FAMILY_TEMPLATE_KEYS[category] : []);
   const installation = Number(offering.installationPrice);
   const shipping = offering.shipping;
   const policy = record(metadata.shippingPolicy);
   const markup = Number(policy.sellerMarkup);
 
+  // Localidades A/Z: as gravadas na criação (`metadata.serviceLocations`, com
+  // ponto e raio) ou, sem elas, os endereços da especificação. Com cobertura
+  // vinculada, os pontos dela substituem estes (`coverageNetworkPointsToLocations`).
+  const savedLocations = serviceLocationsOf(metadata.serviceLocations);
+  const locationLabels = [spec.locationA ?? spec.location, spec.locationZ]
+    .map(text)
+    .filter(Boolean);
+
   return {
     ...SELLER_OFFER_DEFAULTS,
     category,
+    categoryId: chosen?.categoryId ?? "",
+    categoryLabel: chosen?.categoryLabel ?? "",
+    requiresCoverage: chosen?.requiresCoverage ?? false,
+    hasNumericStock: chosen?.hasNumericStock ?? false,
+    templateValues: templateValuesToForm(
+      characteristics,
+      Object.keys(characteristics).filter((key) => !managedKeys.has(key)),
+    ),
+    // Regras do template: as que têm valores salvos voltam ligadas.
+    ...ruleValuesToForm(offering.ruleValues),
+    locations: savedLocations.length
+      ? savedLocations
+      : locationLabels.length
+        ? locationLabels.map((label) => ({ ...EMPTY_OFFER_LOCATION, label }))
+        : SELLER_OFFER_DEFAULTS.locations,
     name: offering.name,
     shortDescription: text(metadata.shortDescription),
     description: text(metadata.description),
     ...splitSpeed(offering.speed),
     maxLatency: decimalText(metadata.maxLatencyMs),
     acceptanceSla:
+      decimalText(offering.acceptanceSlaHours) ||
       decimalText(metadata.acceptanceSlaHours) ||
       SELLER_OFFER_DEFAULTS.acceptanceSla,
     technicalSla: decimalText(metadata.technicalSlaPercent),
@@ -160,15 +247,29 @@ export function offeringToFormValues(
     hardwareManufacturer: text(hardware.manufacturer),
     hardwareModel: text(hardware.model),
     hardwareCondition: oneOf(
-      hardware.condition,
+      spec.condition ?? hardware.condition,
       ["", ...HARDWARE_CONDITIONS],
       "",
     ),
-    hardwareWarranty: text(hardware.warranty),
-    hardwareSerialization: text(hardware.serialization),
-    numberingResourceType: text(numbering.resourceType),
-    numberingBlock: text(numbering.block),
-    numberingHolder: text(numbering.holder),
+    hardwareWarranty: integerText(spec.warrantyMonths),
+    hardwareSerialization:
+      typeof spec.serialized === "boolean"
+        ? spec.serialized
+          ? "yes"
+          : "no"
+        : "",
+    includedIps: integerText(spec.includedIps),
+    infraCapacity: text(spec.capacity),
+    infraSoldUnit: oneOf(spec.soldUnit, ["", ...INFRA_SOLD_UNITS], ""),
+    infraPowerSpacePort: text(spec.powerSpacePort),
+    coverageRegion: oneOf(spec.registry, ["", ...NUMBERING_REGISTRIES], ""),
+    numberingResourceType: oneOf(
+      spec.resourceType ?? numbering.resourceType,
+      ["", ...NUMBERING_RESOURCE_TYPES],
+      "",
+    ),
+    numberingBlock: text(spec.block ?? numbering.block),
+    numberingHolder: text(spec.allowedUse ?? numbering.holder),
     attributes: attributesOf(metadata.additionalProps),
     // Tipo salvo (oferta antiga sem o campo é serviço): a categoria escolhida
     // na edição pode trocá-lo.
@@ -207,7 +308,8 @@ export function offeringToFormValues(
     price: decimalText(offering.monthlyPrice, 2),
     setupFee: installation > 0 ? decimalText(installation, 2) : "",
     stock: typeof metadata.stock === "number" ? String(metadata.stock) : "",
-    cancellationTerms: text(metadata.cancellationTerms),
+    cancellationTerms:
+      text(offering.cancellationTerms) || text(metadata.cancellationTerms),
     validUntil: text(metadata.validUntil),
     sponsored: !!offering.isPromoted,
   };

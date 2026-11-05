@@ -45,7 +45,9 @@ export function publishBlockerKey(
   if (offering.productType === "physical") {
     return offering.shipping ? null : "SellerOffers.errors.shippingRequired";
   }
-  if (!offering.coverageVersionId) {
+  // A API diz se a categoria exige cobertura; resposta antiga sem o campo
+  // conta como exigida.
+  if (offering.coverageRequired !== false && !offering.coverageVersionId) {
     return "SellerOffers.errors.coverageRequired";
   }
   return null;

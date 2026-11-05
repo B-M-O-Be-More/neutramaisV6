@@ -12,6 +12,7 @@ import OfferCategoryPanel, {
 import { offerCategory } from "@/data/offerCategories";
 import {
   HARDWARE_CONDITIONS,
+  HARDWARE_SERIALIZATION,
   OFFER_HARDWARE_TEXT_MAX,
 } from "@/schemas/sellerOffer";
 
@@ -20,9 +21,10 @@ import { SellerOfferHardwareFieldsProps } from "./interface";
 const TONE = offerCategory("hardware")!.tone;
 
 /**
- * Campos obrigatórios de Hardware / CPE (Figma 2074-56987): fabricante,
- * modelo e condição, além de garantia e serialização. Aparece nas
- * especificações técnicas só para essa categoria.
+ * Campos obrigatórios de Hardware / CPE (Figma 2074-56987), os do template
+ * da categoria: fabricante, modelo, condição, garantia (em meses) e se o
+ * equipamento é serializado. Aparece nas especificações técnicas só para
+ * essa categoria.
  */
 export function SellerOfferHardwareFields({
   register,
@@ -124,12 +126,14 @@ export function SellerOfferHardwareFields({
         <OfferPanelField
           id="offer-hardware-warranty"
           label={t("SellerOfferCreate.hardware.warrantyLabel")}
+          required
           error={warrantyError}
         >
           <Input
             id="offer-hardware-warranty"
             {...register("hardwareWarranty")}
-            maxLength={OFFER_HARDWARE_TEXT_MAX}
+            inputMode="numeric"
+            maxLength={4}
             placeholder={t("SellerOfferCreate.hardware.warrantyPlaceholder")}
             aria-invalid={!!warrantyError}
             aria-describedby={offerPanelDescribedBy(
@@ -143,22 +147,36 @@ export function SellerOfferHardwareFields({
         <OfferPanelField
           id="offer-hardware-serialization"
           label={t("SellerOfferCreate.hardware.serializationLabel")}
+          required
           error={serializationError}
         >
-          <Input
-            id="offer-hardware-serialization"
-            {...register("hardwareSerialization")}
-            maxLength={OFFER_HARDWARE_TEXT_MAX}
-            placeholder={t(
-              "SellerOfferCreate.hardware.serializationPlaceholder",
-            )}
-            aria-invalid={!!serializationError}
-            aria-describedby={offerPanelDescribedBy(
-              "offer-hardware-serialization",
-              serializationError,
-            )}
-            {...offerPanelControlStyles(TONE, serializationError)}
-          />
+          <NativeSelect.Root>
+            <NativeSelect.Field
+              id="offer-hardware-serialization"
+              {...register("hardwareSerialization")}
+              aria-invalid={!!serializationError}
+              aria-describedby={offerPanelDescribedBy(
+                "offer-hardware-serialization",
+                serializationError,
+              )}
+              {...offerPanelControlStyles(TONE, serializationError)}
+              pe="32px"
+            >
+              <option value="">
+                {t("SellerOfferCreate.hardware.serializationPlaceholder")}
+              </option>
+              {HARDWARE_SERIALIZATION.map((option) => (
+                <option key={option} value={option}>
+                  {t(
+                    `SellerOfferCreate.hardware.serializationOptions.${option}`,
+                  )}
+                </option>
+              ))}
+            </NativeSelect.Field>
+            <NativeSelect.Indicator>
+              <LuChevronDown color="#98A6B3" />
+            </NativeSelect.Indicator>
+          </NativeSelect.Root>
         </OfferPanelField>
       </SimpleGrid>
     </OfferCategoryPanel>

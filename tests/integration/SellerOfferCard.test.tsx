@@ -128,6 +128,15 @@ describe("SellerOfferCard", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("categoria sem cobertura (`coverageRequired: false`) publica sem KMZ", () => {
+    renderCard({ coverageVersionId: null, coverageRequired: false });
+
+    expect(publishButton()).toBeEnabled();
+    expect(
+      screen.queryByText("SellerOffers.errors.coverageRequired"),
+    ).not.toBeInTheDocument();
+  });
+
   it("produto físico sem o pacote de envio trava a publicação", () => {
     renderCard({ productType: "physical", coverageVersionId: null });
 
@@ -203,6 +212,38 @@ describe("SellerOfferCard", () => {
     expect(
       screen.queryByText("SellerOffers.card.publishedWithoutCoverage"),
     ).not.toBeInTheDocument();
+  });
+
+  it("categoria sem cobertura publicada não recebe o aviso", () => {
+    renderCard({
+      status: "published",
+      isPublic: true,
+      coverageVersionId: null,
+      coverageRequired: false,
+    });
+
+    expect(
+      screen.queryByText("SellerOffers.card.publishedWithoutCoverage"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("preço na moeda da oferta", () => {
+    renderCard({
+      currency: "USD",
+      monthlyPrice: "350.00",
+      metadata: { pricingModel: "annual" },
+    });
+
+    expect(screen.getByText(/US\$\s?350,00/)).toBeInTheDocument();
+  });
+
+  it("pagamento único mostra o preço sem /mês", () => {
+    renderCard({ metadata: { pricingModel: "oneTime" } });
+
+    expect(
+      screen.queryByText("SellerOffers.card.perMonth"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(/1\.890,00/)).toBeInTheDocument();
   });
 
   it("arquivada não tem ações do ciclo de vida", () => {

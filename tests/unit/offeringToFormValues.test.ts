@@ -233,6 +233,123 @@ describe("offeringToFormValues", () => {
     });
   });
 
+  it("a categoria vem do categoryId da oferta antes do nome do plano", () => {
+    expect(
+      offeringToFormValues(
+        { ...OFFERING, categoryId: "0193a000-0000-7000-8000-000000000c03" },
+        "Conectividade",
+      ).category,
+    ).toBe("hardware");
+    // categoryId desconhecido: cai no nome do plano (ofertas antigas).
+    expect(
+      offeringToFormValues(
+        { ...OFFERING, categoryId: "categoria-desconhecida" },
+        "Conectividade",
+      ).category,
+    ).toBe("connectivity");
+  });
+
+  it("localidades: as do metadata (com ponto e raio) antes dos endereços do plano", () => {
+    const point = {
+      label: "Av. Paulista, 1000",
+      longitude: -46.65,
+      latitude: -23.56,
+      radiusKm: "5",
+    };
+    const characteristics = { locationA: "Endereço do plano" };
+    expect(
+      offeringToFormValues(
+        {
+          ...OFFERING,
+          metadata: { ...OFFERING.metadata, serviceLocations: [point, {}] },
+        },
+        "Conectividade",
+        characteristics,
+      ).locations,
+    ).toEqual([point]);
+    // Sem as do metadata: o endereço do plano, ainda sem ponto.
+    expect(
+      offeringToFormValues(OFFERING, "Conectividade", characteristics)
+        .locations,
+    ).toEqual([
+      {
+        label: "Endereço do plano",
+        longitude: null,
+        latitude: null,
+        radiusKm: "",
+      },
+    ]);
+  });
+
+  it("os campos do template vêm das characteristics da especificação", () => {
+    expect(
+      offeringToFormValues(OFFERING, "Conectividade", { includedIps: 8 }),
+    ).toMatchObject({ includedIps: "8" });
+
+    expect(
+      offeringToFormValues(OFFERING, "Infra Física", {
+        location: "Av. Dom Luís, 300",
+        capacity: "48 portas",
+        soldUnit: "rack_unit",
+        powerSpacePort: "Energia 48V redundante",
+      }),
+    ).toMatchObject({
+      category: "physicalInfra",
+      infraCapacity: "48 portas",
+      infraSoldUnit: "rack_unit",
+      infraPowerSpacePort: "Energia 48V redundante",
+    });
+
+    expect(
+      offeringToFormValues(
+        {
+          ...OFFERING,
+          metadata: { hardware: { condition: "new", warranty: "1 ano" } },
+        },
+        "Hardware / CPE",
+        { condition: "used", warrantyMonths: 12, serialized: false },
+      ),
+    ).toMatchObject({
+      hardwareCondition: "used",
+      hardwareWarranty: "12",
+      hardwareSerialization: "no",
+    });
+
+    expect(
+      offeringToFormValues(OFFERING, "Recursos Numéricos", {
+        resourceType: "asn",
+        block: "1 ASN",
+        allowedUse: "Uso exclusivo do comprador",
+        registry: "nic_br",
+      }),
+    ).toMatchObject({
+      numberingResourceType: "asn",
+      numberingBlock: "1 ASN",
+      numberingHolder: "Uso exclusivo do comprador",
+      coverageRegion: "nic_br",
+    });
+  });
+
+  it("valores do template fora das opções ou do tipo voltam vazios", () => {
+    expect(
+      offeringToFormValues(OFFERING, "Hardware / CPE", {
+        condition: "quebrado",
+        warrantyMonths: 1.5,
+        serialized: "sim",
+      }),
+    ).toMatchObject({
+      hardwareCondition: "",
+      hardwareWarranty: "",
+      hardwareSerialization: "",
+    });
+    expect(
+      offeringToFormValues(OFFERING, "Recursos Numéricos", {
+        resourceType: "IPv6 /48",
+        registry: "LACNIC",
+      }),
+    ).toMatchObject({ numberingResourceType: "", coverageRegion: "" });
+  });
+
   it("ida e volta: os valores reabertos geram o mesmo corpo", () => {
     const values = offeringToFormValues(OFFERING, "Conectividade");
     const payload = buildOfferingPayload(values, "spec-1");
@@ -280,5 +397,61 @@ describe("buildOfferingUpdate", () => {
 
     expect(update.metadata).not.toHaveProperty("additionalProps");
     expect(update.metadata).toMatchObject({ externalRef: "ERP-77" });
+  });
+});
+
+describe("offeringToFormValues com a árvore de categorias", () => {
+  it("com a categoria da árvore, reabre a subcategoria, as flags e os campos genéricos", () => {
+    const values = offeringToFormValues(
+      { ...OFFERING, categoryId: "0193a000-0000-7000-8000-0000000000d1" },
+      "Link dedicado",
+      { bandwidthMbps: 500, technology: "fiber", symmetric: false },
+      {
+        category: "connectivity",
+        categoryId: "0193a000-0000-7000-8000-0000000000d1",
+        categoryLabel: "Conectividade › Link dedicado",
+        requiresCoverage: true,
+        hasNumericStock: false,
+      },
+    );
+    expect(values).toMatchObject({
+      category: "connectivity",
+      categoryId: "0193a000-0000-7000-8000-0000000000d1",
+      categoryLabel: "Conectividade › Link dedicado",
+      requiresCoverage: true,
+      templateValues: { technology: "fiber", symmetric: "false" },
+    });
+    // `bandwidthMbps` tem tela própria: não vira campo genérico.
+    expect(values.templateValues).not.toHaveProperty("bandwidthMbps");
+  });
+
+  it("sem a árvore, usa a família conhecida e as flags fixas", () => {
+    const values = offeringToFormValues(
+      { ...OFFERING, categoryId: "0193a000-0000-7000-8000-000000000c03" },
+      undefined,
+    );
+    expect(values).toMatchObject({
+      category: "hardware",
+      categoryId: "0193a000-0000-7000-8000-000000000c03",
+      requiresCoverage: false,
+      hasNumericStock: true,
+    });
+  });
+
+  it("reabre as regras do template salvas na oferta", () => {
+    const values = offeringToFormValues(
+      {
+        ...OFFERING,
+        ruleValues: {
+          fastActivation: { maxAcceptanceHours: 48 },
+          extendedSupport: null,
+        },
+      },
+      "Conectividade",
+    );
+    expect(values.rulesEnabled).toEqual({ fastActivation: true });
+    expect(values.ruleValues).toEqual({
+      fastActivation: { maxAcceptanceHours: "48" },
+    });
   });
 });

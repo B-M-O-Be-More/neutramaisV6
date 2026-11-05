@@ -3,10 +3,12 @@ import { NextRequest } from "next/server";
 import { readJsonBody } from "@/server/complianceProxy";
 import { forwardToMarketplace, pickBody } from "@/server/marketplaceProxy";
 
-// Campos de `POST /productSpecification`. O catálogo vem da organização do
-// token, não do corpo.
+// Campos de `POST /productSpecification`. A organização vem do token, não do
+// corpo; `characteristics` segue o template da categoria.
 const CREATE_FIELDS = [
   "name",
+  "categoryId",
+  "characteristics",
   "description",
   "estimatedInstallationDays",
   "capacity",
@@ -28,8 +30,8 @@ export async function GET() {
 
 // BFF: POST /api/productCatalog/productSpecification
 //   → marketplace-api POST /productCatalog/productSpecification
-// Cria um plano no catálogo da organização (404 se o catálogo não existir —
-// leia `GET /catalog` antes). Vai com o token do perfil Seller.
+// Cria a especificação na categoria (422 `MKT_TEMPLATE_FIELD_*` fora do
+// template). Vai com o token do perfil Seller.
 export async function POST(request: NextRequest) {
   return forwardToMarketplace({
     method: "POST",

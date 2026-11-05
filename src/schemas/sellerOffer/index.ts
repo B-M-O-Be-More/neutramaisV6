@@ -6,6 +6,17 @@ import {
   type OfferCategory,
 } from "@/data/offerCategories";
 import {
+  ruleValuesErrors,
+  templateFieldsErrors,
+  type RuleFormValues,
+  type RuleToggles,
+  type TemplateFormValues,
+} from "@/functions/templateFields";
+import type {
+  CategoryTemplateField,
+  CategoryTemplateRule,
+} from "@/services/productCatalog.service";
+import {
   packagePreset,
   SHIPPING_PACKAGE_SIZES,
   type ShippingPackageSize,
@@ -39,9 +50,19 @@ export const OFFER_LOCATIONS_MAX = 10;
 export const COVERAGE_SCOPE_MODES = ["full", "areas", "custom"] as const;
 export type CoverageScopeMode = (typeof COVERAGE_SCOPE_MODES)[number];
 
-/** A localidade só existe nas categorias com cobertura. */
-function locationApplies(parent: { category?: OfferCategory | "" }): boolean {
-  return !!offerCategory(parent.category)?.requiresCoverage;
+/**
+ * Contexto da validação (resolver do `FormSellerOffer`): os campos genéricos
+ * do template da categoria escolhida — os que não têm tela própria — e as
+ * regras condicionais dela.
+ */
+export interface SellerOfferValidationContext {
+  templateFields?: CategoryTemplateField[];
+  rules?: CategoryTemplateRule[];
+}
+
+/** A localidade só existe nas categorias com cobertura (flag da API). */
+function locationApplies(parent: { requiresCoverage?: boolean }): boolean {
+  return !!parent.requiresCoverage;
 }
 
 function hasCoordinates(location: {
@@ -58,9 +79,52 @@ function hasCoordinates(location: {
  * Valores da raiz do formulário dentro de um item da lista de localidades
  * (`context.from` vai do item até a raiz).
  */
-function rootOf(context: yup.TestContext): { category?: OfferCategory | "" } {
+function rootOf(context: yup.TestContext): { requiresCoverage?: boolean } {
   return context.from?.[context.from.length - 1]?.value ?? {};
 }
+
+/** Condição do equipamento (Hardware / CPE), opções do template. */
+export const HARDWARE_CONDITIONS = ["new", "used", "refurbished"] as const;
+export type HardwareCondition = (typeof HARDWARE_CONDITIONS)[number];
+export const OFFER_HARDWARE_TEXT_MAX = 80;
+/** Equipamento serializado (`serialized`, booleano no template). */
+export const HARDWARE_SERIALIZATION = ["yes", "no"] as const;
+export type HardwareSerialization = (typeof HARDWARE_SERIALIZATION)[number];
+
+/** Documentação de Recursos Numéricos (LACNIC/ANATEL). */
+export const OFFER_NUMBERING_TEXT_MAX = 120;
+/** Tipo do recurso (`resourceType` do template). */
+export const NUMBERING_RESOURCE_TYPES = [
+  "ipv4",
+  "ipv6",
+  "asn",
+  "e164",
+] as const;
+export type NumberingResourceType = (typeof NUMBERING_RESOURCE_TYPES)[number];
+/** Região/registro (`registry` do template). */
+export const NUMBERING_REGISTRIES = [
+  "lacnic",
+  "nic_br",
+  "arin",
+  "ripe",
+  "apnic",
+  "afrinic",
+  "anatel",
+] as const;
+export type NumberingRegistry = (typeof NUMBERING_REGISTRIES)[number];
+
+/** Infra física: unidade vendida (`soldUnit` do template). */
+export const INFRA_SOLD_UNITS = [
+  "port",
+  "fiber",
+  "rack_unit",
+  "square_meter",
+  "meter",
+  "unit",
+] as const;
+export type InfraSoldUnit = (typeof INFRA_SOLD_UNITS)[number];
+export const OFFER_INFRA_TEXT_MAX = 120;
+export const OFFER_INFRA_DETAILS_MAX = 1000;
 
 /** Uma localidade: endereço escolhido nas sugestões do Mapbox + raio. */
 export const offerLocationSchema = yup.object({
@@ -69,6 +133,16 @@ export const offerLocationSchema = yup.object({
     .trim()
     .max(255, "SellerOfferCreate.errors.locationTooLong")
     .default("")
+    // A primeira localidade é a "Localidade A" do template da categoria
+    // (`locationA` em Conectividade, `location` em Infra física).
+    .test(
+      "location-required",
+      "SellerOfferCreate.errors.locationRequired",
+      (value, context) =>
+        !locationApplies(rootOf(context)) ||
+        !context.path.startsWith("locations[0]") ||
+        !!value,
+    )
     .test(
       "location-selected",
       "SellerOfferCreate.errors.locationSelect",
@@ -122,13 +196,28 @@ export const EMPTY_OFFER_LOCATION: OfferLocation = {
  * da edição (`useOfferingCoverageEditor`), e só nas categorias com KMZ.
  */
 export const sellerOfferCoverageSchema = yup.object({
+  // Família da raiz (decide as telas próprias); a categoria de verdade,
+  // raiz ou subcategoria, vai em `categoryId`.
   category: yup
     .mixed<OfferCategory | "">()
     .oneOf(
-      OFFER_CATEGORIES.map((category) => category.key),
+      [...OFFER_CATEGORIES.map((category) => category.key), "custom"],
       "SellerOfferCreate.errors.categoryRequired",
     )
     .required("SellerOfferCreate.errors.categoryRequired"),
+  categoryId: yup
+    .string()
+    .default("")
+    .test(
+      "category-id-required",
+      "SellerOfferCreate.errors.categoryRequired",
+      (value, context) => !context.parent.category || !!value,
+    ),
+  /** Raiz › subcategoria, para a revisão e o aviso de publicação. */
+  categoryLabel: yup.string().default(""),
+  /** Flags da categoria escolhida na API (NEU-561). */
+  requiresCoverage: yup.boolean().default(false),
+  hasNumericStock: yup.boolean().default(false),
   // Localidades de atendimento (A/Z): uma ou mais, cada uma com endereço e
   // raio. Opcionais e só no fluxo com cobertura (Conectividade e Infra
   // Física) — nas demais categorias o campo some e não é validado.
@@ -137,12 +226,21 @@ export const sellerOfferCoverageSchema = yup.object({
     .of(offerLocationSchema)
     .max(OFFER_LOCATIONS_MAX, "SellerOfferCreate.errors.locationsMax")
     .default([]),
-  // Abrangência sem KMZ, ex.: recursos numéricos por região/registro.
+  // Abrangência sem KMZ: o registro dos recursos numéricos (`registry` do
+  // template), obrigatório nessa categoria.
   coverageRegion: yup
-    .string()
-    .trim()
-    .max(120, "SellerOfferCreate.errors.locationTooLong")
-    .default(""),
+    .mixed<NumberingRegistry | "">()
+    .oneOf(
+      ["", ...NUMBERING_REGISTRIES],
+      "SellerOfferCreate.errors.regionRequired",
+    )
+    .default("")
+    .test(
+      "region-required",
+      "SellerOfferCreate.errors.regionRequired",
+      (value, context) =>
+        !offerCategory(context.parent.category)?.asksRegion || !!value,
+    ),
 });
 
 /** Limites da etapa 2 (Figma 2073-44741). */
@@ -215,14 +313,6 @@ export const OFFER_ACCEPTANCE_SLA_MAX = 72;
 export const OFFER_ACCEPTANCE_SLA_DEFAULT = "48";
 export const OFFER_DELIVERY_TIME_MAX = 120;
 
-/** Condição do equipamento (Hardware / CPE). */
-export const HARDWARE_CONDITIONS = ["new", "refurbished"] as const;
-export type HardwareCondition = (typeof HARDWARE_CONDITIONS)[number];
-export const OFFER_HARDWARE_TEXT_MAX = 80;
-
-/** Documentação de Recursos Numéricos (LACNIC/ANATEL). */
-export const OFFER_NUMBERING_TEXT_MAX = 120;
-
 /** Texto obrigatório só quando a oferta é da categoria informada. */
 const requiredForCategory = (
   category: OfferCategory,
@@ -242,6 +332,46 @@ const requiredForCategory = (
       required,
       (value, context) => context.parent.category !== category || !!value,
     );
+
+/** Opção de uma lista, obrigatória só na categoria informada. */
+const choiceForCategory = <T extends string>(
+  category: OfferCategory,
+  options: readonly T[],
+  required: string,
+) =>
+  yup
+    .mixed<T | "">()
+    .oneOf(["", ...options], required)
+    .default("")
+    .test(
+      `${category}-choice-required`,
+      required,
+      (value, context) => context.parent.category !== category || !!value,
+    );
+
+/** Inteiro ≥ 0 (só dígitos), obrigatório só na categoria informada. */
+const integerForCategory = (category: OfferCategory, required: string) =>
+  yup
+    .string()
+    .trim()
+    .default("")
+    .test(
+      "integer-valid",
+      "SellerOfferCreate.errors.integerInvalid",
+      (value) => (!value ? true : /^\d+$/.test(value)),
+    )
+    .test(
+      `${category}-integer-required`,
+      required,
+      (value, context) => context.parent.category !== category || !!value,
+    );
+
+const requiredForInfra = (required: string, max = OFFER_INFRA_TEXT_MAX) =>
+  requiredForCategory("physicalInfra", {
+    max,
+    tooLong: "SellerOfferCreate.errors.infraTooLong",
+    required,
+  });
 
 const requiredForHardware = (required: string) =>
   requiredForCategory("hardware", {
@@ -490,20 +620,41 @@ export const sellerOfferTechnicalSpecsSchema = yup.object({
       "SellerOfferCreate.errors.conditionRequired",
       (value, context) => context.parent.category !== "hardware" || !!value,
     ),
-  hardwareWarranty: yup
-    .string()
-    .trim()
-    .max(OFFER_HARDWARE_TEXT_MAX, "SellerOfferCreate.errors.hardwareTooLong")
-    .default(""),
-  hardwareSerialization: yup
-    .string()
-    .trim()
-    .max(OFFER_HARDWARE_TEXT_MAX, "SellerOfferCreate.errors.hardwareTooLong")
-    .default(""),
+  // Garantia em meses e serialização: obrigatórias no template da categoria.
+  hardwareWarranty: integerForCategory(
+    "hardware",
+    "SellerOfferCreate.errors.warrantyRequired",
+  ),
+  hardwareSerialization: choiceForCategory(
+    "hardware",
+    HARDWARE_SERIALIZATION,
+    "SellerOfferCreate.errors.serializationRequired",
+  ),
+
+  // Conectividade: IPs inclusos no plano (obrigatório no template).
+  includedIps: integerForCategory(
+    "connectivity",
+    "SellerOfferCreate.errors.includedIpsRequired",
+  ),
+
+  // Infra física: capacidade, unidade vendida e energia/espaço/porta
+  // (obrigatórios no template).
+  infraCapacity: requiredForInfra("SellerOfferCreate.errors.capacityRequired"),
+  infraSoldUnit: choiceForCategory(
+    "physicalInfra",
+    INFRA_SOLD_UNITS,
+    "SellerOfferCreate.errors.soldUnitRequired",
+  ),
+  infraPowerSpacePort: requiredForInfra(
+    "SellerOfferCreate.errors.powerSpacePortRequired",
+    OFFER_INFRA_DETAILS_MAX,
+  ),
 
   // Recursos Numéricos (Figma 2074-59682): documentação obrigatória só nessa
-  // categoria.
-  numberingResourceType: requiredForNumbering(
+  // categoria. O tipo segue as opções do template.
+  numberingResourceType: choiceForCategory(
+    "numberingResources",
+    NUMBERING_RESOURCE_TYPES,
     "SellerOfferCreate.errors.numberingTypeRequired",
   ),
   numberingBlock: requiredForNumbering(
@@ -518,6 +669,40 @@ export const sellerOfferTechnicalSpecsSchema = yup.object({
     .of(offerAttributeSchema)
     .max(OFFER_ATTRIBUTES_MAX, "SellerOfferCreate.errors.attributesMax")
     .default([]),
+
+  // Campos do template sem tela própria (subcategoria, categoria nova ou
+  // campos opcionais da família), por chave do template. Os campos e as
+  // regras de cada um chegam pelo contexto da validação.
+  templateValues: yup
+    .mixed<TemplateFormValues>()
+    .default(() => ({}))
+    .test("template-values", function (value) {
+      const { templateFields = [] } = (this.options.context ??
+        {}) as SellerOfferValidationContext;
+      const errors = Object.entries(
+        templateFieldsErrors(templateFields, value),
+      ).map(([key, message]) =>
+        this.createError({ path: `templateValues.${key}`, message }),
+      );
+      return errors.length ? new yup.ValidationError(errors) : true;
+    }),
+
+  // Regras condicionais do template (NEU-627): as opcionais que o Seller
+  // ligou e, por regra, os campos de valor. Regra ligada pede todos.
+  rulesEnabled: yup.mixed<RuleToggles>().default(() => ({})),
+  ruleValues: yup
+    .mixed<RuleFormValues>()
+    .default(() => ({}))
+    .test("rule-values", function (value) {
+      const { rules = [] } = (this.options.context ??
+        {}) as SellerOfferValidationContext;
+      const errors = Object.entries(
+        ruleValuesErrors(rules, this.parent.rulesEnabled, value),
+      ).map(([path, message]) =>
+        this.createError({ path: `ruleValues.${path}`, message }),
+      );
+      return errors.length ? new yup.ValidationError(errors) : true;
+    }),
 
   // Hardware / CPE é produto físico (`physical`): ganha a etapa Logística.
   productType: yup
@@ -839,7 +1024,14 @@ export const sellerOfferPricingSchema = yup.object({
     .test("stock-valid", "SellerOfferCreate.errors.stockInvalid", (value) => {
       if (!value) return true;
       return /^\d+$/.test(value);
-    }),
+    })
+    // Hardware e Recursos Numéricos só publicam com `stockQuantity`.
+    .test(
+      "stock-required",
+      "SellerOfferCreate.errors.stockRequired",
+      (value, context) =>
+        !context.parent.hasNumericStock || !!value,
+    ),
   cancellationTerms: yup
     .string()
     .trim()
@@ -871,6 +1063,10 @@ export type SellerOfferValues = yup.InferType<typeof sellerOfferSchema>;
 /** Valores iniciais do assistente (oferta nova). */
 export const SELLER_OFFER_DEFAULTS: SellerOfferValues = {
   category: "",
+  categoryId: "",
+  categoryLabel: "",
+  requiresCoverage: false,
+  hasNumericStock: false,
   locations: [EMPTY_OFFER_LOCATION],
   coverageRegion: "",
   name: "",
@@ -887,10 +1083,17 @@ export const SELLER_OFFER_DEFAULTS: SellerOfferValues = {
   hardwareCondition: "",
   hardwareWarranty: "",
   hardwareSerialization: "",
+  includedIps: "",
+  infraCapacity: "",
+  infraSoldUnit: "",
+  infraPowerSpacePort: "",
   numberingResourceType: "",
   numberingBlock: "",
   numberingHolder: "",
   attributes: [EMPTY_OFFER_ATTRIBUTE],
+  templateValues: {},
+  rulesEnabled: {},
+  ruleValues: {},
   productType: "",
   shippingWeightKg: "",
   shippingHeightCm: "",

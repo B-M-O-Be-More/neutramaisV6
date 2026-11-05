@@ -288,7 +288,8 @@ describe("useOfferingCoverageEditor", () => {
       {
         coverageVersionId: BOUND,
         publicGeometry: POLYGON,
-        coverageNetworkPoints: [],
+        // Sem pontos o campo não vai (a API recusa lista vazia).
+        coverageNetworkPoints: undefined,
       },
     );
     expect(result.current.isDirty).toBe(false);
@@ -354,7 +355,8 @@ describe("useOfferingCoverageEditor", () => {
           coverageVersionId: BOUND,
           publicGeometry: null,
           coverageAreaIndexes: [2, 5],
-          coverageNetworkPoints: [],
+          // Sem pontos o campo não vai (a API recusa lista vazia).
+          coverageNetworkPoints: undefined,
         },
       );
     });
@@ -390,7 +392,8 @@ describe("useOfferingCoverageEditor", () => {
       {
         coverageVersionId: OTHER,
         publicGeometry: null,
-        coverageNetworkPoints: [],
+        // Sem pontos o campo não vai (a API recusa lista vazia).
+        coverageNetworkPoints: undefined,
       },
     );
     expect(result.current.boundVersionId).toBe(OTHER);

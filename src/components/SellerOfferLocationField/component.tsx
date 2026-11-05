@@ -145,11 +145,8 @@ function LocationRow({
             ? t("SellerOfferCreate.coverage.locationLabel")
             : t("SellerOfferCreate.coverage.locationItemLabel", { number })
         }
-        labelHint={
-          index === 0
-            ? t("SellerOfferCreate.coverage.locationOptional")
-            : undefined
-        }
+        // A primeira é a "Localidade A" do template da categoria: obrigatória.
+        required={index === 0}
         placeholder={t("SellerOfferCreate.coverage.locationPlaceholder")}
         inputValue={label.field.value ?? ""}
         error={labelError}

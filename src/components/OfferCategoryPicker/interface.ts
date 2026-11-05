@@ -1,8 +1,11 @@
-import type { OfferCategory } from "@/data/offerCategories";
+import type { OfferCategoryNode } from "@/functions/offerCategoryTree";
 
 export interface OfferCategoryPickerProps {
-  value: OfferCategory | null;
-  onChange: (category: OfferCategory) => void;
+  /** Categorias raiz da plataforma (`useOfferCategories`). */
+  options: OfferCategoryNode[];
+  /** Id da raiz escolhida. */
+  value: string | null;
+  onChange: (root: OfferCategoryNode) => void;
   /** Mensagem de erro (já traduzida) quando nenhuma categoria foi escolhida. */
   error?: string;
 }
