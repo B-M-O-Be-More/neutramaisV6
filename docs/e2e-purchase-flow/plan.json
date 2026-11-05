@@ -2085,7 +2085,7 @@
       "id": "D-08",
       "title": "Regras condicionais do template",
       "roles": "Seller",
-      "scope": "Feito no assistente: seção Regras da categoria (obrigatória sempre ligada, opcional com interruptor), validação de todos os campos de valor, ruleValues no POST e PATCH (o BFF passou a repassar), reabertura na edição, selos no detalhe da oferta e mensagens para 409 MKT_RULE_VALUES_REQUIRED e 422 MKT_RULE_*. Em homologação nenhuma categoria tem regra: o teste OF-RULE-* depende de um super_admin criar uma (sem tela no V6, ver D-17).",
+      "scope": "Feito no assistente (PR #15 para a dev): seção Regras da categoria (obrigatória sempre ligada, opcional com interruptor), validação de todos os campos de valor, ruleValues no POST e PATCH (o BFF passou a repassar), reabertura na edição, selos no detalhe da oferta e mensagens para 409 MKT_RULE_VALUES_REQUIRED e 422 MKT_RULE_*. Em homologação nenhuma categoria tem regra: o teste OF-RULE-* depende de um super_admin criar uma (sem tela no V6, ver D-17).",
       "tasks": [
         "F3-03"
       ]
@@ -2094,7 +2094,7 @@
       "id": "D-09",
       "title": "Categorias vindas da API",
       "roles": "Seller, Buyer",
-      "scope": "Feito no assistente do Seller: árvore e template da API, subcategorias, categoria nova (família custom), flags requiresCoverage e hasNumericStock da API e campos genéricos do template. Falta a vitrine pública filtrar por subcategoria (F3-12). Rótulos, opções e unidades do template traduzidos em pt, en e es.",
+      "scope": "Feito no assistente do Seller (PR #15 para a dev): árvore e template da API, subcategorias, categoria nova (família custom), flags requiresCoverage e hasNumericStock da API e campos genéricos do template. Falta a vitrine pública filtrar por subcategoria (F3-12). Rótulos, opções e unidades do template traduzidos em pt, en e es.",
       "tasks": [
         "F0-03",
         "F3-01",
