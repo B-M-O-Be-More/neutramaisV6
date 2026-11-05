@@ -131,3 +131,52 @@ describe("BFF POST /api/geo/coverageVersion/kmz", () => {
     });
   });
 });
+
+describe("BFF POST /api/geo/coverageVersion/kmz/preview", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => '{"message":"","data":{"canUpload":true}}',
+      headers: { get: () => "application/json" },
+    });
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("calcula o consumo com o mesmo multipart do envio, sem gravar", async () => {
+    const { POST: preview } =
+      await import("@/app/api/geo/coverageVersion/kmz/preview/route");
+    const response = await preview(
+      request({
+        organization_id: ORGANIZATION,
+        file: kmzFile(),
+        name: "fora do contrato",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(
+      "https://upstream.test/geo/api/v2/geo/coverageVersion/kmz/preview",
+    );
+    expect([...(init.body as FormData).keys()].sort()).toEqual([
+      "file",
+      "organization_id",
+    ]);
+  });
+
+  it("recusa organization_id inválido sem chamar a geo-api", async () => {
+    const { POST: preview } =
+      await import("@/app/api/geo/coverageVersion/kmz/preview/route");
+    const response = await preview(
+      request({ organization_id: "x", file: kmzFile() }),
+    );
+
+    expect(response.status).toBe(422);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});

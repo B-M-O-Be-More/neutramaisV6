@@ -25,6 +25,7 @@ import SellerCatalogTabs, {
 } from "@/components/SellerCatalogTabs";
 import SellerOfferArchiveDialog from "@/components/SellerOfferArchiveDialog";
 import SellerCoveragePanel from "@/components/SellerCoveragePanel";
+import SellerSalesSettingsPanel from "@/components/SellerSalesSettingsPanel";
 import SellerOfferCard from "@/components/SellerOfferCard";
 import SellerOffersFilters, {
   type SellerOffersFiltersValue,
@@ -52,7 +53,7 @@ import { canUploadCoverage } from "@/functions/rolesToPersonas";
 
 const PAGE_SIZE = 20;
 
-const AVAILABLE_TABS: SellerCatalogTab[] = ["catalog", "coverage"];
+const AVAILABLE_TABS: SellerCatalogTab[] = ["catalog", "coverage", "settings"];
 
 const INITIAL_FILTERS: SellerOffersFiltersValue = {
   search: "",
@@ -249,6 +250,8 @@ function SellerOffersContent({ initialTab }: { initialTab: SellerCatalogTab }) {
           canUpload={canUploadCoverage(context?.roles ?? [])}
           locale={locale}
         />
+      ) : tab === "settings" ? (
+        <SellerSalesSettingsPanel permissions={context?.permissions ?? []} />
       ) : (
         <>
           <Flex
@@ -348,7 +351,8 @@ function SellerOffersContent({ initialTab }: { initialTab: SellerCatalogTab }) {
 
 // Catálogo do seller (Figma 2073-35059 vazio; 2096-26025 com ofertas): KPIs,
 // filtros por nome/categoria/status e os cards com as ações do ciclo de vida.
-// `?tab=coverage` abre a aba Cobertura (volta do detalhe de uma cobertura).
+// `?tab=coverage` abre a aba Cobertura (volta do detalhe de uma cobertura);
+// `?tab=settings`, as configurações de venda.
 export default function SellerOffersPage({
   searchParams,
 }: {

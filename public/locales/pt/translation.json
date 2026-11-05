@@ -3256,7 +3256,8 @@
     "tabs": {
       "label": "Áreas do catálogo",
       "catalog": "Meu Catálogo",
-      "coverage": "Cobertura"
+      "coverage": "Cobertura",
+      "settings": "Configurações de venda"
     },
     "stats": {
       "totalOffers": "Total de ofertas",
@@ -4082,7 +4083,6 @@
       "currencyHelper": "Moeda não pode ser alterada após publicação",
       "priceLabel": "Preço ({{currency}})",
       "setupLabel": "Setup / NRC",
-      "setupPlaceholder": "Ex: R$ 500,00 · ou 0 para sem setup",
       "stockLabel": "Disponibilidade / Estoque",
       "stockPlaceholder": "Ex: 2 (disponíveis) ou vazio para sob consulta",
       "cancellationLabel": "Condições de cancelamento",
@@ -4090,7 +4090,8 @@
       "validUntilLabel": "Vigência da oferta",
       "validUntilHelper": "Deixe vazio para vigência indeterminada",
       "sponsoredLabel": "Patrocinar oferta",
-      "sponsoredDescription": "Destacada no topo dos resultados de busca · investimento adicional"
+      "sponsoredDescription": "Destacada no topo dos resultados de busca · investimento adicional",
+      "setupHelper": "Taxa única de instalação. Deixe vazio se não houver."
     },
     "review": {
       "moderationNotice": "Oferta irregular (informação falsa, preço irreal, cobertura divergente) pode ser removida com impacto no score. Sellers não podem duplicar ofertas na mesma categoria.",
@@ -4179,7 +4180,22 @@
       "bound": "Vinculada",
       "processing": "A geo-api importa o KMZ antes de responder. Arquivos grandes levam alguns minutos: mantenha esta página aberta.",
       "listLoading": "Carregando os KMZs da organização...",
-      "listEmpty": "Nenhum KMZ enviado ainda. Envie um para usar nesta oferta."
+      "listEmpty": "Nenhum KMZ enviado ainda. Envie um para usar nesta oferta.",
+      "confirm": {
+        "title": "Confirmar envio do KMZ",
+        "mb": "{{value}} MB",
+        "fileSize": "Tamanho do arquivo",
+        "required": "Espaço que a importação vai usar",
+        "usage": "Uso atual da cota",
+        "usageValue": "{{used}} de {{quota}}",
+        "availableAfter": "Saldo depois do envio",
+        "alreadyImported": "Este arquivo já foi importado pela organização: o envio não ocupa espaço novo.",
+        "shortfall": "O KMZ não cabe na cota: faltam {{value}}. Apague versões antigas ou fale com a Neutra+ para ampliar o armazenamento.",
+        "notReserved": "A prévia não reserva espaço. Se outro envio usar a cota antes, este pode ser recusado.",
+        "cancel": "Cancelar",
+        "submit": "Enviar KMZ",
+        "previewing": "Calculando o espaço que o KMZ vai usar..."
+      }
     },
     "preview": {
       "title": "Preview do marketplace",
@@ -4600,7 +4616,9 @@
       "failed": "Não foi possível vincular a cobertura agora. Tente de novo em instantes.",
       "invalid": "A cobertura foi recusada: confira se o KMZ é da sua organização e se a área desenhada está dentro dele.",
       "scopeUnavailable": "Não foi possível carregar o recorte salvo da cobertura. O mapa mostra a área toda do KMZ; confirme de novo só se quiser trocar o recorte.",
-      "pointsInvalid": "Confira as localidades de atendimento: cada endereço escolhido precisa de um raio entre 1 e 80 km."
+      "pointsInvalid": "Confira as localidades de atendimento: cada endereço escolhido precisa de um raio entre 1 e 80 km.",
+      "pointOutside": "A localidade {{number}} fica fora do KMZ escolhido. Troque o endereço, reduza o raio ou escolha outro KMZ.",
+      "pointsOutside": "Uma das localidades fica fora do KMZ escolhido. Confira os endereços e os raios."
     },
     "loadingScope": "Carregando o recorte salvo..."
   },
@@ -6484,6 +6502,144 @@
       "empty": "Ainda não há produtos no catálogo.",
       "emptyFiltered": "Nenhum produto nesta categoria.",
       "retry": "Tentar de novo"
+    }
+  },
+  "SellerPaymentAccount": {
+    "title": "Conta de recebimento",
+    "subtitle": "Conta Stripe Connect da organização. Sem ela ativa, suas ofertas não entram no checkout e não há repasse.",
+    "loading": "Verificando a conta no Stripe...",
+    "retry": "Tentar de novo",
+    "state": {
+      "active": {
+        "title": "Conta ativa",
+        "description": "Você pode vender e receber os repasses."
+      },
+      "pending": {
+        "title": "Cadastro incompleto no Stripe",
+        "description": "Termine o cadastro no Stripe para vender e receber. Se você acabou de voltar de lá, atualize o status."
+      },
+      "none": {
+        "title": "Nenhuma conta de recebimento",
+        "description": "Ative a conta no Stripe para que os compradores possam pagar suas ofertas."
+      }
+    },
+    "flags": {
+      "charges": {
+        "on": "Cobranças liberadas",
+        "off": "Cobranças pendentes"
+      },
+      "payouts": {
+        "on": "Repasses liberados",
+        "off": "Repasses pendentes"
+      }
+    },
+    "emailLabel": "E-mail da conta no Stripe",
+    "emailHelper": "O Stripe usa este e-mail para falar com a organização.",
+    "start": "Ativar no Stripe",
+    "continue": "Continuar no Stripe",
+    "refresh": "Atualizar status",
+    "ownerOnly": "Só o Dono da organização configura a conta de recebimento.",
+    "mfaReason": "Para alterar a conta de recebimento, confirme o código do seu app autenticador.",
+    "errors": {
+      "loadFailed": "Não foi possível ler a situação da conta no Stripe.",
+      "ownerOnly": "Só o Dono da organização pode configurar a conta de recebimento.",
+      "notStarted": "O cadastro no Stripe ainda não foi iniciado. Use Ativar no Stripe.",
+      "stripeUnavailable": "O Stripe não respondeu. Tente de novo em alguns minutos.",
+      "failed": "Não foi possível falar com o Stripe. Tente de novo."
+    }
+  },
+  "MfaStepUp": {
+    "title": "Confirme com o app autenticador",
+    "codeLabel": "Código de 6 dígitos",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "errors": {
+      "invalidCode": "Código errado ou já usado. Digite o próximo código do app.",
+      "enrollmentRequired": "Ative o app autenticador em Meu Perfil antes de continuar.",
+      "rateLimited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "sessionExpired": "Sua sessão acabou. Entre de novo para continuar.",
+      "failed": "Não foi possível confirmar o código. Tente de novo."
+    }
+  },
+  "SellerSalesSettings": {
+    "title": "Configurações de venda",
+    "subtitle": "Prazos de atendimento e aceite dos pedidos da organização.",
+    "loading": "Carregando...",
+    "retry": "Tentar de novo",
+    "saved": "Salvo.",
+    "sla": {
+      "title": "Prazos de atendimento (SLA)",
+      "description": "Valem para os próximos tickets e ordens de serviço. Os registros antigos mantêm o prazo de quando foram abertos.",
+      "firstLabel": "Primeira resposta (horas)",
+      "firstHelper": "Tempo máximo para responder a um ticket aberto.",
+      "resolutionLabel": "Resolução (horas)",
+      "resolutionHelper": "Tempo máximo para resolver. Não pode ser menor que a primeira resposta.",
+      "save": "Salvar prazos",
+      "readOnly": "Só quem tem permissão para alterar SLA muda estes prazos."
+    },
+    "autoAccept": {
+      "title": "Aceite automático",
+      "description": "Vale para todos os pedidos pagos de produtos físicos (Hardware / CPE). Serviços continuam com aceite manual.",
+      "label": "Aceitar pedidos de produtos físicos automaticamente",
+      "on": "Ligado: os pedidos pagos entram aceitos, sem esperar o SLA de aceite.",
+      "off": "Desligado: cada pedido espera o seu aceite dentro do SLA de aceite.",
+      "noPermission": "Seu papel não aceita pedidos, então não configura o aceite automático."
+    },
+    "errors": {
+      "loadFailed": "Não foi possível carregar esta configuração.",
+      "permission": "Seu usuário não tem permissão para alterar esta configuração.",
+      "slaOrder": "A resolução não pode ser menor que a primeira resposta.",
+      "saveFailed": "Não foi possível salvar. Tente de novo.",
+      "conflict": "Outra pessoa alterou o aceite automático agora há pouco. Confira o valor atual e tente de novo."
+    }
+  },
+  "SellerOfferPrices": {
+    "title": "Preços",
+    "subtitle": "Faixas de quantidade e histórico. Todos os preços ativos usam a moeda da oferta ({{currency}}).",
+    "showHistory": "Mostrar histórico",
+    "loading": "Carregando os preços...",
+    "retry": "Tentar de novo",
+    "empty": "Nenhum preço cadastrado.",
+    "columns": {
+      "type": "Tipo",
+      "range": "Quantidade",
+      "amount": "Valor",
+      "validity": "Vigência",
+      "actions": "Ações"
+    },
+    "types": {
+      "recurring": "Mensal",
+      "one_time": "Taxa única",
+      "full_purchase": "À vista"
+    },
+    "range": "{{min}} a {{max}}",
+    "rangeOpen": "A partir de {{min}}",
+    "since": "Desde {{date}}",
+    "between": "{{from}} a {{to}}",
+    "newAmount": "Novo valor",
+    "edit": "Alterar valor",
+    "end": "Encerrar",
+    "confirmEnd": "Encerrar preço",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "add": {
+      "title": "Adicionar preço",
+      "type": "Tipo",
+      "amount": "Valor ({{currency}})",
+      "minQuantity": "De (quantidade)",
+      "maxQuantity": "Até (quantidade)",
+      "noMax": "Sem limite",
+      "hint": "Faixas do mesmo tipo não podem se sobrepor: feche a faixa atual com um limite antes de criar a próxima.",
+      "submit": "Adicionar preço"
+    },
+    "errors": {
+      "loadFailed": "Não foi possível carregar os preços.",
+      "overlap": "Essa faixa se sobrepõe a outra do mesmo tipo. Ajuste as quantidades ou feche a faixa atual antes.",
+      "currencyMismatch": "Os preços de uma oferta usam uma moeda só.",
+      "invalid": "Preço inválido: confira o valor e a faixa (o fim não pode ser menor que o início; até 50 preços ativos).",
+      "priceRequired": "Uma oferta publicada precisa de um preço mensal ou à vista para 1 unidade.",
+      "permission": "Seu usuário não tem permissão para alterar preços.",
+      "failed": "Não foi possível salvar o preço. Tente de novo."
     }
   }
 }

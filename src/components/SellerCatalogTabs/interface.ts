@@ -1,5 +1,5 @@
-/** Áreas do catálogo do seller: ofertas ou cobertura (KMZ). */
-export type SellerCatalogTab = "catalog" | "coverage";
+/** Áreas do catálogo do seller: ofertas, cobertura (KMZ) e configurações de venda. */
+export type SellerCatalogTab = "catalog" | "coverage" | "settings";
 
 export interface SellerCatalogTabsProps {
   value: SellerCatalogTab;

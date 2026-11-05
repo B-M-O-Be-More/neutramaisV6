@@ -8,6 +8,7 @@ import {
   RateLimitError,
   ServerError,
   TimeoutError,
+  ValidationError,
 } from "@/services/errors";
 import { geoCoverageService } from "@/services/geoCoverage.service";
 import { geoStorageService } from "@/services/geoStorage.service";
@@ -18,6 +19,7 @@ import { renderWithProviders, screen, waitFor, within } from "../test-utils";
 vi.mock("@/services/geoCoverage.service", () => ({
   geoCoverageService: {
     uploadKmz: vi.fn(),
+    previewKmz: vi.fn(),
     listFiles: vi.fn(),
     getVersion: vi.fn(),
     downloadOriginal: vi.fn(),
@@ -54,6 +56,30 @@ const CREATED = {
 
 const NO_FILES = { items: [], total: 0, offset: 0, limit: 200 };
 
+// Prévia do consumo (POST /kmz/preview): cabe na cota.
+const PREVIEW = {
+  organizationId: ORGANIZATION,
+  fileSizeBytes: 1843200,
+  fileSizeMb: 1.8432,
+  requiredBytes: 3161600,
+  requiredMb: 3.1616,
+  currentUsageMb: 42.75,
+  quotaMb: 200,
+  availableMb: 157.25,
+  projectedUsageMb: 45.9116,
+  availableAfterUploadMb: 154.0884,
+  shortfallMb: 0,
+  canUpload: true,
+  alreadyImported: false,
+  requiresReindex: false,
+  isReservation: false,
+  breakdown: {
+    originalsMb: 1.8432,
+    geometriesMb: 0.41253,
+    metadataMb: 0.90587,
+  },
+};
+
 const kmzFile = () =>
   new File([new Uint8Array([80, 75, 3, 4])], "russas.kmz", {
     type: "application/vnd.google-earth.kmz",
@@ -73,6 +99,10 @@ const saveButton = () =>
   screen.getByRole("button", { name: /SellerCoverage.form.save/ });
 
 const dropzone = () => screen.getByLabelText(/SellerCoverage.form.dropTitle/);
+
+/** Confirma o envio no diálogo da prévia. */
+const confirmButton = () =>
+  screen.findByRole("button", { name: "SellerOfferCreate.kmz.confirm.submit" });
 
 describe("SellerCoveragePanel (aba Cobertura)", () => {
   beforeEach(() => {
@@ -95,6 +125,7 @@ describe("SellerCoveragePanel (aba Cobertura)", () => {
       polygonCount: 3,
     } as never);
     vi.mocked(geoCoverageService.uploadKmz).mockResolvedValue(CREATED);
+    vi.mocked(geoCoverageService.previewKmz).mockResolvedValue(PREVIEW);
     vi.mocked(geoStorageService.getStorage).mockResolvedValue({
       organizationId: ORGANIZATION,
       quotaMb: 200,
@@ -162,6 +193,17 @@ describe("SellerCoveragePanel (aba Cobertura)", () => {
     expect(screen.getByText("russas.kmz")).toBeInTheDocument();
 
     await user.click(saveButton());
+
+    // Antes de enviar, a prévia mostra o consumo na cota.
+    expect(geoCoverageService.previewKmz).toHaveBeenCalledWith({
+      organizationId: ORGANIZATION,
+      file: expect.any(File),
+    });
+    expect(
+      await screen.findByText("SellerOfferCreate.kmz.confirm.title"),
+    ).toBeInTheDocument();
+    expect(geoCoverageService.uploadKmz).not.toHaveBeenCalled();
+    await user.click(await confirmButton());
 
     // Enquanto a geo-api importa, avisa que pode levar minutos.
     expect(
@@ -285,6 +327,7 @@ describe("SellerCoveragePanel (aba Cobertura)", () => {
 
     await user.upload(dropzone(), kmzFile());
     await user.click(saveButton());
+    await user.click(await confirmButton());
 
     expect(
       (await screen.findByText("russas.kmz")).closest("li"),
@@ -302,7 +345,63 @@ describe("SellerCoveragePanel (aba Cobertura)", () => {
     expect(
       await screen.findByText("SellerOfferCreate.kmz.errors.noGeometry"),
     ).toBeInTheDocument();
+    expect(geoCoverageService.previewKmz).not.toHaveBeenCalled();
     expect(geoCoverageService.uploadKmz).not.toHaveBeenCalled();
+  });
+
+  it("sem espaço na cota, a prévia diz quanto falta e não deixa enviar", async () => {
+    vi.mocked(geoCoverageService.previewKmz).mockResolvedValue({
+      ...PREVIEW,
+      canUpload: false,
+      shortfallMb: 12.5,
+      availableAfterUploadMb: 0,
+    });
+    const { user } = renderPanel();
+
+    await user.upload(dropzone(), kmzFile());
+    await user.click(saveButton());
+
+    expect(
+      await screen.findByText("SellerOfferCreate.kmz.confirm.shortfall"),
+    ).toBeInTheDocument();
+    expect(await confirmButton()).toBeDisabled();
+    expect(geoCoverageService.uploadKmz).not.toHaveBeenCalled();
+  });
+
+  it("cancelar a prévia não envia o KMZ", async () => {
+    const { user } = renderPanel();
+
+    await user.upload(dropzone(), kmzFile());
+    await user.click(saveButton());
+    await user.click(
+      await screen.findByRole("button", {
+        name: "SellerOfferCreate.kmz.confirm.cancel",
+      }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText("SellerOfferCreate.kmz.confirm.title"),
+      ).not.toBeInTheDocument(),
+    );
+    expect(geoCoverageService.uploadKmz).not.toHaveBeenCalled();
+  });
+
+  it("KMZ recusado na prévia (422) mostra o erro sem abrir a confirmação", async () => {
+    vi.mocked(geoCoverageService.previewKmz).mockRejectedValue(
+      new ValidationError(422, []),
+    );
+    const { user } = renderPanel();
+
+    await user.upload(dropzone(), kmzFile());
+    await user.click(saveButton());
+
+    expect(
+      await screen.findByText("SellerOfferCreate.kmz.errors.rejected"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("SellerOfferCreate.kmz.confirm.title"),
+    ).not.toBeInTheDocument();
   });
 
   it.each([
@@ -316,6 +415,7 @@ describe("SellerCoveragePanel (aba Cobertura)", () => {
 
     await user.upload(dropzone(), kmzFile());
     await user.click(saveButton());
+    await user.click(await confirmButton());
 
     expect(
       await screen.findByText(`SellerOfferCreate.kmz.errors.${key}`),

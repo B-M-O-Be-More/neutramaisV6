@@ -65,9 +65,9 @@ No painel, cada pessoa da equipe marca status e motivo, e a última alteração 
 | Fase | Papéis | Tarefas | Pronto | Parcial | Falta | Backend | Validar |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F0 · Preparação do lote | Admin, Seller, Buyer | 4 | 1 | 0 | 0 | 1 | 2 |
-| F1 · Habilitação do Seller | Seller, Admin | 10 | 7 | 0 | 3 | 0 | 0 |
-| F2 · Cobertura e área de viabilidade | Seller | 9 | 5 | 1 | 2 | 0 | 1 |
-| F3 · Ofertas em lote | Seller | 12 | 8 | 1 | 2 | 0 | 1 |
+| F1 · Habilitação do Seller | Seller, Admin | 10 | 9 | 0 | 1 | 0 | 0 |
+| F2 · Cobertura e área de viabilidade | Seller | 9 | 6 | 1 | 1 | 0 | 1 |
+| F3 · Ofertas em lote | Seller | 12 | 9 | 1 | 1 | 0 | 1 |
 | F4 · Descoberta e carrinho | Buyer | 8 | 2 | 2 | 4 | 0 | 0 |
 | F5 · Checkout e pagamento | Buyer | 7 | 1 | 1 | 5 | 0 | 0 |
 | F6 · Aceite do pedido | Seller | 6 | 0 | 2 | 2 | 0 | 2 |
@@ -75,7 +75,7 @@ No painel, cada pessoa da equipe marca status e motivo, e a última alteração 
 | F8 · Pós-venda do Buyer | Buyer, Seller | 6 | 0 | 0 | 5 | 1 | 0 |
 | F9 · Financeiro e fechamento | Seller, Admin | 7 | 1 | 1 | 3 | 1 | 1 |
 
-Total: 78 tarefas, 36 casos de oferta e 19 trilhas de compra. No V6 hoje: 26 prontas, 9 parciais, 33 faltando, 3 dependendo do backend e 7 só de execução.
+Total: 78 tarefas, 36 casos de oferta e 19 trilhas de compra. No V6 hoje: 30 prontas, 9 parciais, 29 faltando, 3 dependendo do backend e 7 só de execução.
 
 ## Parâmetros do lote
 
@@ -141,8 +141,8 @@ Coluna V6: situação do front hoje. Coluna Demanda: item da lista de demandas (
 | F1-05 | Admin | Revisar e decidir o KYC (iniciar revisão, decidir documentos, decidir conta) | `/admin/kyc/[organizationId]` | `POST /api/v1/admin/kyc/requests/{id}/start-review`<br>`POST /api/v1/admin/kyc/requests/{id}/documents/{doc}/decision`<br>`POST /api/v1/admin/kyc/requests/{id}/decision` | Pronto | — | Identity grava kyc_level verified e status active. |
 | F1-06 | Seller | Renovar o token e conferir kyc_level verified | `/dashboard` | `POST /api/v1/auth/refresh`<br>`POST /api/v1/auth/context/refresh` | Pronto | — | Token novo com kyc_level verified. Telas de oferta liberam publicar. |
 | F1-07 | Seller | Convidar a equipe (Comercial, Operações, Técnico) | `/profile` | `POST /api/v1/organizations/{org_id}/members` | Pronto | — | Cada usuário entra com o papel certo e vê só o que o papel permite. |
-| F1-08 | Seller | Fazer onboarding Stripe Connect do Seller Dono | `/seller/wallet` | `POST /api/v2/payment/onboarding`<br>`POST /api/v2/payment/onboarding/refresh`<br>`GET /api/v2/payment/access/{organization_id}` | Falta | D-10 | GET access diz conta ativa. Sem isso o Seller não recebe repasse. |
-| F1-09 | Seller | Configurar SLA da organização e aceite automático da conta | `/seller/offers` | `PATCH /api/v2/productCatalog/slaConfig`<br>`PUT /api/v2/productCatalog/productOffering/account/shippingPolicy` | Falta | D-11 | Valores gravados e devolvidos no GET. Aceite automático muda o fluxo da F6. |
+| F1-08 | Seller | Fazer onboarding Stripe Connect do Seller Dono | `/seller/wallet` | `POST /api/v2/payment/onboarding`<br>`POST /api/v2/payment/onboarding/refresh`<br>`GET /api/v2/payment/access/{organization_id}` | Pronto | D-10 | GET access diz conta ativa. Sem isso o Seller não recebe repasse. |
+| F1-09 | Seller | Configurar SLA da organização e aceite automático da conta | `/seller/offers` | `PATCH /api/v2/productCatalog/slaConfig`<br>`PUT /api/v2/productCatalog/productOffering/account/shippingPolicy` | Pronto | D-11 | Valores gravados e devolvidos no GET. Aceite automático muda o fluxo da F6. |
 | F1-10 | Admin | Dar o selo de verificação ao Seller (opcional) | `/admin/organizations/[organizationId]` | `PUT /api/v2/productCatalog/verification/{organization_id}` | Falta | D-17 | Selo aparece na vitrine e no card do Seller. |
 
 ### F2 · Cobertura e área de viabilidade
@@ -151,7 +151,7 @@ Coluna V6: situação do front hoje. Coluna Demanda: item da lista de demandas (
 
 | ID | Papel | Tarefa | Tela V6 | Rotas | V6 | Demanda | Critério de aceite |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| F2-01 | Seller | Pré-visualizar o consumo de armazenamento do KMZ | `/seller/coverage` | `POST /api/v2/geo/coverageVersion/kmz/preview` | Falta | D-22 | Tela mostra o espaço que o arquivo vai ocupar antes do envio. |
+| F2-01 | Seller | Pré-visualizar o consumo de armazenamento do KMZ | `/seller/coverage` | `POST /api/v2/geo/coverageVersion/kmz/preview` | Pronto | D-22 | Tela mostra o espaço que o arquivo vai ocupar antes do envio. |
 | F2-02 | Seller | Enviar KMZ_POLYGONS e KMZ_POINTS | `/seller/coverage` | `POST /api/v2/geo/coverageVersion/kmz` | Pronto | — | Cada envio cria uma versão de cobertura imutável. |
 | F2-03 | Seller | Abrir o arquivo, ver versões e pré-visualização | `/seller/coverage/[fileId]` | `GET /api/v2/geo/coverageFile`<br>`GET /api/v2/geo/coverageFile/{id}/versions`<br>`GET /api/v2/geo/coverageFile/{id}/preview` | Pronto | — | Mapa mostra os polígonos e pontos do KMZ. |
 | F2-04 | Seller | Listar elementos do KMZ e escolher as áreas de viabilidade | `/seller/offers/new` | `GET /api/v2/geo/coverageVersion/{id}/elements` | Pronto | — | Índices das áreas escolhidas batem com os elementos do KMZ. |
@@ -174,7 +174,7 @@ Coluna V6: situação do front hoje. Coluna Demanda: item da lista de demandas (
 | F3-05 | Seller | Enviar, confirmar e ordenar imagens | `/seller/offers/new` | `POST .../images`<br>`POST .../images/{id}/confirm`<br>`PUT .../images/order` | Pronto | — | Ordem das imagens na vitrine igual à definida. |
 | F3-06 | Seller | Publicar a oferta | `/seller/offers/[offeringId]` | `POST /api/v2/productCatalog/productOffering/{id}/publish` | Pronto | — | Status published. Aparece na busca pública com os campos do template. |
 | F3-07 | Seller | Editar preço, estoque e SLA com o papel Operações | `/seller/offers/[offeringId]/edit` | `PATCH /api/v2/productCatalog/productOffering/{id}` | Pronto | — | Operações altera só preço, estoque e SLA. Outros campos dão 403. |
-| F3-08 | Seller | Gerenciar histórico de preços (adicionar, alterar, encerrar) | `/seller/offers/[offeringId]` | `POST .../price`<br>`PATCH .../price/{id}`<br>`DELETE .../price/{id}` | Falta | D-20 | Preço vigente no snapshot de checkout é o último ativo. |
+| F3-08 | Seller | Gerenciar histórico de preços (adicionar, alterar, encerrar) | `/seller/offers/[offeringId]` | `POST .../price`<br>`PATCH .../price/{id}`<br>`DELETE .../price/{id}` | Pronto | D-20 | Preço vigente no snapshot de checkout é o último ativo. |
 | F3-09 | Seller | Ciclo de vida: pausar, despublicar, arquivar, remover rascunho e destacar | `/seller/offers` | `POST .../pause`<br>`POST .../unpublish`<br>`POST .../archive`<br>`DELETE .../{id}`<br>`PUT .../promotion` | Pronto | — | Cada transição reflete na vitrine e na lista do Seller. |
 | F3-10 | Seller | Importar ofertas por XLSX da categoria (caminho alternativo do lote) | `/seller/offers` | `GET /api/v2/productCatalog/productOffering/bulk/template`<br>`POST /api/v2/productCatalog/productOffering/bulk` | Falta | D-21 | Resposta por linha (applied ou invalid). Tela não trata 200 como tudo gravado. |
 | F3-11 | Seller | Executar todos os casos da matriz de ofertas | `/seller/offers/new` | — | Validar | — | Todo caso OF-* com resultado igual ao esperado. |
@@ -370,8 +370,8 @@ CP- são compras que precisam fechar. ALT- são caminhos alternativos e negativo
 | D-07 | Contrato na OS | Seller, Buyer | Seller sobe o contrato na OS. Buyer assina pela Autentique. Status e PDF ligados à OS. Depende da rota de upload (B-02). | F7-02, F7-03 |
 | D-08 | Regras condicionais do template | Seller | Feito no assistente (PR #15 para a dev): seção Regras da categoria (obrigatória sempre ligada, opcional com interruptor), validação de todos os campos de valor, ruleValues no POST e PATCH (o BFF passou a repassar), reabertura na edição, selos no detalhe da oferta e mensagens para 409 MKT_RULE_VALUES_REQUIRED e 422 MKT_RULE_*. Em homologação nenhuma categoria tem regra: o teste OF-RULE-* depende de um super_admin criar uma (sem tela no V6, ver D-17). | F3-03 |
 | D-09 | Categorias vindas da API | Seller, Buyer | Feito no assistente do Seller (PR #15 para a dev): árvore e template da API, subcategorias, categoria nova (família custom), flags requiresCoverage e hasNumericStock da API e campos genéricos do template. Falta a vitrine pública filtrar por subcategoria (F3-12). Rótulos, opções e unidades do template traduzidos em pt, en e es. | F0-03, F3-01, F3-12 |
-| D-10 | Onboarding Stripe do Seller | Seller | Iniciar onboarding, voltar do Stripe com refresh e mostrar se a conta está ativa. | F1-08 |
-| D-11 | Configurações de venda e validações do carrinho | Seller, Buyer | slaConfig e aceite automático da conta. validatePurchase e shippingQuote no carrinho. | F1-09, F4-07 |
+| D-10 | Onboarding Stripe do Seller | Seller | Feito na Carteira do Seller (branch feature/e2e-seller-demands, depois do PR #15): card Conta de recebimento com a situação (GET access), Ativar/Continuar no Stripe (POST onboarding, abre o formulário) e Atualizar status (POST onboarding/refresh, também sozinho uma vez ao voltar do Stripe). Só o Dono configura. 403 mfa_required abre o step-up do MFA (POST /api/auth/mfa/step-up, reutilizável no checkout) e repete a ação. | F1-08 |
+| D-11 | Configurações de venda e validações do carrinho | Seller, Buyer | Parte do Seller feita (branch feature/e2e-seller-demands, depois do PR #15): aba Configurações de venda em Minhas Ofertas, com os prazos de SLA (GET/PATCH slaConfig, só leitura sem sla:change) e o aceite automático dos físicos (GET/PUT account/shippingPolicy com expectedVersion; 409 relê). Falta a parte do Buyer: validatePurchase e shippingQuote no carrinho (F4-07). | F1-09, F4-07 |
 | D-12 | Pedidos do Buyer | Buyer | Lista de pedidos do Buyer e detalhe com o pagamento do pedido. | F5-06 |
 | D-13 | Recebimento do físico | Buyer | Confirmar e contestar recebimento. | F8-01 |
 | D-14 | Tickets reais | Buyer, Seller | Trocar os tickets de exemplo pela Trouble Ticket API: abrir, notas, reconhecer, resolver, fechar e cancelar. | F8-04 |
@@ -380,9 +380,9 @@ CP- são compras que precisam fechar. ALT- são caminhos alternativos e negativo
 | D-17 | Telas de Admin do marketplace e do financeiro | Admin | Categorias, templates e catálogos (super_admin), selo de verificação, raio de proximidade, conciliação de pagamentos, repasses, saques e créditos, calendário e taxas. | F1-10, F9-05, F9-06 |
 | D-18 | Cancelamento de pedido | Buyer, Seller | Cancelar direto, pedir cancelamento e decisão do Seller. | F8-05, F8-06 |
 | D-19 | Pontos de rede e classificação do KMZ | Seller | CRUD de networkPoint e revisão da classificação dos elementos. | F2-06, F2-07 |
-| D-20 | Histórico de preços da oferta | Seller | Adicionar, alterar e encerrar preços pelas rotas /price. | F3-08 |
+| D-20 | Histórico de preços da oferta | Seller | Feito no detalhe da oferta (branch feature/e2e-seller-demands, depois do PR #15): seção Preços com os ativos por tipo e faixa, histórico a pedido, adicionar faixa, alterar valor e encerrar com confirmação (price:change). Recusas MKT_PRICE_TIER_OVERLAP, MKT_OFFER_CURRENCY_MISMATCH, MKT_PRICE_INVALID e MKT_OFFER_PRICE_REQUIRED com mensagem própria. | F3-08 |
 | D-21 | Importação XLSX de ofertas | Seller | Baixar modelo por categoria, enviar e mostrar o resultado por linha. | F3-10 |
-| D-22 | Pré-visualização do consumo do KMZ | Seller | Chamar kmz/preview antes do envio. | F2-01 |
+| D-22 | Pré-visualização do consumo do KMZ | Seller | Feito (branch feature/e2e-seller-demands, depois do PR #15): as três telas de envio de KMZ (cobertura, nova versão e área de cobertura da oferta) chamam kmz/preview antes e pedem confirmação com tamanho, espaço da importação, uso, cota e saldo depois. Sem espaço, o envio fica travado. | F2-01 |
 | D-23 | Antecipação, saque e repasses do Seller | Seller | Ligar a tela de saque às rotas de quote e confirmação, e listar os lotes de repasse. | F9-02, F9-04 |
 
 ## Dependências de backend

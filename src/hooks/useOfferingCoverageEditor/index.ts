@@ -1,5 +1,6 @@
 import { useOfferingCoverageEditor } from "./hook";
 import type {
+  OfferingCoverageMessage,
   OfferingCoverageNotice,
   OfferingCoveragePoints,
   OfferingCoverageScope,
@@ -8,6 +9,7 @@ import type {
 
 export { useOfferingCoverageEditor };
 export type {
+  OfferingCoverageMessage,
   OfferingCoverageNotice,
   OfferingCoveragePoints,
   OfferingCoverageScope,

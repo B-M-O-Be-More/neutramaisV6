@@ -37,6 +37,17 @@ export const myMfaService = {
     }),
 
   /**
+   * Step-up: prova o autenticador dentro da sessão atual e a sessão passa a
+   * ter `mfa: true` (o BFF troca os cookies). Pedido por rotas que exigem
+   * MFA (403 `mfa_required`). 401 com o código errado; 403
+   * `MFA_ENROLLMENT_REQUIRED` sem autenticador; 429 após 5 tentativas.
+   */
+  stepUp: (totpCode: string) =>
+    api.post<{ mfa: true; profile: string | null }>("/auth/mfa/step-up", {
+      totp_code: totpCode,
+    }),
+
+  /**
    * Desliga o 2FA. 409 quando o papel exige 2FA; 401 com senha ou código
    * errados.
    */

@@ -7,6 +7,9 @@ import { LuCircleAlert, LuCircleCheck, LuLink } from "react-icons/lu";
 
 import CoverageMap, { type CoverageGeoJson } from "@/components/CoverageMap";
 import CoverageScopeDialog from "@/components/CoverageScopeDialog";
+import KmzUploadConfirmDialog, {
+  type PendingKmzUpload,
+} from "@/components/KmzUploadConfirmDialog";
 import KmzVersionPicker from "@/components/KmzVersionPicker";
 import { toaster } from "@/components/ui/toaster";
 import { mergeVersions } from "@/functions/mergeCoverageVersions";
@@ -45,8 +48,15 @@ export function SellerOfferCoverageSection({
     editor;
   const noticeStyle = notice ? NOTICE_STYLES[notice.tone] : null;
 
-  const { upload, isUploading } = useKmzUpload(organizationId);
+  const {
+    upload,
+    isUploading,
+    preview: previewKmz,
+    isPreviewing,
+  } = useKmzUpload(organizationId);
   const [uploadError, setUploadError] = React.useState<string>();
+  // KMZ com o consumo calculado, esperando o seller confirmar o envio.
+  const [pending, setPending] = React.useState<PendingKmzUpload | null>(null);
   // KMZs enviados nesta tela, com a geometria lida do arquivo.
   const [uploaded, setUploaded] = React.useState<
     { version: CoverageVersionSummary; geometry: CoverageGeoJson | null }[]
@@ -186,12 +196,31 @@ export function SellerOfferCoverageSection({
         selectedId={versionId || null}
         boundId={boundVersionId}
         onSelect={editor.selectVersion}
-        isUploading={isUploading}
+        isUploading={isPreviewing || isUploading}
         uploadError={uploadError}
         locale={locale}
         onUpload={async (file) => {
+          // Primeiro a prévia do consumo; o envio sai na confirmação.
           setUploadError(undefined);
+          const result = await previewKmz(file);
+          if (!result.ok) {
+            setUploadError(t(result.errorKey));
+            return;
+          }
+          setPending({ file, preview: result.preview });
+        }}
+      />
+
+      <KmzUploadConfirmDialog
+        pending={pending}
+        isUploading={isUploading}
+        locale={locale}
+        onClose={() => setPending(null)}
+        onConfirm={async () => {
+          if (!pending) return;
+          const { file } = pending;
           const result = await upload(file);
+          setPending(null);
           if (!result.ok) {
             setUploadError(t(result.errorKey));
             return;
@@ -220,8 +249,12 @@ export function SellerOfferCoverageSection({
           rounded="12px"
           role={notice.tone === "success" ? "status" : "alert"}
         >
-          {notice.messages.map((key) => (
-            <Flex key={key} align="flex-start" gap="8px">
+          {notice.messages.map((message) => (
+            <Flex
+              key={typeof message === "string" ? message : message.key}
+              align="flex-start"
+              gap="8px"
+            >
               <Icon
                 as={notice.tone === "success" ? LuCircleCheck : LuCircleAlert}
                 boxSize="13px"
@@ -230,7 +263,9 @@ export function SellerOfferCoverageSection({
                 flexShrink={0}
               />
               <Text color={noticeStyle.color} fontSize="12px" lineHeight="18px">
-                {t(key)}
+                {typeof message === "string"
+                  ? t(message)
+                  : t(message.key, message.values)}
               </Text>
             </Flex>
           ))}

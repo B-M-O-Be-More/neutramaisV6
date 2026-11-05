@@ -9,7 +9,12 @@ import {
   sameCoverageNetworkPoints,
   type CoverageNetworkPoint,
 } from "@/functions/coverageNetworkPoints";
-import { ApiError, ForbiddenError, NotFoundError } from "@/services/errors";
+import {
+  ApiError,
+  ForbiddenError,
+  NotFoundError,
+  upstreamDetailMessage,
+} from "@/services/errors";
 import { geoCoverageService } from "@/services/geoCoverage.service";
 import {
   productCatalogService,
@@ -17,6 +22,7 @@ import {
 } from "@/services/productCatalog.service";
 
 import type {
+  OfferingCoverageMessage,
   OfferingCoverageNotice,
   OfferingCoveragePoints,
   OfferingCoverageScope,
@@ -34,12 +40,42 @@ const NO_FORM_POINTS: OfferingCoveragePoints = {
   invalid: false,
 };
 
-function confirmErrorKey(error: unknown): string {
+// "Point -46.690459,-23.593702 is outside the coverage" (geo-api, via 422).
+const POINT_OUTSIDE =
+  /Point\s+(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s+is outside/i;
+
+/**
+ * Motivo da recusa. Com o ponto fora do KMZ, aponta a localidade (a API
+ * devolve a coordenada; a posição sai dos pontos enviados).
+ */
+function confirmErrorMessage(
+  error: unknown,
+  points: readonly CoverageNetworkPoint[],
+): OfferingCoverageMessage {
   if (error instanceof ForbiddenError) {
     return "SellerOfferCreate.publish.errors.coveragePermission";
   }
-  // 422: versão de outra organização ou recorte fora da área do KMZ.
   if (error instanceof ApiError && error.status === 422) {
+    const detail = upstreamDetailMessage(error) ?? "";
+    const outside = detail.match(POINT_OUTSIDE);
+    if (outside) {
+      const [longitude, latitude] = [Number(outside[1]), Number(outside[2])];
+      const index = points.findIndex(
+        (point) =>
+          Math.abs(point.longitude - longitude) < 1e-5 &&
+          Math.abs(point.latitude - latitude) < 1e-5,
+      );
+      return index >= 0
+        ? {
+            key: "SellerOfferCoverage.errors.pointOutside",
+            values: { number: index + 1 },
+          }
+        : "SellerOfferCoverage.errors.pointsOutside";
+    }
+    if (/do not overlap/i.test(detail)) {
+      return "SellerOfferCoverage.errors.pointsOutside";
+    }
+    // Versão de outra organização ou recorte fora da área do KMZ.
     return "SellerOfferCoverage.errors.invalid";
   }
   return "SellerOfferCoverage.errors.failed";
@@ -202,7 +238,10 @@ export function useOfferingCoverageEditor(
         messages: ["SellerOfferCoverage.confirmed"],
       });
     } catch (error) {
-      setNotice({ tone: "error", messages: [confirmErrorKey(error)] });
+      setNotice({
+        tone: "error",
+        messages: [confirmErrorMessage(error, points)],
+      });
     } finally {
       setIsConfirming(false);
     }

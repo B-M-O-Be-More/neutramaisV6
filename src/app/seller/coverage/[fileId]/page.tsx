@@ -17,12 +17,13 @@ import {
 import { currencyLocale } from "@/functions/currencyLocale";
 import { canUploadCoverage } from "@/functions/rolesToPersonas";
 
-const AVAILABLE_TABS: SellerCatalogTab[] = ["catalog", "coverage"];
+const AVAILABLE_TABS: SellerCatalogTab[] = ["catalog", "coverage", "settings"];
 
 // A lista de coberturas é a aba "Cobertura" do catálogo.
 const TAB_HREFS: Record<SellerCatalogTab, string> = {
   catalog: "/seller/offers",
   coverage: "/seller/offers?tab=coverage",
+  settings: "/seller/offers?tab=settings",
 };
 
 function SellerCoverageDetailContent({ fileId }: { fileId: string }) {

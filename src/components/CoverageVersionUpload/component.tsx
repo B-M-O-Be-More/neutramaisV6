@@ -6,6 +6,9 @@ import { Trans, useTranslation } from "react-i18next";
 import { LuCircleX, LuInfo, LuTriangleAlert, LuUpload } from "react-icons/lu";
 
 import KmzDropzone from "@/components/KmzDropzone";
+import KmzUploadConfirmDialog, {
+  type PendingKmzUpload,
+} from "@/components/KmzUploadConfirmDialog";
 import { useKmzUpload } from "@/hooks/useKmzUpload";
 
 import { CoverageVersionUploadProps } from "./interface";
@@ -33,17 +36,32 @@ export function CoverageVersionUpload({
   onUploaded,
 }: CoverageVersionUploadProps) {
   const { t } = useTranslation();
-  const { upload, isUploading } = useKmzUpload(organizationId);
+  const { upload, isUploading, preview, isPreviewing } =
+    useKmzUpload(organizationId);
   const [file, setFile] = React.useState<File | null>(null);
   const [error, setError] = React.useState<string>();
+  // Versão com o consumo calculado, esperando o seller confirmar o envio.
+  const [pending, setPending] = React.useState<PendingKmzUpload | null>(null);
   const [showRules, setShowRules] = React.useState(false);
   const rulesId = React.useId();
-  const disabled = !canUpload || isUploading || !predecessorId;
+  const disabled = !canUpload || isUploading || isPreviewing || !predecessorId;
 
+  // Primeiro a prévia do consumo; o envio sai na confirmação.
   const handleUpload = async () => {
     if (!file || !predecessorId) return;
     setError(undefined);
-    const result = await upload(file, { predecessorId });
+    const result = await preview(file, { predecessorId });
+    if (!result.ok) {
+      setError(t(result.errorKey));
+      return;
+    }
+    setPending({ file, preview: result.preview });
+  };
+
+  const confirmUpload = async () => {
+    if (!pending || !predecessorId) return;
+    const result = await upload(pending.file, { predecessorId });
+    setPending(null);
     if (!result.ok) {
       setError(t(result.errorKey));
       return;
@@ -152,14 +170,18 @@ export function CoverageVersionUpload({
 
       {file && (
         <Stack gap="8px">
-          {isUploading && (
+          {(isPreviewing || isUploading) && (
             <Text
               color="#5A6478"
               fontSize="12px"
               lineHeight="18px"
               role="status"
             >
-              {t("SellerOfferCreate.kmz.processing")}
+              {t(
+                isPreviewing
+                  ? "SellerOfferCreate.kmz.confirm.previewing"
+                  : "SellerOfferCreate.kmz.processing",
+              )}
             </Text>
           )}
           <Button
@@ -171,7 +193,7 @@ export function CoverageVersionUpload({
             fontSize="14px"
             fontWeight={700}
             disabled={!canUpload || !predecessorId}
-            loading={isUploading}
+            loading={isPreviewing || isUploading}
             loadingText={t("SellerCoverage.form.saving")}
             _hover={{ bg: "#1646CC" }}
             onClick={handleUpload}
@@ -205,6 +227,14 @@ export function CoverageVersionUpload({
           />
         </Text>
       </Flex>
+
+      <KmzUploadConfirmDialog
+        pending={pending}
+        isUploading={isUploading}
+        locale={locale}
+        onConfirm={confirmUpload}
+        onClose={() => setPending(null)}
+      />
     </Stack>
   );
 }

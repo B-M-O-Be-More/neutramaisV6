@@ -366,7 +366,7 @@
             "POST /api/v2/payment/onboarding/refresh",
             "GET /api/v2/payment/access/{organization_id}"
           ],
-          "v6": "falta",
+          "v6": "pronto",
           "demand": "D-10",
           "accept": "GET access diz conta ativa. Sem isso o Seller não recebe repasse."
         },
@@ -379,7 +379,7 @@
             "PATCH /api/v2/productCatalog/slaConfig",
             "PUT /api/v2/productCatalog/productOffering/account/shippingPolicy"
           ],
-          "v6": "falta",
+          "v6": "pronto",
           "demand": "D-11",
           "accept": "Valores gravados e devolvidos no GET. Aceite automático muda o fluxo da F6."
         },
@@ -413,7 +413,7 @@
           "endpoints": [
             "POST /api/v2/geo/coverageVersion/kmz/preview"
           ],
-          "v6": "falta",
+          "v6": "pronto",
           "demand": "D-22",
           "accept": "Tela mostra o espaço que o arquivo vai ocupar antes do envio."
         },
@@ -624,7 +624,7 @@
             "PATCH .../price/{id}",
             "DELETE .../price/{id}"
           ],
-          "v6": "falta",
+          "v6": "pronto",
           "demand": "D-20",
           "accept": "Preço vigente no snapshot de checkout é o último ativo."
         },
@@ -2105,7 +2105,7 @@
       "id": "D-10",
       "title": "Onboarding Stripe do Seller",
       "roles": "Seller",
-      "scope": "Iniciar onboarding, voltar do Stripe com refresh e mostrar se a conta está ativa.",
+      "scope": "Feito na Carteira do Seller (branch feature/e2e-seller-demands, depois do PR #15): card Conta de recebimento com a situação (GET access), Ativar/Continuar no Stripe (POST onboarding, abre o formulário) e Atualizar status (POST onboarding/refresh, também sozinho uma vez ao voltar do Stripe). Só o Dono configura. 403 mfa_required abre o step-up do MFA (POST /api/auth/mfa/step-up, reutilizável no checkout) e repete a ação.",
       "tasks": [
         "F1-08"
       ]
@@ -2114,7 +2114,7 @@
       "id": "D-11",
       "title": "Configurações de venda e validações do carrinho",
       "roles": "Seller, Buyer",
-      "scope": "slaConfig e aceite automático da conta. validatePurchase e shippingQuote no carrinho.",
+      "scope": "Parte do Seller feita (branch feature/e2e-seller-demands, depois do PR #15): aba Configurações de venda em Minhas Ofertas, com os prazos de SLA (GET/PATCH slaConfig, só leitura sem sla:change) e o aceite automático dos físicos (GET/PUT account/shippingPolicy com expectedVersion; 409 relê). Falta a parte do Buyer: validatePurchase e shippingQuote no carrinho (F4-07).",
       "tasks": [
         "F1-09",
         "F4-07"
@@ -2200,7 +2200,7 @@
       "id": "D-20",
       "title": "Histórico de preços da oferta",
       "roles": "Seller",
-      "scope": "Adicionar, alterar e encerrar preços pelas rotas /price.",
+      "scope": "Feito no detalhe da oferta (branch feature/e2e-seller-demands, depois do PR #15): seção Preços com os ativos por tipo e faixa, histórico a pedido, adicionar faixa, alterar valor e encerrar com confirmação (price:change). Recusas MKT_PRICE_TIER_OVERLAP, MKT_OFFER_CURRENCY_MISMATCH, MKT_PRICE_INVALID e MKT_OFFER_PRICE_REQUIRED com mensagem própria.",
       "tasks": [
         "F3-08"
       ]
@@ -2218,7 +2218,7 @@
       "id": "D-22",
       "title": "Pré-visualização do consumo do KMZ",
       "roles": "Seller",
-      "scope": "Chamar kmz/preview antes do envio.",
+      "scope": "Feito (branch feature/e2e-seller-demands, depois do PR #15): as três telas de envio de KMZ (cobertura, nova versão e área de cobertura da oferta) chamam kmz/preview antes e pedem confirmação com tamanho, espaço da importação, uso, cota e saldo depois. Sem espaço, o envio fica travado.",
       "tasks": [
         "F2-01"
       ]

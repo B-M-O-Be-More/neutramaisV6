@@ -3277,7 +3277,8 @@
     "tabs": {
       "label": "Catalog areas",
       "catalog": "My Catalog",
-      "coverage": "Coverage"
+      "coverage": "Coverage",
+      "settings": "Sales settings"
     },
     "stats": {
       "totalOffers": "Total offers",
@@ -4103,7 +4104,6 @@
       "currencyHelper": "Currency cannot be changed after publishing",
       "priceLabel": "Price ({{currency}})",
       "setupLabel": "Setup / NRC",
-      "setupPlaceholder": "E.g.: R$ 500.00 · or 0 for no setup",
       "stockLabel": "Availability / Stock",
       "stockPlaceholder": "E.g.: 2 (available) or empty for on request",
       "cancellationLabel": "Cancellation terms",
@@ -4111,7 +4111,8 @@
       "validUntilLabel": "Offer validity",
       "validUntilHelper": "Leave empty for no end date",
       "sponsoredLabel": "Sponsor offer",
-      "sponsoredDescription": "Highlighted at the top of search results · additional investment"
+      "sponsoredDescription": "Highlighted at the top of search results · additional investment",
+      "setupHelper": "One-time installation fee. Leave empty if there is none."
     },
     "review": {
       "moderationNotice": "Irregular offers (false information, unrealistic price, mismatched coverage) may be removed with an impact on the score. Sellers cannot duplicate offers in the same category.",
@@ -4200,7 +4201,22 @@
       "bound": "Linked",
       "processing": "The geo-api imports the KMZ before responding. Large files take a few minutes: keep this page open.",
       "listLoading": "Loading the organization's KMZ files...",
-      "listEmpty": "No KMZ uploaded yet. Upload one to use in this offer."
+      "listEmpty": "No KMZ uploaded yet. Upload one to use in this offer.",
+      "confirm": {
+        "title": "Confirm KMZ upload",
+        "mb": "{{value}} MB",
+        "fileSize": "File size",
+        "required": "Space the import will use",
+        "usage": "Current quota usage",
+        "usageValue": "{{used}} of {{quota}}",
+        "availableAfter": "Remaining after upload",
+        "alreadyImported": "Your organization already imported this file: the upload takes no new space.",
+        "shortfall": "The KMZ does not fit in the quota: {{value}} missing. Delete old versions or contact Neutra+ to increase storage.",
+        "notReserved": "The preview does not reserve space. If another upload uses the quota first, this one may be refused.",
+        "cancel": "Cancel",
+        "submit": "Upload KMZ",
+        "previewing": "Calculating the space the KMZ will use..."
+      }
     },
     "preview": {
       "title": "Marketplace preview",
@@ -4621,7 +4637,9 @@
       "failed": "Could not link the coverage right now. Try again in a moment.",
       "invalid": "The coverage was rejected: check that the KMZ belongs to your organization and that the drawn area is inside it.",
       "scopeUnavailable": "We couldn't load the saved coverage area. The map shows the whole KMZ area; confirm again only if you want to change the area.",
-      "pointsInvalid": "Check the service locations: each chosen address needs a radius between 1 and 80 km."
+      "pointsInvalid": "Check the service locations: each chosen address needs a radius between 1 and 80 km.",
+      "pointOutside": "Location {{number}} is outside the selected KMZ. Change the address, reduce the radius or choose another KMZ.",
+      "pointsOutside": "One of the locations is outside the selected KMZ. Check the addresses and radii."
     },
     "loadingScope": "Loading the saved coverage area..."
   },
@@ -6505,6 +6523,144 @@
       "empty": "There are no products in the catalog yet.",
       "emptyFiltered": "No products in this category.",
       "retry": "Try again"
+    }
+  },
+  "SellerPaymentAccount": {
+    "title": "Payout account",
+    "subtitle": "The organization's Stripe Connect account. Without it active, your offers cannot be checked out and there are no payouts.",
+    "loading": "Checking the Stripe account...",
+    "retry": "Try again",
+    "state": {
+      "active": {
+        "title": "Account active",
+        "description": "You can sell and receive payouts."
+      },
+      "pending": {
+        "title": "Stripe sign-up incomplete",
+        "description": "Finish the sign-up on Stripe to sell and get paid. If you just came back from Stripe, refresh the status."
+      },
+      "none": {
+        "title": "No payout account",
+        "description": "Activate the Stripe account so buyers can pay for your offers."
+      }
+    },
+    "flags": {
+      "charges": {
+        "on": "Charges enabled",
+        "off": "Charges pending"
+      },
+      "payouts": {
+        "on": "Payouts enabled",
+        "off": "Payouts pending"
+      }
+    },
+    "emailLabel": "Stripe account email",
+    "emailHelper": "Stripe uses this email to contact the organization.",
+    "start": "Activate on Stripe",
+    "continue": "Continue on Stripe",
+    "refresh": "Refresh status",
+    "ownerOnly": "Only the organization owner sets up the payout account.",
+    "mfaReason": "To change the payout account, confirm the code from your authenticator app.",
+    "errors": {
+      "loadFailed": "Could not read the Stripe account status.",
+      "ownerOnly": "Only the organization owner can set up the payout account.",
+      "notStarted": "The Stripe sign-up has not started yet. Use Activate on Stripe.",
+      "stripeUnavailable": "Stripe did not respond. Try again in a few minutes.",
+      "failed": "Could not reach Stripe. Try again."
+    }
+  },
+  "MfaStepUp": {
+    "title": "Confirm with your authenticator app",
+    "codeLabel": "6-digit code",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "errors": {
+      "invalidCode": "Wrong or already used code. Enter the next code from the app.",
+      "enrollmentRequired": "Set up the authenticator app in My Profile before continuing.",
+      "rateLimited": "Too many attempts. Wait a few minutes and try again.",
+      "sessionExpired": "Your session ended. Sign in again to continue.",
+      "failed": "Could not confirm the code. Try again."
+    }
+  },
+  "SellerSalesSettings": {
+    "title": "Sales settings",
+    "subtitle": "Service deadlines and order acceptance for the organization.",
+    "loading": "Loading...",
+    "retry": "Try again",
+    "saved": "Saved.",
+    "sla": {
+      "title": "Service deadlines (SLA)",
+      "description": "Apply to the next tickets and service orders. Existing records keep the deadline they were opened with.",
+      "firstLabel": "First response (hours)",
+      "firstHelper": "Maximum time to answer an open ticket.",
+      "resolutionLabel": "Resolution (hours)",
+      "resolutionHelper": "Maximum time to resolve. Cannot be shorter than the first response.",
+      "save": "Save deadlines",
+      "readOnly": "Only users allowed to change the SLA can edit these deadlines."
+    },
+    "autoAccept": {
+      "title": "Automatic acceptance",
+      "description": "Applies to every paid order of physical products (Hardware / CPE). Services keep manual acceptance.",
+      "label": "Accept physical product orders automatically",
+      "on": "On: paid orders are accepted right away, without waiting for the acceptance SLA.",
+      "off": "Off: each order waits for your acceptance within the acceptance SLA.",
+      "noPermission": "Your role does not accept orders, so it cannot set automatic acceptance."
+    },
+    "errors": {
+      "loadFailed": "Could not load this setting.",
+      "permission": "Your user is not allowed to change this setting.",
+      "slaOrder": "The resolution cannot be shorter than the first response.",
+      "saveFailed": "Could not save. Try again.",
+      "conflict": "Someone else just changed automatic acceptance. Check the current value and try again."
+    }
+  },
+  "SellerOfferPrices": {
+    "title": "Prices",
+    "subtitle": "Quantity tiers and history. All active prices use the offer currency ({{currency}}).",
+    "showHistory": "Show history",
+    "loading": "Loading prices...",
+    "retry": "Try again",
+    "empty": "No prices yet.",
+    "columns": {
+      "type": "Type",
+      "range": "Quantity",
+      "amount": "Amount",
+      "validity": "Valid",
+      "actions": "Actions"
+    },
+    "types": {
+      "recurring": "Monthly",
+      "one_time": "One-time fee",
+      "full_purchase": "Full purchase"
+    },
+    "range": "{{min}} to {{max}}",
+    "rangeOpen": "From {{min}}",
+    "since": "Since {{date}}",
+    "between": "{{from}} to {{to}}",
+    "newAmount": "New amount",
+    "edit": "Change amount",
+    "end": "End",
+    "confirmEnd": "End price",
+    "save": "Save",
+    "cancel": "Cancel",
+    "add": {
+      "title": "Add price",
+      "type": "Type",
+      "amount": "Amount ({{currency}})",
+      "minQuantity": "From (quantity)",
+      "maxQuantity": "To (quantity)",
+      "noMax": "No limit",
+      "hint": "Tiers of the same type cannot overlap: close the current tier with a limit before creating the next one.",
+      "submit": "Add price"
+    },
+    "errors": {
+      "loadFailed": "Could not load the prices.",
+      "overlap": "This tier overlaps another of the same type. Adjust the quantities or close the current tier first.",
+      "currencyMismatch": "An offer's prices use a single currency.",
+      "invalid": "Invalid price: check the amount and the tier (the end cannot be lower than the start; up to 50 active prices).",
+      "priceRequired": "A published offer needs a monthly or full-purchase price for 1 unit.",
+      "permission": "Your user is not allowed to change prices.",
+      "failed": "Could not save the price. Try again."
     }
   }
 }

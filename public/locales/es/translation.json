@@ -3265,7 +3265,8 @@
     "tabs": {
       "label": "Áreas del catálogo",
       "catalog": "Mi Catálogo",
-      "coverage": "Cobertura"
+      "coverage": "Cobertura",
+      "settings": "Configuración de venta"
     },
     "stats": {
       "totalOffers": "Total de ofertas",
@@ -4091,7 +4092,6 @@
       "currencyHelper": "La moneda no puede cambiarse después de publicar",
       "priceLabel": "Precio ({{currency}})",
       "setupLabel": "Setup / NRC",
-      "setupPlaceholder": "Ej.: R$ 500,00 · o 0 sin setup",
       "stockLabel": "Disponibilidad / Stock",
       "stockPlaceholder": "Ej.: 2 (disponibles) o vacío para bajo consulta",
       "cancellationLabel": "Condiciones de cancelación",
@@ -4099,7 +4099,8 @@
       "validUntilLabel": "Vigencia de la oferta",
       "validUntilHelper": "Déjalo vacío para vigencia indefinida",
       "sponsoredLabel": "Patrocinar oferta",
-      "sponsoredDescription": "Destacada en la parte superior de los resultados · inversión adicional"
+      "sponsoredDescription": "Destacada en la parte superior de los resultados · inversión adicional",
+      "setupHelper": "Tarifa única de instalación. Déjelo vacío si no hay."
     },
     "review": {
       "moderationNotice": "Una oferta irregular (información falsa, precio irreal, cobertura divergente) puede ser removida con impacto en el score. Los sellers no pueden duplicar ofertas en la misma categoría.",
@@ -4188,7 +4189,22 @@
       "bound": "Vinculada",
       "processing": "La geo-api importa el KMZ antes de responder. Los archivos grandes tardan algunos minutos: mantén esta página abierta.",
       "listLoading": "Cargando los KMZ de la organización...",
-      "listEmpty": "Aún no se envió ningún KMZ. Envía uno para usarlo en esta oferta."
+      "listEmpty": "Aún no se envió ningún KMZ. Envía uno para usarlo en esta oferta.",
+      "confirm": {
+        "title": "Confirmar envío del KMZ",
+        "mb": "{{value}} MB",
+        "fileSize": "Tamaño del archivo",
+        "required": "Espacio que usará la importación",
+        "usage": "Uso actual de la cuota",
+        "usageValue": "{{used}} de {{quota}}",
+        "availableAfter": "Saldo después del envío",
+        "alreadyImported": "La organización ya importó este archivo: el envío no ocupa espacio nuevo.",
+        "shortfall": "El KMZ no cabe en la cuota: faltan {{value}}. Elimine versiones antiguas o contacte a Neutra+ para ampliar el almacenamiento.",
+        "notReserved": "La vista previa no reserva espacio. Si otro envío usa la cuota antes, este puede ser rechazado.",
+        "cancel": "Cancelar",
+        "submit": "Enviar KMZ",
+        "previewing": "Calculando el espacio que usará el KMZ..."
+      }
     },
     "preview": {
       "title": "Vista previa del marketplace",
@@ -4609,7 +4625,9 @@
       "failed": "No fue posible vincular la cobertura ahora. Inténtalo de nuevo en unos instantes.",
       "invalid": "La cobertura fue rechazada: verifica que el KMZ sea de tu organización y que el área dibujada esté dentro de él.",
       "scopeUnavailable": "No fue posible cargar el recorte guardado de la cobertura. El mapa muestra toda el área del KMZ; confirma de nuevo solo si quieres cambiar el recorte.",
-      "pointsInvalid": "Revisa las ubicaciones de atención: cada dirección elegida necesita un radio entre 1 y 80 km."
+      "pointsInvalid": "Revisa las ubicaciones de atención: cada dirección elegida necesita un radio entre 1 y 80 km.",
+      "pointOutside": "La localidad {{number}} queda fuera del KMZ elegido. Cambie la dirección, reduzca el radio o elija otro KMZ.",
+      "pointsOutside": "Una de las localidades queda fuera del KMZ elegido. Revise las direcciones y los radios."
     },
     "loadingScope": "Cargando el recorte guardado..."
   },
@@ -6493,6 +6511,144 @@
       "empty": "Aún no hay productos en el catálogo.",
       "emptyFiltered": "Ningún producto en esta categoría.",
       "retry": "Intentar de nuevo"
+    }
+  },
+  "SellerPaymentAccount": {
+    "title": "Cuenta de cobro",
+    "subtitle": "Cuenta Stripe Connect de la organización. Sin ella activa, sus ofertas no entran al checkout y no hay transferencias.",
+    "loading": "Verificando la cuenta en Stripe...",
+    "retry": "Intentar de nuevo",
+    "state": {
+      "active": {
+        "title": "Cuenta activa",
+        "description": "Puede vender y recibir las transferencias."
+      },
+      "pending": {
+        "title": "Registro incompleto en Stripe",
+        "description": "Termine el registro en Stripe para vender y cobrar. Si acaba de volver de Stripe, actualice el estado."
+      },
+      "none": {
+        "title": "Ninguna cuenta de cobro",
+        "description": "Active la cuenta en Stripe para que los compradores puedan pagar sus ofertas."
+      }
+    },
+    "flags": {
+      "charges": {
+        "on": "Cobros habilitados",
+        "off": "Cobros pendientes"
+      },
+      "payouts": {
+        "on": "Transferencias habilitadas",
+        "off": "Transferencias pendientes"
+      }
+    },
+    "emailLabel": "Correo de la cuenta en Stripe",
+    "emailHelper": "Stripe usa este correo para contactar a la organización.",
+    "start": "Activar en Stripe",
+    "continue": "Continuar en Stripe",
+    "refresh": "Actualizar estado",
+    "ownerOnly": "Solo el Dueño de la organización configura la cuenta de cobro.",
+    "mfaReason": "Para cambiar la cuenta de cobro, confirme el código de su app autenticadora.",
+    "errors": {
+      "loadFailed": "No fue posible leer el estado de la cuenta en Stripe.",
+      "ownerOnly": "Solo el Dueño de la organización puede configurar la cuenta de cobro.",
+      "notStarted": "El registro en Stripe aún no comenzó. Use Activar en Stripe.",
+      "stripeUnavailable": "Stripe no respondió. Intente de nuevo en unos minutos.",
+      "failed": "No fue posible comunicarse con Stripe. Intente de nuevo."
+    }
+  },
+  "MfaStepUp": {
+    "title": "Confirme con la app autenticadora",
+    "codeLabel": "Código de 6 dígitos",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "errors": {
+      "invalidCode": "Código incorrecto o ya usado. Ingrese el próximo código de la app.",
+      "enrollmentRequired": "Active la app autenticadora en Mi Perfil antes de continuar.",
+      "rateLimited": "Demasiados intentos. Espere unos minutos e intente de nuevo.",
+      "sessionExpired": "Su sesión terminó. Inicie sesión de nuevo para continuar.",
+      "failed": "No fue posible confirmar el código. Intente de nuevo."
+    }
+  },
+  "SellerSalesSettings": {
+    "title": "Configuración de venta",
+    "subtitle": "Plazos de atención y aceptación de pedidos de la organización.",
+    "loading": "Cargando...",
+    "retry": "Intentar de nuevo",
+    "saved": "Guardado.",
+    "sla": {
+      "title": "Plazos de atención (SLA)",
+      "description": "Valen para los próximos tickets y órdenes de servicio. Los registros anteriores mantienen el plazo con el que se abrieron.",
+      "firstLabel": "Primera respuesta (horas)",
+      "firstHelper": "Tiempo máximo para responder un ticket abierto.",
+      "resolutionLabel": "Resolución (horas)",
+      "resolutionHelper": "Tiempo máximo para resolver. No puede ser menor que la primera respuesta.",
+      "save": "Guardar plazos",
+      "readOnly": "Solo quien tiene permiso para cambiar el SLA edita estos plazos."
+    },
+    "autoAccept": {
+      "title": "Aceptación automática",
+      "description": "Vale para todos los pedidos pagados de productos físicos (Hardware / CPE). Los servicios siguen con aceptación manual.",
+      "label": "Aceptar pedidos de productos físicos automáticamente",
+      "on": "Activado: los pedidos pagados quedan aceptados, sin esperar el SLA de aceptación.",
+      "off": "Desactivado: cada pedido espera su aceptación dentro del SLA de aceptación.",
+      "noPermission": "Su rol no acepta pedidos, así que no configura la aceptación automática."
+    },
+    "errors": {
+      "loadFailed": "No fue posible cargar esta configuración.",
+      "permission": "Su usuario no tiene permiso para cambiar esta configuración.",
+      "slaOrder": "La resolución no puede ser menor que la primera respuesta.",
+      "saveFailed": "No fue posible guardar. Intente de nuevo.",
+      "conflict": "Otra persona acaba de cambiar la aceptación automática. Revise el valor actual e intente de nuevo."
+    }
+  },
+  "SellerOfferPrices": {
+    "title": "Precios",
+    "subtitle": "Rangos de cantidad e historial. Todos los precios activos usan la moneda de la oferta ({{currency}}).",
+    "showHistory": "Mostrar historial",
+    "loading": "Cargando los precios...",
+    "retry": "Intentar de nuevo",
+    "empty": "Ningún precio registrado.",
+    "columns": {
+      "type": "Tipo",
+      "range": "Cantidad",
+      "amount": "Valor",
+      "validity": "Vigencia",
+      "actions": "Acciones"
+    },
+    "types": {
+      "recurring": "Mensual",
+      "one_time": "Tarifa única",
+      "full_purchase": "Al contado"
+    },
+    "range": "{{min}} a {{max}}",
+    "rangeOpen": "Desde {{min}}",
+    "since": "Desde {{date}}",
+    "between": "{{from}} a {{to}}",
+    "newAmount": "Nuevo valor",
+    "edit": "Cambiar valor",
+    "end": "Finalizar",
+    "confirmEnd": "Finalizar precio",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "add": {
+      "title": "Agregar precio",
+      "type": "Tipo",
+      "amount": "Valor ({{currency}})",
+      "minQuantity": "Desde (cantidad)",
+      "maxQuantity": "Hasta (cantidad)",
+      "noMax": "Sin límite",
+      "hint": "Los rangos del mismo tipo no pueden superponerse: cierre el rango actual con un límite antes de crear el siguiente.",
+      "submit": "Agregar precio"
+    },
+    "errors": {
+      "loadFailed": "No fue posible cargar los precios.",
+      "overlap": "Este rango se superpone con otro del mismo tipo. Ajuste las cantidades o cierre el rango actual antes.",
+      "currencyMismatch": "Los precios de una oferta usan una sola moneda.",
+      "invalid": "Precio inválido: revise el valor y el rango (el fin no puede ser menor que el inicio; hasta 50 precios activos).",
+      "priceRequired": "Una oferta publicada necesita un precio mensual o al contado para 1 unidad.",
+      "permission": "Su usuario no tiene permiso para cambiar precios.",
+      "failed": "No fue posible guardar el precio. Intente de nuevo."
     }
   }
 }
