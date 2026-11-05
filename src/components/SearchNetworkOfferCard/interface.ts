@@ -54,5 +54,6 @@ export interface SearchNetworkOfferCardProps {
   /** Preço anterior, riscado acima do atual. */
   previousPrice?: string;
   addHref: string;
-  proposalHref: string;
+  /** Abre o modal "Nova Proposta" da oferta. */
+  onPropose: () => void;
 }

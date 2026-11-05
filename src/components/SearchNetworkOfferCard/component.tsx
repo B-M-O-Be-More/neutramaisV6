@@ -63,7 +63,8 @@ function CoverBadge({
 /**
  * Card de oferta da busca de redes: capa da categoria, provedor (reputação e
  * KYC), tipo de serviço e abrangência, destaque técnico, indicadores, preço e
- * as ações "Adicionar" e "Fazer Proposta" — sempre na base do card.
+ * as ações "Adicionar" e "Fazer Proposta" — sempre na base do card. "Fazer
+ * Proposta" abre o modal de proposta direta da oferta.
  */
 export function SearchNetworkOfferCard({
   category,
@@ -79,7 +80,7 @@ export function SearchNetworkOfferCard({
   priceSuffix,
   previousPrice,
   addHref,
-  proposalHref,
+  onPropose,
 }: SearchNetworkOfferCardProps) {
   const { t } = useTranslation();
   const palette = OFFER_CATEGORY_PALETTE[category];
@@ -407,7 +408,6 @@ export function SearchNetworkOfferCard({
             </NextLink>
           </Button>
           <Button
-            asChild
             variant="plain"
             flex="1"
             h="40px"
@@ -418,11 +418,10 @@ export function SearchNetworkOfferCard({
             fontSize="12px"
             fontWeight={700}
             _hover={{ bg: "#7C4DEB" }}
+            onClick={onPropose}
           >
-            <NextLink href={proposalHref}>
-              <Icon as={LuFileText} boxSize="12px" />
-              {t("SearchNetwork.catalog.card.propose")}
-            </NextLink>
+            <Icon as={LuFileText} boxSize="12px" />
+            {t("SearchNetwork.catalog.card.propose")}
           </Button>
         </Flex>
       </Stack>

@@ -6,6 +6,7 @@ import { LuShieldCheck, LuUserPlus } from "react-icons/lu";
 
 import FormPlatformInvite from "@/components/Forms/FormPlatformInvite";
 import AuthenticatedLayout from "@/components/Layouts/Authenticated";
+import RequirePermission from "@/components/RequirePermission";
 import { useInvitePlatformOperator } from "@/hooks/useInvitePlatformOperator";
 
 function PlatformInvitesContent() {
@@ -107,10 +108,13 @@ function PlatformInvitesContent() {
 
 // Convite de operadores da plataforma (super_admin + MFA). O backend envia o
 // e-mail; o convidado conclui o cadastro pelo link, em /accept/#token=...
+// Só para admin da plataforma; a API ainda exige super_admin com MFA.
 export default function PlatformInvitesPage() {
   return (
     <AuthenticatedLayout>
-      <PlatformInvitesContent />
+      <RequirePermission role="admin">
+        <PlatformInvitesContent />
+      </RequirePermission>
     </AuthenticatedLayout>
   );
 }

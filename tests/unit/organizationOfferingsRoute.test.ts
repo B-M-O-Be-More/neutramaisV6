@@ -41,7 +41,7 @@ describe("GET /api/productCatalog/productOffering", () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it("repassa só offset e limit e anexa o Bearer do cookie", async () => {
+  it("repassa só a paginação e os filtros conhecidos e anexa o Bearer do cookie", async () => {
     jar = { access_token: ACCESS_TOKEN };
 
     const response = await GET(request("?offset=20&limit=10&foo=bar"));
@@ -53,6 +53,17 @@ describe("GET /api/productCatalog/productOffering", () => {
     );
     expect(init.method).toBe("GET");
     expect(init.headers.Authorization).toBe(`Bearer ${ACCESS_TOKEN}`);
+  });
+
+  it("repassa os filtros do catálogo do seller (status, nome, especificação)", async () => {
+    await GET(
+      request("?status=paused&name=fibra&specificationId=spec-1&isPromoted=1"),
+    );
+
+    const [url] = fetchMock.mock.calls[0];
+    expect(url).toBe(
+      "https://upstream.test/marketplace/api/v2/productCatalog/productOffering?status=paused&name=fibra&specificationId=spec-1",
+    );
   });
 
   it("sem sessão não envia Authorization e devolve o status do upstream", async () => {

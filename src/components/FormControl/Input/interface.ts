@@ -1,10 +1,15 @@
-import { InputProps as ChakraInputProps } from "@chakra-ui/react";
+import {
+  InputProps as ChakraInputProps,
+  FieldLabelProps,
+} from "@chakra-ui/react";
 import { ReactNode } from "react";
 
 // Omitimos o `mask` do Chakra (prop de estilo/SVG) para usar o da máscara (react-imask).
 export interface InputProps extends Omit<ChakraInputProps, "mask"> {
   /** Texto exibido acima do campo. */
   label?: string;
+  /** Estilo do rótulo quando a tela pede outro (cor, tamanho). */
+  labelProps?: Omit<FieldLabelProps, "htmlFor" | "children">;
   /** Elemento exibido à direita, na mesma linha do rótulo (ex.: "Esqueceu a senha?"). */
   labelEnd?: ReactNode;
   /** Mensagem de erro inline (geralmente errors.campo?.message do RHF). */

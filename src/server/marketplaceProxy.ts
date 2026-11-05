@@ -8,10 +8,14 @@ import "server-only";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { ACCESS_TOKEN_COOKIE } from "./authCookies";
-import { envelopeError } from "./identityProxy";
+import { apiBaseUrl, missingApiUrlMessage } from "./apiBaseUrl";
+import {
+  ACCESS_TOKEN_COOKIE,
+  PROFILE_ACCESS_TOKEN_COOKIE,
+} from "./authCookies";
+import { CORRELATION_ID_HEADER, envelopeError } from "./identityProxy";
 
-const MARKETPLACE_API_URL = process.env.MARKETPLACE_API_URL;
+const MARKETPLACE_API_URL = apiBaseUrl("marketplace");
 
 type QueryValue = string | number | boolean | null | undefined;
 
@@ -29,6 +33,25 @@ export interface MarketplaceForwardOptions {
    * derruba uma consulta que não exige autenticação.
    */
   authenticated?: boolean;
+  /**
+   * Envia o token da sessão de perfil (Seller), com o do login como reserva:
+   * rotas em que a marketplace-api confere o contexto do perfil (ex.: editar
+   * a oferta). Implica `authenticated`.
+   */
+  profileSession?: boolean;
+}
+
+async function resolveMarketplaceBearer(
+  authenticated: boolean,
+  profileSession: boolean,
+): Promise<string | undefined> {
+  if (!authenticated && !profileSession) return undefined;
+  const store = await cookies();
+  return (
+    (profileSession
+      ? store.get(PROFILE_ACCESS_TOKEN_COOKIE)?.value
+      : undefined) ?? store.get(ACCESS_TOKEN_COOKIE)?.value
+  );
 }
 
 function buildQueryString(params?: Record<string, QueryValue>): string {
@@ -43,6 +66,25 @@ function buildQueryString(params?: Record<string, QueryValue>): string {
 }
 
 /**
+ * A marketplace-api recusa token vencido ou inválido com 403 "Invalid access
+ * token", sem `code` — o mesmo status da falta de permissão. Vira 401 para o
+ * front renovar a sessão e repetir; 403 com `code` (ex.:
+ * `MKT_PERMISSION_REQUIRED`) segue 403.
+ */
+function isExpiredTokenRefusal(status: number, text: string): boolean {
+  if (status !== 403) return false;
+  try {
+    const body = JSON.parse(text) as {
+      message?: unknown;
+      metadata?: { code?: unknown } | null;
+    };
+    return body.message === "Invalid access token" && !body.metadata?.code;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Encaminha uma requisição para a marketplace-api e devolve a resposta upstream
  * (corpo + status) sem alterar o envelope. Erros de infraestrutura viram
  * envelopes de erro tipados.
@@ -53,19 +95,18 @@ export async function forwardToMarketplace({
   params,
   body,
   authenticated = false,
+  profileSession = false,
 }: MarketplaceForwardOptions): Promise<NextResponse> {
   if (!MARKETPLACE_API_URL) {
     return envelopeError(
       500,
       "MARKETPLACE_API_URL_MISSING",
-      "MARKETPLACE_API_URL não configurada no ambiente.",
+      missingApiUrlMessage("marketplace"),
     );
   }
 
   const hasBody = body !== undefined && method !== "GET" && method !== "DELETE";
-  const bearer = authenticated
-    ? (await cookies()).get(ACCESS_TOKEN_COOKIE)?.value
-    : undefined;
+  const bearer = await resolveMarketplaceBearer(authenticated, profileSession);
 
   try {
     const upstream = await fetch(
@@ -83,15 +124,25 @@ export async function forwardToMarketplace({
       },
     );
 
+    // O suporte rastreia a chamada pelo X-Correlation-ID.
+    const correlationId = upstream.headers.get(CORRELATION_ID_HEADER);
+    const correlation: Record<string, string> = correlationId
+      ? { [CORRELATION_ID_HEADER]: correlationId }
+      : {};
+
     if (upstream.status === 204) {
-      return new NextResponse(null, { status: 204 });
+      return new NextResponse(null, { status: 204, headers: correlation });
     }
 
-    return new NextResponse(await upstream.text(), {
-      status: upstream.status,
+    const text = await upstream.text();
+    return new NextResponse(text, {
+      status: isExpiredTokenRefusal(upstream.status, text)
+        ? 401
+        : upstream.status,
       headers: {
         "Content-Type":
           upstream.headers.get("Content-Type") ?? "application/json",
+        ...correlation,
       },
     });
   } catch (error) {
@@ -103,4 +154,20 @@ export async function forwardToMarketplace({
       }`,
     );
   }
+}
+
+/**
+ * Copia do corpo só os campos do contrato — a marketplace-api ignora campos
+ * desconhecidos na maioria das rotas, mas o BFF não repassa nada além do
+ * esperado. Corpo que não é objeto vira `{}` (o upstream responde 422).
+ */
+export function pickBody(
+  body: unknown,
+  allowed: readonly string[],
+): Record<string, unknown> {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return {};
+  const source = body as Record<string, unknown>;
+  return Object.fromEntries(
+    allowed.filter((key) => key in source).map((key) => [key, source[key]]),
+  );
 }

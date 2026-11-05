@@ -19,6 +19,10 @@ import { LuMenu } from "react-icons/lu";
 
 import AppSidebar from "@/components/AppSidebar";
 import { SessionProvider, useSession } from "@/contexts/SessionContext";
+import {
+  readSidebarCollapsed,
+  saveSidebarCollapsed,
+} from "@/functions/sidebarPreferences";
 
 import { AuthenticatedLayoutProps } from "./interface";
 
@@ -69,26 +73,54 @@ function SessionGate() {
   );
 }
 
-function AuthenticatedShell({ children, badges }: AuthenticatedLayoutProps) {
+function AuthenticatedShell({
+  children,
+  badges,
+  bare = false,
+}: AuthenticatedLayoutProps) {
   const { t } = useTranslation();
   const { status, profile, personas } = useSession();
   const [isDrawerOpen, setDrawerOpen] = React.useState(false);
+  // No SSR vale "aberta"; não há divergência na hidratação porque a sidebar só
+  // aparece depois do /me (até lá, os dois lados renderizam o SessionGate).
+  const [isSidebarCollapsed, setSidebarCollapsed] =
+    React.useState(readSidebarCollapsed);
+
+  const toggleSidebar = () => {
+    const next = !isSidebarCollapsed;
+    saveSidebarCollapsed(next);
+    setSidebarCollapsed(next);
+  };
 
   // Nada da área autenticada aparece antes de o /me confirmar a sessão.
   if (status !== "authenticated" || !profile) return <SessionGate />;
+  if (bare) return <>{children}</>;
 
   const user = { name: profile.display_name, personas };
 
   return (
-    <Flex w="full" minH="100dvh" bg="bg.page">
+    // Recolhida, a sidebar vira só a marca no topo e a página ocupa a
+    // largura toda abaixo dela (Figma 2709-50807).
+    <Flex
+      w="full"
+      minH="100dvh"
+      bg="bg.page"
+      direction={{ base: "row", lg: isSidebarCollapsed ? "column" : "row" }}
+    >
       <Box
         display={{ base: "none", lg: "block" }}
-        position="sticky"
+        position={isSidebarCollapsed ? "static" : "sticky"}
         top={0}
-        h="100dvh"
+        alignSelf="flex-start"
+        h={isSidebarCollapsed ? "auto" : "100dvh"}
         flexShrink={0}
       >
-        <AppSidebar user={user} badges={badges} />
+        <AppSidebar
+          user={user}
+          badges={badges}
+          collapsed={isSidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
+        />
       </Box>
 
       <Flex direction="column" flex="1" minW={0}>
@@ -154,10 +186,16 @@ function AuthenticatedShell({ children, badges }: AuthenticatedLayoutProps) {
  * renderiza a navegação lateral (fixa no desktop; em drawer abaixo de `lg`) e
  * o conteúdo. Os filhos podem usar `useSession()` para ler o usuário.
  */
-function AuthenticatedLayout({ children, badges }: AuthenticatedLayoutProps) {
+function AuthenticatedLayout({
+  children,
+  badges,
+  bare,
+}: AuthenticatedLayoutProps) {
   return (
     <SessionProvider>
-      <AuthenticatedShell badges={badges}>{children}</AuthenticatedShell>
+      <AuthenticatedShell badges={badges} bare={bare}>
+        {children}
+      </AuthenticatedShell>
     </SessionProvider>
   );
 }

@@ -5,6 +5,7 @@ import {
   detectServiceType,
   filterOfferings,
   toOfferCardProps,
+  toProposalOffer,
 } from "@/components/SearchNetworkCatalog/offerings";
 import { DEFAULT_SEARCH_NETWORK_FILTERS } from "@/components/SearchNetworkFilters";
 import type { ProductOffering } from "@/services/productCatalog.service";
@@ -124,8 +125,8 @@ describe("toOfferCardProps", () => {
       value: "SearchNetwork.catalog.card.free",
       tone: "success",
     });
-    expect(props.proposalHref).toBe(
-      "/proposals/new?offeringId=7f3c2b1a-9e8d-4c7b-a6f5-4e3d2c1b0a99",
+    expect(props.addHref).toBe(
+      "/cart?offeringId=7f3c2b1a-9e8d-4c7b-a6f5-4e3d2c1b0a99",
     );
     expect(props.seller).toBeUndefined();
   });
@@ -140,5 +141,42 @@ describe("toOfferCardProps", () => {
       label: "SearchNetwork.catalog.card.sla",
       value: "99,5%",
     });
+  });
+});
+
+describe("toProposalOffer", () => {
+  it("leva título, abrangência e preço ao banner, e a vigência da oferta", () => {
+    const offer = toProposalOffer(offering(), t, "pt-BR");
+
+    expect(offer).toMatchObject({
+      id: "7f3c2b1a-9e8d-4c7b-a6f5-4e3d2c1b0a99",
+      title: "Fibra 500 Mega Empresarial",
+      minPorts: 1,
+      contractMonths: 12,
+    });
+    expect(offer.subtitle.replace(/\s/g, " ")).toBe(
+      'Marketplace.offers.capital:{"state":"SP"} · R$ 1.990,00Marketplace.offers.perMonth',
+    );
+  });
+
+  it("usa o mínimo de portas da especificação e 12 meses sem vigência", () => {
+    const offer = toProposalOffer(
+      offering({ metadata: { minPorts: 10 }, durationMonths: null }),
+      t,
+      "pt-BR",
+    );
+
+    expect(offer.minPorts).toBe(10);
+    expect(offer.contractMonths).toBe(12);
+  });
+
+  it("ignora mínimo de portas inválido", () => {
+    const offer = toProposalOffer(
+      offering({ metadata: { minPorts: "dez" } }),
+      t,
+      "pt-BR",
+    );
+
+    expect(offer.minPorts).toBe(1);
   });
 });

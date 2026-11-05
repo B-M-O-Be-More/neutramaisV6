@@ -481,7 +481,14 @@
         "email": {
           "title": "Verificar e-mail",
           "fallback": "seu@email.com",
-          "hint": "Link de verificação enviado para este e-mail. Não recebeu? Verifique a pasta de spam. O link só pode ser usado uma vez."
+          "hint": "Link de verificação enviado para este e-mail. Não recebeu? Verifique a pasta de spam. O link só pode ser usado uma vez.",
+          "resend": "Reenviar e-mail",
+          "resent": "Enviamos um novo link. O anterior deixou de valer.",
+          "errors": {
+            "missingUser": "Não foi possível identificar o cadastro. Faça login novamente para receber um novo link.",
+            "resend": "Não foi possível reenviar o e-mail. Tente novamente.",
+            "rateLimit": "Muitos reenvios. Aguarde alguns minutos e tente de novo."
+          }
         },
         "phone": {
           "title": "Verificar telefone",
@@ -2427,10 +2434,19 @@
       "emptyCategory": "Nenhuma oferta de {{category}} disponível no momento."
     }
   },
+  "SellerSession": {
+    "loading": "Abrindo o perfil Seller",
+    "forbidden": "Seu usuário não tem o perfil Seller liberado nesta organização.",
+    "unavailable": "O serviço de autenticação está temporariamente indisponível. Tente de novo em instantes.",
+    "error": "Não foi possível abrir o perfil Seller.",
+    "retry": "Tentar de novo"
+  },
   "AppSidebar": {
     "logoAlt": "Neutra+",
     "navLabel": "Navegação principal",
     "openMenu": "Abrir menu",
+    "collapse": "Recolher menu",
+    "expand": "Expandir menu",
     "personas": {
       "buyer": "Buyer · Comprador",
       "seller": "Seller · Vendedor",
@@ -2445,19 +2461,28 @@
       "marketplace": "Marketplace",
       "finance": "Financeiro",
       "catalog": "Catálogo",
+      "sales": "Vendas",
       "sellerFinance": "Financeiro Seller",
       "onboarding": "Onboarding",
       "account": "Conta",
-      "platform": "Plataforma"
+      "platform": "Plataforma",
+      "management": "Gestão",
+      "support": "Suporte"
     },
     "items": {
       "searchNetwork": "Buscar Rede",
       "myNetworks": "Minhas Redes",
       "wallet": "Carteira",
       "sellerOffers": "Minhas Ofertas",
+      "receivedOrders": "Pedidos Recebidos",
       "profile": "Meu Perfil",
       "kyc": "KYC",
-      "platformInvites": "Operadores"
+      "platformInvites": "Operadores",
+      "contracts": "Contratos",
+      "returns": "Devoluções",
+      "tickets": "Tickets",
+      "questions": "Perguntas",
+      "serviceOrders": "Ordens de Serviço"
     },
     "user": {
       "menu": "Menu do usuário",
@@ -2619,12 +2644,108 @@
         "add": "Adicionar",
         "propose": "Fazer Proposta"
       }
+    },
+    "proposal": {
+      "titles": {
+        "form": "Nova Proposta",
+        "review": "Revisar proposta",
+        "done": "Proposta enviada!"
+      },
+      "subtitle": "Enviando proposta ao provedor desta oferta",
+      "detailsTitle": "Detalhes da Proposta",
+      "requiredTitle": "Dados obrigatórios da proposta",
+      "fields": {
+        "street": "Endereço",
+        "number": "Número",
+        "postalCode": "CEP",
+        "ports": "Quantidade de Portas",
+        "contractMonths": "Vigência do Contrato",
+        "price": "Preço proposto (BRL) *",
+        "sla": "SLA técnico *",
+        "delivery": "Prazo de entrega / ativação *",
+        "cancellation": "Condições de cancelamento *",
+        "requiresSiteSurvey": "Esta proposta depende de vistoria técnica",
+        "message": "Mensagem (opcional)",
+        "attachments": "Anexos (opcional)"
+      },
+      "hints": {
+        "ports": "(Mínimo: {{count}})",
+        "contractMonths": "(em meses)"
+      },
+      "helpers": {
+        "price": "Proposta não pode mudar de moeda (BRL)"
+      },
+      "placeholders": {
+        "sla": "Ex: 99,9% de disponibilidade",
+        "delivery": "Ex: 30 dias úteis",
+        "cancellation": "Ex: 30 dias corridos, multa de 3 mensalidades",
+        "message": "Descreva detalhes adicionais da sua proposta..."
+      },
+      "dropzone": "Clique para fazer upload de arquivos",
+      "dropzoneHint": "PDF, DOCX, XLSX · máx. 10 MB por arquivo",
+      "attachmentsNote": "Não anexe documentos confidenciais — use o fluxo jurídico/NDA se necessário.",
+      "removeFile": "Remover {{name}}",
+      "cancel": "Cancelar",
+      "review": "Revisar proposta →",
+      "edit": "Editar proposta",
+      "confirm": "Confirmar e enviar",
+      "reviewNotice": "Após envio, a proposta é versionada (v1). Atualizações geram novas versões. A moeda não pode ser alterada após envio.",
+      "acceptance": "Esta proposta inclui <strong>aceite eletrônico rastreável</strong> conforme regras Neutra+. Ao confirmar, você concorda com as condições declaradas.",
+      "summary": {
+        "buyer": "Comprador",
+        "product": "Produto",
+        "address": "Endereço de entrega",
+        "addressValue": "{{street}}, {{number}} — CEP {{postalCode}}",
+        "ports": "Qtd. de portas",
+        "contract": "Vigência do contrato",
+        "months_one": "{{count}} mês",
+        "months_other": "{{count}} meses",
+        "price": "Preço proposto",
+        "sla": "SLA técnico",
+        "delivery": "Prazo de entrega",
+        "cancellation": "Condições de cancelamento",
+        "siteSurvey": "Vistoria técnica",
+        "surveyRequired": "Necessária",
+        "surveyNotRequired": "Não necessária",
+        "message": "Mensagem",
+        "attachments": "Anexos"
+      },
+      "done": {
+        "heading": "Proposta enviada com sucesso!",
+        "description": "O provedor tem até {{count}}h para aceitar. A proposta está versionada e rastreável.",
+        "id": "Proposta enviada",
+        "status": "Status",
+        "statusValue": "Aguardando seller",
+        "version": "Versão",
+        "validity": "Válida por",
+        "days_one": "{{count}} dia",
+        "days_other": "{{count}} dias",
+        "close": "Fechar",
+        "viewSent": "Ver propostas enviadas"
+      },
+      "errors": {
+        "required": "Campo obrigatório.",
+        "tooLong": "Texto muito longo.",
+        "postalCode": "Informe o CEP no formato 00000-000.",
+        "integer": "Use um número inteiro válido.",
+        "portsMin": "O mínimo desta oferta é {{min}} portas.",
+        "monthsInvalid": "Use de 1 a 120 meses.",
+        "priceInvalid": "Informe um preço maior que zero.",
+        "tooManyFiles": "Anexe no máximo 5 arquivos.",
+        "fileTooLarge": "Cada arquivo pode ter no máximo 10 MB.",
+        "sendFailed": "Não foi possível enviar a proposta. Tente de novo."
+      }
     }
   },
   "AuthenticatedLayout": {
     "loading": "Carregando sua sessão",
     "error": "Não foi possível carregar seus dados.",
     "retry": "Tentar novamente"
+  },
+  "Forbidden": {
+    "title": "Acesso restrito",
+    "description": "Esta área é exclusiva para os administradores da plataforma Neutra+. Se você precisa de acesso, fale com um super admin.",
+    "cta": "Voltar para o início"
   },
   "Admin": {
     "title": "Painel Administrativo",
@@ -2768,6 +2889,32 @@
         "sanctionsPending": "A checagem de sanções não está liberada. Para aprovar o nível {{level}}, ela precisa passar. Rode a checagem de novo para atualizar o resultado.",
         "sanctionsMatch": "A checagem de sanções encontrou um possível match. A aprovação fica bloqueada até o compliance tratar o caso.",
         "sanctionsNotSynced": "A checagem de sanções passou no Identity em {{date}}, mas a revisão ainda não recebeu o resultado. Tente de novo em instantes."
+      },
+      "sanctionsMatches": {
+        "title": "Ocorrências nas listas de sanções",
+        "subtitle": "A checagem compara a razão social e o documento da organização com as listas OFAC, ONU e BACEN. Sócios e arquivos do KYC não entram na comparação.",
+        "empty": "Nenhuma ocorrência registrada. A reprovação pode vir de uma lista que não respondeu ou está desatualizada. Rode a checagem de novo.",
+        "checkedAt": "Checado em {{date}}",
+        "stale": "resultado desatualizado",
+        "reasons": {
+          "document": "O documento {{taxId}} consta na lista",
+          "name": "Razão social \"{{name}}\" parecida com um nome da lista ({{score}}% de semelhança)",
+          "unknown": "Possível ocorrência, sem score informado"
+        },
+        "sources": {
+          "ofac": "OFAC",
+          "un": "ONU",
+          "bacen": "BACEN"
+        },
+        "dispositions": {
+          "pending_review": "Aguardando compliance",
+          "confirmed": "Confirmada",
+          "false_positive": "Falso positivo"
+        },
+        "errors": {
+          "forbidden": "Seu usuário não tem permissão para ver as ocorrências de sanções (sanctions:read_matches).",
+          "loadFailed": "Não foi possível carregar as ocorrências de sanções."
+        }
       },
       "actions": {
         "view": "Visualizar",
@@ -2949,6 +3096,132 @@
         "storage_unavailable": "O armazenamento de arquivos está indisponível. Tente em instantes.",
         "database_unavailable": "O Compliance está indisponível. Tente em instantes."
       }
+    },
+    "users": {
+      "notice": "Suspensão e reativação são auditadas automaticamente. Contas admin só podem ser gerenciadas pelo Super Admin. Exclusão permanente exige aprovação do Jurídico.",
+      "tableLabel": "Organizações da plataforma",
+      "columns": {
+        "organization": "Organização",
+        "type": "Tipo",
+        "createdAt": "Cadastro",
+        "status": "Status",
+        "kyc": "KYC",
+        "actions": "Ações"
+      },
+      "types": {
+        "buyer": "Buyer",
+        "seller": "Seller",
+        "platform_operator": "Interna"
+      },
+      "statuses": {
+        "pending": "Pendente",
+        "active": "Ativa",
+        "suspended": "Suspensa",
+        "anonymized": "Anonimizada",
+        "taken_down": "Removida"
+      },
+      "count": "{{shown}}/{{total}}",
+      "open": "Abrir {{name}}",
+      "showMore_one": "Mostrar mais {{count}}",
+      "showMore_other": "Mostrar mais {{count}}",
+      "loading": "Carregando organizações",
+      "empty": "Nenhuma organização com este status.",
+      "noMatches": "Nenhuma organização encontrada com estes filtros.",
+      "retry": "Tentar de novo",
+      "errors": {
+        "forbidden": "Seu usuário não tem permissão para listar as organizações.",
+        "failed": "Não foi possível carregar as organizações."
+      }
+    },
+    "organizationDetail": {
+      "back": "Organizações",
+      "breadcrumb": "Caminho da página",
+      "loading": "Carregando organização",
+      "retry": "Tentar de novo",
+      "summary": "KYC: {{level}} · cadastro em {{date}}",
+      "counters": {
+        "users": "Usuários",
+        "active": "Ativos",
+        "suspended": "Suspensos"
+      },
+      "storage": {
+        "label": "Cota de armazenamento",
+        "used": "{{used}} usados"
+      },
+      "updateQuota": "Atualizar cotas",
+      "info": {
+        "title": "{{name}} · Informações da empresa",
+        "collapse": "Recolher informações da empresa",
+        "expand": "Mostrar informações da empresa",
+        "fields": {
+          "legalName": "Razão social",
+          "tradeName": "Nome fantasia",
+          "taxId": "Documento",
+          "contactEmail": "E-mail de contato",
+          "country": "País",
+          "kyc": "KYC",
+          "status": "Status",
+          "createdAt": "Cadastro em",
+          "suspendedReason": "Motivo da suspensão"
+        }
+      },
+      "kycStates": {
+        "pending": "pendente",
+        "basic": "básico",
+        "verified": "verificado",
+        "complete": "completo",
+        "approved": "aprovado",
+        "pending_documents": "documentos pendentes",
+        "suspended": "suspenso",
+        "rejected": "reprovado",
+        "under_review": "em revisão"
+      },
+      "members": {
+        "search": "Buscar usuário",
+        "searchPlaceholder": "Buscar usuário ou e-mail nesta organização",
+        "tableLabel": "Usuários da organização",
+        "loading": "Carregando usuários",
+        "joinedAt": "Entrou em {{date}}",
+        "empty": "Nenhum usuário nesta organização.",
+        "noMatches": "Nenhum usuário encontrado com esta busca.",
+        "columns": {
+          "user": "Usuário",
+          "email": "E-mail",
+          "role": "Papel",
+          "status": "Status"
+        },
+        "statuses": {
+          "active": "Ativo",
+          "suspended": "Suspenso",
+          "pending": "Pendente",
+          "revoked": "Removido"
+        },
+        "errors": {
+          "forbidden": "A identity-api ainda não libera os usuários de outra organização para o painel admin.",
+          "notFound": "Organização não encontrada.",
+          "failed": "Não foi possível carregar os usuários."
+        }
+      },
+      "roles": {
+        "org_owner": "Dono",
+        "org_admin": "Administrador",
+        "buyer_owner": "Dono",
+        "buyer_purchaser": "Compras",
+        "buyer_finance": "Financeiro",
+        "buyer_technical": "Técnico",
+        "buyer_support": "Suporte",
+        "seller_owner": "Dono",
+        "seller_commercial": "Comercial",
+        "seller_finance": "Financeiro",
+        "seller_operations": "Operações",
+        "seller_support": "Suporte",
+        "seller_technical": "Técnico"
+      },
+      "errors": {
+        "notFound": "Organização não encontrada.",
+        "forbidden": "Seu usuário não tem permissão para ver esta organização.",
+        "failed": "Não foi possível carregar a organização."
+      }
     }
   },
   "Kyc": {
@@ -3100,6 +3373,3525 @@
       "rateLimit": "Muitas tentativas. Aguarde um pouco e tente de novo.",
       "invalid": "Dados recusados. Confira os campos e tente de novo.",
       "inviteFailed": "Não foi possível enviar o convite. Tente de novo."
+    }
+  },
+  "SellerOffers": {
+    "title": "Minhas Ofertas",
+    "subtitle": "Gerencie o ciclo de vida das suas ofertas · moderação reativa · auto-publicação para sellers aprovados",
+    "newOffer": "Nova Oferta",
+    "tabs": {
+      "label": "Áreas do catálogo",
+      "catalog": "Meu Catálogo",
+      "coverage": "Cobertura",
+      "settings": "Configurações de venda"
+    },
+    "stats": {
+      "totalOffers": "Total de ofertas",
+      "views": "Visualizações",
+      "orders": "Pedidos gerados",
+      "revenue": "Receita total",
+      "publishedCaption_one": "{{count}} publicada",
+      "publishedCaption_other": "{{count}} publicadas"
+    },
+    "filters": {
+      "search": "Buscar oferta",
+      "searchPlaceholder": "Buscar oferta...",
+      "category": "Categoria",
+      "statusLabel": "Status da oferta",
+      "statuses": {
+        "all": "Todas",
+        "published": "Publicada",
+        "paused": "Pausadas",
+        "draft": "Rascunhos",
+        "unpublished": "Despublicadas",
+        "archived": "Arquivadas"
+      }
+    },
+    "list": {
+      "empty": "Sem Itens no catálogo",
+      "emptyFiltered": "Nenhuma oferta encontrada com esses filtros",
+      "error": "Não foi possível carregar suas ofertas.",
+      "retry": "Tentar de novo",
+      "previous": "Anterior",
+      "next": "Próxima",
+      "page": "Página {{page}} de {{total}}"
+    },
+    "card": {
+      "promoted": "Patrocinada",
+      "publishedWithoutCoverage": "Publicada sem cobertura: a oferta pode fazer a busca por região falhar. Vincule uma cobertura (KMZ).",
+      "createdAt": "Criada {{date}}",
+      "perMonth": "{{price}}/mês",
+      "statuses": {
+        "draft": "Rascunho",
+        "published": "Publicada",
+        "paused": "Pausada",
+        "unpublished": "Despublicada",
+        "archived": "Arquivada"
+      },
+      "metrics": {
+        "price": "Preço",
+        "views": "Views",
+        "orders": "Pedidos",
+        "revenue": "Receita"
+      },
+      "actions": {
+        "edit": "Editar",
+        "preview": "Preview",
+        "pause": "Pausar",
+        "publish": "Publicar",
+        "unpublish": "Despublicar",
+        "publishNow": "Publicar agora",
+        "republish": "Republicar",
+        "archive": "Arquivar"
+      }
+    },
+    "archive": {
+      "title": "Arquivar oferta?",
+      "description": "\"{{name}}\" sai do marketplace e não poderá mais ser editada nem republicada. Essa ação não pode ser desfeita.",
+      "cancel": "Cancelar",
+      "confirm": "Arquivar"
+    },
+    "toasts": {
+      "publish": "\"{{name}}\" publicada.",
+      "pause": "\"{{name}}\" pausada.",
+      "unpublish": "\"{{name}}\" despublicada.",
+      "archive": "\"{{name}}\" arquivada."
+    },
+    "errors": {
+      "permission": "Seu usuário não tem permissão para essa ação.",
+      "sellerNotApproved": "Sua organização ainda não foi aprovada para publicar ofertas.",
+      "kycNotVerified": "Conclua a verificação de KYC para publicar ofertas.",
+      "coverageRequired": "Vincule uma cobertura (KMZ) à oferta antes de publicar.",
+      "invalidTransition": "O status atual da oferta não permite essa ação. Atualize a página.",
+      "transitionFailed": "Não foi possível atualizar a oferta. Tente de novo.",
+      "shippingRequired": "Preencha o envio (peso, medidas e CEP de origem) em Editar oferta antes de publicar.",
+      "acceptanceSlaRequired": "Defina o SLA de aceite (de 1 a 72 horas) em Editar oferta antes de publicar.",
+      "stockRequired": "Informe o estoque disponível em Editar oferta antes de publicar.",
+      "priceRequired": "Defina o preço da oferta antes de publicar.",
+      "expired": "A vigência da oferta já terminou. Ajuste a data em Editar oferta.",
+      "ruleValuesRequired": "Preencha as regras obrigatórias da categoria para publicar."
+    }
+  },
+  "SellerOrders": {
+    "info": {
+      "title": "Caixa de Entrada Seller",
+      "description": "Gerencie pedidos pagos aguardando aceite e cotações (RFQ) de compradores elegíveis. Pedidos em escrow têm SLA de 1h a 72h. RFQs têm prazo de resposta de 72h úteis.",
+      "collapse": "Recolher explicação",
+      "expand": "Expandir explicação",
+      "dismiss": "Fechar explicação"
+    },
+    "title": "Caixa de Entrada",
+    "subtitle": "Pedidos recebidos · RFQs de compradores · aceite e propostas",
+    "tabs": {
+      "label": "Caixa de entrada",
+      "orders": "Pedidos Recebidos",
+      "rfq": "RFQs Recebidas"
+    },
+    "slaAlert": {
+      "title_one": "{{count}} pedido com SLA crítico, menos de 8h para responder!",
+      "title_other": "{{count}} pedidos com SLA crítico, menos de 8h para responder!",
+      "description": "SLA expirado sem resposta resulta em auto-recusa e impacta seu score de seller."
+    },
+    "stats": {
+      "monthTotal": "Total (mês)",
+      "awaiting": "Aguardando",
+      "accepted": "Aceitos",
+      "withIssue": "Com problema"
+    },
+    "filters": {
+      "search": "Buscar pedidos",
+      "searchPlaceholder": "Buscar por pedido, produto, CNPJ...",
+      "category": "Categoria",
+      "filterBy": "Filtrar por",
+      "statusLabel": "Status do pedido",
+      "statuses": {
+        "all": "Todas",
+        "awaiting": "Aguardando",
+        "accepted": "Aceitos",
+        "rejected": "Recusados",
+        "expired": "Expirados"
+      }
+    },
+    "empty": "Sem itens na fila de pedidos",
+    "emptyFiltered": "Nenhum pedido com esses filtros",
+    "rfq": {
+      "empty": "Sem RFQs recebidas",
+      "stats": {
+        "monthReceived": "Recebidas (mês)",
+        "pending": "Pendentes",
+        "withProposal": "Com proposta",
+        "converted": "Convertidas",
+        "closed": "Recus. / Exp."
+      },
+      "rules": {
+        "title": "Regras para propostas",
+        "description": "Proposta deve conter: preço, moeda, prazo de validade, prazo de entrega, SLA, condições de cancelamento. Recusa com justificativa não impacta score público."
+      },
+      "statuses": {
+        "awaiting": "Aguardando proposta",
+        "proposalSent": "Proposta enviada",
+        "converted": "Convertida em pedido",
+        "declined": "Recusada",
+        "expired": "Expirada"
+      },
+      "siteSurvey": "VISTORIA",
+      "version": "V{{version}}",
+      "locationDeadline": "{{location}} · Prazo: {{deadline}}",
+      "hoursLeft_one": "{{count}}h restante",
+      "hoursLeft_other": "{{count}}h restantes",
+      "request": "Solicitação do comprador",
+      "proposal": {
+        "price": "Preço proposto",
+        "sla": "SLA proposto",
+        "delivery": "Prazo",
+        "version": "Versão"
+      },
+      "daysValue_one": "{{count}} dia",
+      "daysValue_other": "{{count}} dias",
+      "updateProposal": "Atualizar proposta (gera nova versão)",
+      "orderCreated": "Pedido Gerado",
+      "decline": "Recusar (com justificativa)",
+      "declineForm": {
+        "title": "Justificativa da recusa (obrigatória)",
+        "placeholder": "Explique por que não vai enviar proposta (ex: fora da cobertura, sem capacidade no prazo)...",
+        "confirm": "Confirmar recusa"
+      },
+      "showDetails": "Ver detalhes",
+      "footer": {
+        "declined": "RFQ recusada com justificativa.",
+        "declinedReason": "RFQ recusada: {{reason}}",
+        "expired": "Prazo de resposta expirado sem proposta."
+      },
+      "form": {
+        "title": "Enviar proposta",
+        "close": "Fechar proposta",
+        "price": "Preço ({{currency}})",
+        "sla": "SLA técnico",
+        "slaPlaceholder": "Ex.: 99,5%",
+        "delivery": "Prazo de entrega",
+        "days": "dias",
+        "validity": "Validade da proposta",
+        "siteSurvey": "Depende de vistoria técnica prévia",
+        "notes": "Observações da proposta",
+        "notesPlaceholder": "Validade da proposta, condições especiais, escopo técnico...",
+        "submit": "Enviar proposta"
+      },
+      "toasts": {
+        "proposalSent": "Proposta V{{version}} enviada para {{id}}.",
+        "declined": "{{id}} recusada. O comprador foi notificado.",
+        "notOpen": "Esta RFQ não está mais aberta."
+      }
+    },
+    "retry": "Tentar de novo",
+    "errors": {
+      "forbidden": "Seu perfil Seller ainda não tem permissão para ver pedidos (order:read). Peça ao Dono da organização.",
+      "failed": "Não foi possível carregar os pedidos. Tente de novo.",
+      "required": "Campo obrigatório",
+      "tooLong": "Texto muito longo",
+      "priceInvalid": "Informe um preço maior que zero",
+      "daysInvalid": "Informe um prazo entre 1 e 730 dias",
+      "reasonRequired": "Informe o motivo da recusa",
+      "reasonTooShort": "Descreva o motivo com pelo menos 10 caracteres",
+      "complementRequired": "Descreva o que está faltando",
+      "complementTooShort": "Escreva pelo menos 20 caracteres"
+    },
+    "card": {
+      "number": "Pedido #{{id}}",
+      "monthly": "{{value}}/mês",
+      "more_one": "+{{count}} oferta",
+      "more_other": "+{{count}} ofertas",
+      "noItems": "Pedido sem ofertas",
+      "issue": "Com problema",
+      "receivedAt": "Recebido: {{date}}",
+      "accepted": "Aceito",
+      "statuses": {
+        "awaiting": "Aguardando aceite",
+        "awaitingPayment": "Aguardando pagamento",
+        "accepted": "Aceito",
+        "rejected": "Recusado",
+        "expired": "Expirado"
+      },
+      "footer": {
+        "rejected": "Pedido recusado, o comprador foi notificado.",
+        "rejectedCredited": "Pedido recusado, o comprador foi notificado, crédito Neutra+ devolvido.",
+        "expired": "Prazo expirado, encerramento registrado no histórico."
+      }
+    },
+    "actions": {
+      "accept": "Aceitar pedido",
+      "reject": "Recusar (com motivo)",
+      "complement": "Pedir complemento",
+      "cancel": "Cancelar",
+      "viewOrder": "Ver OS"
+    },
+    "reject": {
+      "title": "Motivo da recusa (obrigatório · auditável)",
+      "placeholder": "Descreva o motivo da recusa (ex: fora da área de cobertura, capacidade insuficiente)...",
+      "confirm": "Confirmar recusa"
+    },
+    "details": {
+      "show": "Ver detalhes e ações",
+      "hide": "Ocultar detalhes",
+      "open": "Abrir pedido completo",
+      "order": "Pedido",
+      "payment": "Pagamento",
+      "shipping": "Envio",
+      "contract": "Contrato",
+      "invoiceAttached": "Nota fiscal anexada",
+      "invoicePending": "Aguardando nota fiscal",
+      "contractSigned": "Assinado, execução liberada",
+      "contractPending": "Aguardando assinatura",
+      "quantity_one": "Quantidade: {{count}} unidade",
+      "quantity_other": "Quantidade: {{count}} unidades",
+      "fee": "Taxa informativa",
+      "installation": "Instalação",
+      "total": "Total",
+      "timeline": {
+        "title": "Linha do tempo",
+        "escrow": "Pagamento em escrow",
+        "received": "Pedido recebido",
+        "acceptance": "Aguardando aceite",
+        "accepted": "Pedido aceito",
+        "invoice": "Envio da Nota Fiscal",
+        "contract": "Contrato assinado"
+      }
+    },
+    "complement": {
+      "title": "Pedir complemento",
+      "close": "Fechar",
+      "notice": "O comprador receberá uma notificação por e-mail e no painel. O SLA de aceite é pausado durante a espera.",
+      "suggestionsTitle": "Sugestões rápidas",
+      "suggestions": {
+        "address": "Informe o endereço técnico completo com CEP, ponto de referência e responsável no local.",
+        "duct": "Confirme se há infraestrutura de duto disponível para passagem de fibra.",
+        "floorPlan": "Envie a planta baixa ou croqui do local de instalação.",
+        "visit": "Indique o horário preferencial para visita técnica."
+      },
+      "label": "Ou escreva sua solicitação",
+      "placeholder": "Descreva o que está faltando para processar este pedido...",
+      "counter_one": "{{count}} caractere · mínimo {{min}}",
+      "counter_other": "{{count}} caracteres · mínimo {{min}}",
+      "submit": "Enviar solicitação"
+    },
+    "toasts": {
+      "awaitingPayment": "O comprador ainda não pagou: o aceite fica disponível depois do pagamento.",
+      "acceptUnavailable": "O aceite manual deste pedido ainda não está disponível. Pedidos de serviço seguem pelo contrato.",
+      "accepted": "{{number}} aceito. Anexe a nota fiscal para liberar o envio.",
+      "accept": {
+        "forbidden": "Seu perfil Seller não tem permissão para aceitar pedidos (order:accept).",
+        "conflict": "O pedido não pode ser aceito agora (pagamento não confirmado ou cancelamento em andamento).",
+        "failed": "Não foi possível aceitar o pedido. Tente de novo."
+      },
+      "comingSoon": "Em breve: esta ação ainda não está disponível na plataforma."
+    }
+  },
+  "OrderDetail": {
+    "back": {
+      "seller": "Voltar aos pedidos",
+      "buyer": "Voltar aos meus pedidos"
+    },
+    "number": "Pedido {{number}}",
+    "createdAt": "Criado em {{date}}",
+    "more_one": "+{{count}} oferta",
+    "more_other": "+{{count}} ofertas",
+    "noItems": "Pedido sem ofertas",
+    "monthly": "{{value}}/mês",
+    "retry": "Tentar de novo",
+    "stages": {
+      "awaitingPayment": "Aguardando pagamento",
+      "awaitingAcceptance": "Aguardando aceite",
+      "awaitingContract": "Aguardando contrato",
+      "inExecution": "Em execução",
+      "completed": "Concluído",
+      "cancelled": "Cancelado",
+      "rejected": "Recusado"
+    },
+    "progress": {
+      "title": "Progresso do pedido",
+      "steps": {
+        "created": "Criado",
+        "paid": "Pago · Em escrow",
+        "accepted": "Aceito",
+        "inExecution": "Em execução"
+      }
+    },
+    "status": {
+      "title": "Status atual"
+    },
+    "captions": {
+      "cancellationPending": "Cancelamento em andamento.",
+      "cancellationRejected": "O pedido de cancelamento foi recusado.",
+      "buyer": {
+        "awaitingPayment": "Conclua o pagamento para o pedido seguir.",
+        "awaitingAcceptance": "Aguardando o aceite do seller.",
+        "awaitingContract": "Pagamento confirmado. Assine o contrato para liberar a execução.",
+        "inExecution": "Pagamento confirmado; o seller está executando o pedido.",
+        "completed": "Pedido concluído.",
+        "cancelled": "O pedido foi cancelado.",
+        "rejected": "O seller recusou o pedido."
+      },
+      "seller": {
+        "awaitingPayment": "O comprador ainda não pagou.",
+        "awaitingAcceptance": "O pedido aguarda o seu aceite.",
+        "awaitingContract": "Pagamento confirmado. Aguardando a assinatura do contrato.",
+        "inExecution": "Execução liberada. O pagamento fica em escrow até a confirmação.",
+        "completed": "Pedido concluído.",
+        "cancelled": "O pedido foi cancelado.",
+        "rejected": "Você recusou o pedido."
+      }
+    },
+    "counterparty": {
+      "title": {
+        "buyer": "Provedor do serviço",
+        "seller": "Comprador"
+      },
+      "organization": "Organização (ID)",
+      "note": "Observação do comprador"
+    },
+    "payment": {
+      "title": "Pagamento e escrow",
+      "method": "Método",
+      "total": "Valor total",
+      "currency": "Moeda",
+      "escrow": "Status escrow",
+      "contract": "Contrato",
+      "monthly": "Mensalidade",
+      "installation": "Instalação",
+      "note": "Pagamento retido em escrow Neutra+ até a confirmação da execução. Liberação automática conforme as regras do contrato.",
+      "methods": {
+        "split": "Carteira {{wallet}} + cartão {{card}}",
+        "wallet": "Carteira Neutra+",
+        "card": "Cartão de crédito"
+      }
+    },
+    "escrow": {
+      "awaitingPayment": "Aguardando pagamento",
+      "held": "Retido em escrow Neutra+",
+      "cancelled": "Pedido cancelado",
+      "refundPending": "Devolução à carteira em andamento",
+      "refunded": "Devolvido na carteira do comprador"
+    },
+    "invoice": {
+      "title": "Nota Fiscal",
+      "key": "Chave de acesso",
+      "status": "Situação",
+      "attached": "Anexada pelo seller",
+      "pending": "Aguardando o seller anexar",
+      "tracking": "Rastreio",
+      "received": "Recebimento",
+      "receivedYes": "Confirmado pelo comprador",
+      "receivedNo": "Ainda não confirmado",
+      "download": "Baixar NF (PDF)"
+    },
+    "contract": {
+      "title": "Contratos",
+      "reference": "Contrato referente ao pedido",
+      "pending": "Aguardando assinatura",
+      "goTo": "Ir para contratos",
+      "valueWithFee": "{{total}} · taxa Neutra+ {{fee}}",
+      "fields": {
+        "object": "Objeto",
+        "value": "Valor do contrato",
+        "payment": "Pagamento"
+      }
+    },
+    "summary": {
+      "title": "Resumo do pedido",
+      "id": "ID pedido",
+      "product": "Produto",
+      "category": "Categoria",
+      "counterparty": {
+        "buyer": "Seller",
+        "seller": "Comprador"
+      },
+      "created": "Criado",
+      "updated": "Atualizado"
+    },
+    "value": {
+      "title": "Valor do pedido",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "orderTotal": "Total do pedido",
+      "fee": "Taxa Neutra+",
+      "feeRate": "Taxa Neutra+ ({{rate}}%)",
+      "net": "Você recebe",
+      "credited": "Devolvido na carteira"
+    },
+    "errors": {
+      "notFound": "Pedido não encontrado.",
+      "forbidden": "Seu perfil não tem acesso a este pedido (order:read).",
+      "failed": "Não foi possível carregar o pedido. Tente de novo.",
+      "invoiceMissing": "A nota fiscal ainda não foi anexada.",
+      "invoiceFailed": "Não foi possível baixar a nota fiscal. Tente de novo."
+    }
+  },
+  "OrderShipping": {
+    "close": "Fechar",
+    "cancel": "Cancelar",
+    "dialogDescription": "Pedido {{number}}",
+    "accepted": {
+      "label": "Aceite do pedido",
+      "yes": "Aceito",
+      "no": "Aguardando o seu aceite"
+    },
+    "labels": {
+      "label_one": "Etiqueta",
+      "label_other": "Etiquetas",
+      "status": {
+        "pending": "Aguardando compra",
+        "cart": "No carrinho do Melhor Envio",
+        "paid": "Paga",
+        "ready": "Pronta para imprimir",
+        "cancelled": "Cancelada",
+        "unknown": "Situação incerta"
+      },
+      "attention": "A compra de uma etiqueta precisa de atenção do Financeiro da Neutra+. Você não precisa fazer nada."
+    },
+    "actions": {
+      "accept": "Aceitar pedido",
+      "attachInvoice": "Anexar nota fiscal",
+      "replaceInvoice": "Trocar nota fiscal",
+      "printLabel": "Imprimir etiqueta",
+      "printLabelNumber": "Imprimir etiqueta {{number}}",
+      "informTracking": "Informar rastreio",
+      "replaceTracking": "Trocar rastreio"
+    },
+    "success": {
+      "accepted": "Pedido aceito. Agora anexe a nota fiscal.",
+      "invoiceAttached": "Nota fiscal anexada. A etiqueta é comprada em seguida no Melhor Envio.",
+      "trackingInformed": "Rastreio informado ao comprador."
+    },
+    "invoice": {
+      "title": "Anexar nota fiscal",
+      "notice": "Envie o PDF da NF-e deste pedido. O Melhor Envio usa a chave e os dados de remetente e destinatário para gerar a etiqueta. Dá para trocar a NF até a compra da etiqueta começar.",
+      "sections": {
+        "invoice": "Nota fiscal",
+        "sender": "Remetente (sua empresa)",
+        "recipient": "Destinatário (comprador)"
+      },
+      "fields": {
+        "file": "PDF da nota fiscal",
+        "accessKey": "Chave de acesso",
+        "value": "Valor da NF (R$)",
+        "senderName": "Razão social",
+        "stateRegister": "Inscrição estadual",
+        "postalCode": "CEP de origem",
+        "address": "Logradouro",
+        "number": "Número",
+        "complement": "Complemento",
+        "district": "Bairro",
+        "city": "Cidade",
+        "stateAbbr": "UF",
+        "economicActivityCode": "CNAE",
+        "senderPhone": "Telefone",
+        "senderEmail": "E-mail",
+        "recipientDocument": "CPF ou CNPJ",
+        "recipientPhone": "Telefone",
+        "recipientEmail": "E-mail"
+      },
+      "chooseFile": "Escolher PDF",
+      "changeFile": "Trocar PDF",
+      "fileHint": "PDF de até 2 MB",
+      "accessKeyHint": "44 dígitos, como no DANFE.",
+      "issuerCnpj": "CNPJ do emitente: {{cnpj}}",
+      "valueHint": "Só os produtos, sem frete e sem taxas.",
+      "postalCodeHint": "O mesmo CEP de origem do frete.",
+      "submit": "Anexar nota fiscal"
+    },
+    "tracking": {
+      "title": "Informar rastreio",
+      "notice": "Depois de informar o rastreio, o pedido não pode mais ser cancelado.",
+      "label": "Código de rastreio",
+      "placeholder": "Ex.: AD284719305BR",
+      "submit": "Informar rastreio"
+    },
+    "errors": {
+      "required": "Campo obrigatório",
+      "tooShort": "Texto muito curto",
+      "tooLong": "Texto muito longo",
+      "fileRequired": "Escolha o PDF da nota fiscal",
+      "accessKeyInvalid": "Chave inválida: confira os 44 dígitos",
+      "valueInvalid": "Informe um valor maior que zero",
+      "postalCodeInvalid": "Use os 8 dígitos do CEP",
+      "stateInvalid": "Use a sigla da UF (ex.: CE)",
+      "phoneInvalid": "Use de 10 a 13 dígitos, com DDD",
+      "emailInvalid": "E-mail inválido",
+      "cnaeInvalid": "O CNAE tem 7 dígitos",
+      "documentInvalid": "Use os 11 dígitos do CPF ou os 14 do CNPJ",
+      "trackingInvalid": "Use de 5 a 64 letras, números ou hífen",
+      "pdf": {
+        "tooLarge": "O PDF passa de 2 MB",
+        "notPdf": "O arquivo não é um PDF válido",
+        "unreadable": "Não foi possível ler o arquivo"
+      },
+      "forbidden": "Seu perfil não tem permissão para esta ação.",
+      "notFound": "Pedido não encontrado.",
+      "conflict": "O pedido não permite esta ação agora.",
+      "rejected": "Os dados não foram aceitos.",
+      "failed": "Não foi possível concluir. Tente de novo."
+    }
+  },
+  "BuyerOrders": {
+    "title": "Meus Pedidos",
+    "subtitle": "Acompanhe as compras da sua organização.",
+    "stats": {
+      "total": "Pedidos",
+      "inProgress": "Em andamento",
+      "inEscrow": "Em escrow",
+      "inCancellation": "Em cancelamento"
+    },
+    "search": "Buscar pedidos",
+    "searchPlaceholder": "Buscar por produto, nº do pedido ou seller",
+    "seller": "Seller {{id}}",
+    "empty": "Sua organização ainda não tem pedidos.",
+    "emptyFiltered": "Nenhum pedido encontrado com essa busca.",
+    "retry": "Tentar de novo",
+    "errors": {
+      "forbidden": "Seu perfil Buyer ainda não tem permissão para ver pedidos (order:read).",
+      "failed": "Não foi possível carregar os pedidos. Tente de novo."
+    }
+  },
+  "CopyValue": {
+    "copy": "Copiar {{label}}",
+    "copied": "{{label}} copiado"
+  },
+  "Cart": {
+    "title": "Carrinho",
+    "subtitle": "{{items}} de {{sellers}} · cada seller gera um pedido",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} itens",
+    "sellerCount_one": "{{count}} seller",
+    "sellerCount_other": "{{count}} sellers",
+    "empty": {
+      "title": "Seu carrinho está vazio",
+      "description": "Adicione ofertas pelo Buscar Rede. Ofertas de sellers diferentes viram um pedido por seller.",
+      "action": "Buscar redes"
+    },
+    "group": {
+      "seller": "Seller #{{id}}",
+      "order": "Pedido {{number}}",
+      "items_one": "{{count}} item neste pedido",
+      "items_other": "{{count}} itens neste pedido",
+      "subtotal": "Subtotal: {{value}}"
+    },
+    "item": {
+      "shipping_one": "Envio em até {{count}} dia útil",
+      "shipping_other": "Envio em até {{count}} dias úteis",
+      "activation_one": "Ativação estimada em {{count}} dia",
+      "activation_other": "Ativação estimada em {{count}} dias",
+      "perMonth": "{{price}} / mês",
+      "perUnit": "{{price}} / unidade",
+      "remove": "Remover {{name}}",
+      "quantity": "Quantidade de {{name}}",
+      "decrease": "Diminuir quantidade",
+      "increase": "Aumentar quantidade",
+      "problems": {
+        "rfq": "Oferta sob consulta: peça uma proposta ao seller. Ela não entra no carrinho.",
+        "noPrice": "O seller não tem preço para essa quantidade. Ajuste a quantidade.",
+        "overLimit": "Disponível até {{max}} unidades. Reduza a quantidade."
+      }
+    },
+    "unavailable": {
+      "title": "Itens indisponíveis",
+      "unavailable": "Esta oferta saiu de venda.",
+      "ownOffer": "Esta oferta é da sua própria organização e não pode ser comprada.",
+      "failed": "Não foi possível carregar esta oferta.",
+      "retry": "Tentar de novo",
+      "remove": "Remover do carrinho"
+    },
+    "blocked": {
+      "rejected": {
+        "title": "Checkout bloqueado · KYC Reprovado",
+        "description": "A verificação da sua empresa foi reprovada. Corrija os documentos apontados e reenvie para liberar o checkout.",
+        "action": "Corrigir e Reenviar documentos"
+      },
+      "notStarted": {
+        "title": "Checkout bloqueado · KYC não iniciado",
+        "description": "Compras no marketplace exigem a verificação da sua empresa (KYC/KYB). Envie os documentos para liberar o checkout.",
+        "action": "Iniciar Verificação"
+      },
+      "inReview": {
+        "title": "Checkout bloqueado · KYC em análise",
+        "description": "Os documentos da sua empresa estão em análise. O checkout é liberado assim que a verificação for aprovada."
+      },
+      "suspended": {
+        "title": "Checkout bloqueado · KYC suspenso",
+        "description": "A verificação da sua empresa está suspensa. Fale com o suporte Neutra+."
+      },
+      "ineligible": {
+        "title": "Checkout bloqueado",
+        "description": "Seu perfil Buyer ainda não está liberado para comprar. Fale com o Dono da organização."
+      }
+    },
+    "address": {
+      "title": "Escolha um Endereço",
+      "currentLocation": "Usar Localização Atual",
+      "add": "Adicionar um novo Endereço",
+      "comingSoon": "O cadastro de endereços ainda não está disponível.",
+      "status": {
+        "locating": "Obtendo sua localização…",
+        "located": "Localização atual obtida.",
+        "denied": "Não foi possível obter a localização. Permita o acesso no navegador.",
+        "unsupported": "Este navegador não informa a localização."
+      }
+    },
+    "summary": {
+      "title": "Resumo da compra",
+      "subtotal": "Subtotal",
+      "subtotalIn": "Subtotal ({{currency}})",
+      "shipping": "Frete",
+      "atPayment": "Calculado no pagamento",
+      "credit": "Crédito Neutra+",
+      "total": "Total a pagar",
+      "checkout": "Ir para pagamento",
+      "disclaimer": "Ao continuar, você revisará contratos e pagamento antes da criação dos pedidos.",
+      "mixedCurrencies": "O checkout aceita uma moeda por vez ({{currencies}}). Remova os itens de outra moeda para continuar.",
+      "fixItems": "Resolva os itens marcados para continuar.",
+      "comingSoon": "A etapa de pagamento ainda não está disponível."
+    },
+    "credit": {
+      "title": "Usar crédito Neutra+",
+      "available": "{{value}} disponível",
+      "none": "Sem crédito disponível"
+    },
+    "trust": {
+      "escrow": "Pagamento protegido em escrow",
+      "payment": "PIX ou cartão corporativo",
+      "tracking": "Acompanhamento em Meus Pedidos"
+    }
+  },
+  "SellerOfferCreate": {
+    "title": "Nova Oferta",
+    "steps": {
+      "coverage": "Categoria e cobertura",
+      "basicInfo": "Informações básicas",
+      "technicalSpecs": "Especificações técnicas",
+      "logistics": "Logística",
+      "pricing": "Preço e disponibilidade",
+      "review": "Revisão final"
+    },
+    "actions": {
+      "back": "Voltar",
+      "continue": "Continuar",
+      "publish": "Publicar oferta agora",
+      "publishing": "Publicando...",
+      "create": "Criar oferta",
+      "creating": "Criando oferta...",
+      "retryPublish": "Tentar publicar de novo"
+    },
+    "coverage": {
+      "infoTitle": "KMZ e categorias",
+      "infoText": "Ofertas de Conectividade e Infra Física só são publicadas com uma cobertura (KMZ), vinculada depois de criar a oferta. Hardware, Recursos Numéricos, Softwares e Gerenciamento, e Protocolos e Serviços não possuem essa necessidade.",
+      "afterCreateTitle": "A cobertura vem depois de criar a oferta",
+      "afterCreateText": "Esta categoria precisa de uma cobertura (KMZ) para ser publicada. Crie a oferta e, em seguida, escolha o KMZ e a área — total ou desenhada — na área de cobertura.",
+      "categoriesLabel": "Categorias",
+      "mapTitle": "Mapa de Cobertura",
+      "chooseCoverage": "Escolher Cobertura",
+      "previewUnavailable": "Sem pré-visualização no mapa: o KMZ passa do limite de coordenadas que o navegador lê.",
+      "locationLabel": "Localidade A / Z",
+      "locationPlaceholder": "Busque um endereço (ex.: Av. Dom Luís, Fortaleza)",
+      "notApplicableTitle": "Cobertura não aplicável",
+      "regionLabel": "Região ou registro",
+      "regionPlaceholder": "Selecione o registro",
+      "notApplicable": {
+        "hardware": "Hardware/CPE: disponibilidade nacional ou por estoque — sem polígono geográfico.",
+        "numberingResources": "Recursos numéricos: cobertura por região/registro (LACNIC, ANATEL). Informe a região abaixo.",
+        "software": "Softwares e Gerenciamento: entrega digital ou remota — sem polígono geográfico.",
+        "protocols": "Protocolos e Serviços: prestação remota ou em nuvem — sem polígono geográfico.",
+        "custom": "Esta categoria não depende de localização — sem polígono geográfico."
+      },
+      "locationSearching": "Buscando endereços...",
+      "locationNoResults": "Nenhum endereço encontrado. Tente com rua e cidade.",
+      "locationClear": "Limpar endereço",
+      "locationUnavailable": "Busca de endereço indisponível: configure NEXT_PUBLIC_MAPBOX_TOKEN.",
+      "locationSearchError": "Não foi possível buscar endereços agora. Tente de novo em instantes.",
+      "radiusLabel": "Raio de atendimento",
+      "radiusHelper": "Distância em volta do endereço, de {{min}} a {{max}} km",
+      "locationItemLabel": "Localidade {{number}}",
+      "radiusItemLabel": "Raio da localidade {{number}}",
+      "locationAdd": "Adicionar localidade",
+      "locationRemove": "Remover localidade {{number}}",
+      "locationsMax": "Limite de {{max}} localidades atingido.",
+      "preview": {
+        "loading": "Carregando o mapa do KMZ...",
+        "noOriginal": "Sem pré-visualização no mapa: esta versão foi enviada antes de a geo-api guardar o arquivo original.",
+        "unreadable": "Sem pré-visualização no mapa: não foi possível ler o KMZ original.",
+        "failed": "Não foi possível carregar o mapa do KMZ. Abra de novo para tentar outra vez."
+      },
+      "registries": {
+        "lacnic": "LACNIC",
+        "nic_br": "NIC.br",
+        "arin": "ARIN",
+        "ripe": "RIPE NCC",
+        "apnic": "APNIC",
+        "afrinic": "AFRINIC",
+        "anatel": "ANATEL"
+      },
+      "subcategoryLabel": "Subcategoria",
+      "subcategoryNone": "Sem subcategoria (categoria principal)",
+      "subcategoryHint": "A subcategoria herda os campos da categoria principal e pode pedir campos próprios na etapa de especificações.",
+      "subcategoriesCount_one": "{{count}} subcategoria",
+      "subcategoriesCount_other": "{{count}} subcategorias",
+      "categoriesFallback": "Não deu para carregar as categorias da plataforma. Mostrando as categorias principais, sem subcategorias."
+    },
+    "basicInfo": {
+      "autoPublishNotice": "Auto-publicação disponível para sellers com KYC verificado.",
+      "imageLabel": "Galeria",
+      "imageCta": "Clique para adicionar fotos da oferta",
+      "imageHint": "JPG, PNG ou WEBP · até 5 MB cada · até {{max}} imagens · a primeira é a capa",
+      "imageAlt": "Imagem da oferta: {{name}}",
+      "imageSavedAlt": "Imagem {{index}} da oferta",
+      "imageCounter": "{{count}}/{{max}}",
+      "imageCover": "Capa",
+      "imageAdd": "Adicionar",
+      "imageMoveLeft": "Mover a imagem {{index}} para a esquerda",
+      "imageMoveRight": "Mover a imagem {{index}} para a direita",
+      "imageRemove": "Remover a imagem {{index}}",
+      "imageSkipped_one": "{{count}} imagem não foi adicionada: o limite é de {{max}} por oferta.",
+      "imageSkipped_other": "{{count}} imagens não foram adicionadas: o limite é de {{max}} por oferta.",
+      "imageError": "Imagem {{index}}: {{message}}",
+      "nameLabel": "Nome do Serviço",
+      "namePlaceholder": "Ex: Link Dedicado 1 Gbps Premium",
+      "shortDescriptionLabel": "Descrição Curta",
+      "shortDescriptionPlaceholder": "Resumo em uma linha — aparece no card do marketplace",
+      "descriptionLabel": "Descrição Completa",
+      "descriptionPlaceholder": "Detalhes técnicos, benefícios, características, diferenciais...",
+      "descriptionCounter_one": "Mínimo {{min}} caracteres · {{count}} digitado",
+      "descriptionCounter_other": "Mínimo {{min}} caracteres · {{count}} digitados"
+    },
+    "technicalSpecs": {
+      "speedLabel": "Velocidade / Banda",
+      "speedUnit": "Unidade da velocidade",
+      "latencyLabel": "Latência máxima",
+      "acceptanceSlaLabel": "SLA de aceite (h)",
+      "acceptanceSlaHint": "— público para buyers",
+      "acceptanceSlaHelper": "Entre {{min}}h e {{max}}h · padrão 48h",
+      "technicalSlaLabel": "SLA técnico",
+      "deliveryTimeLabel": "Prazo de entrega / ativação",
+      "deliveryTimePlaceholder": "Ex: 30 dias após o aceite",
+      "includedIpsLabel": "IPs inclusos",
+      "includedIpsPlaceholder": "Ex: 8"
+    },
+    "hardware": {
+      "title": "Hardware / CPE — campos obrigatórios",
+      "manufacturerLabel": "Fabricante",
+      "manufacturerPlaceholder": "Ex: Mikrotik",
+      "modelLabel": "Modelo",
+      "modelPlaceholder": "Ex: RB4011",
+      "conditionLabel": "Condição",
+      "conditionPlaceholder": "Novo / Usado / Recondicionado",
+      "conditions": {
+        "new": "Novo",
+        "refurbished": "Recondicionado",
+        "used": "Usado"
+      },
+      "warrantyLabel": "Garantia (meses)",
+      "warrantyPlaceholder": "Ex: 12",
+      "serializationLabel": "Serializado",
+      "serializationPlaceholder": "Selecione",
+      "serializationOptions": {
+        "yes": "Sim — nº de série por unidade",
+        "no": "Não"
+      }
+    },
+    "attributes": {
+      "title": "Atributos",
+      "rowLabel": "Atributo {{number}}",
+      "nameLabel": "Nome do Atributo",
+      "namePlaceholder": "Ex: Velocidade",
+      "typeLabel": "Tipo de Dado",
+      "typePlaceholder": "Selecione o tipo de dado",
+      "types": {
+        "text": "Texto",
+        "number": "Número",
+        "mbps": "Mbps",
+        "gbps": "Gbps",
+        "ms": "ms",
+        "percent": "%"
+      },
+      "valuesLabel": "Valores",
+      "valuesPlaceholder": "Ex: 100mbps, 500mbps",
+      "valuesHint": "Separe os valores por vírgula.",
+      "clearName": "Limpar o nome do atributo {{number}}",
+      "clearValues": "Limpar os valores do atributo {{number}}",
+      "add": "Adicionar atributo",
+      "remove": "Remover o atributo {{number}}",
+      "max": "Limite de {{max}} atributos."
+    },
+    "shipping": {
+      "weightLabel": "Peso (g)",
+      "heightLabel": "Altura (cm)",
+      "widthLabel": "Largura (cm)",
+      "lengthLabel": "Comprimento (cm)",
+      "postalCodeLabel": "CEP de origem",
+      "insuranceLabel": "Valor declarado (seguro)"
+    },
+    "logistics": {
+      "rulesTitle": "Regras RN-LOG-01",
+      "rulesText": "As dimensões, origem e prazo de postagem alimentam a cotação no produto, no checkout e a compra da etiqueta após a venda.",
+      "originTitle": "Endereço de origem",
+      "originCapital": "Capital mais próxima: {{capital}}",
+      "insuranceHelper": "Opcional. Sem ele, o seguro usa o preço da oferta.",
+      "dispatchTitle": "Após a venda, em quanto tempo você entrega o pacote para a transportadora?",
+      "dispatch": {
+        "sameDay": "No mesmo dia",
+        "oneDay": "1 dia útil",
+        "twoDays": "2 dias úteis",
+        "threeDays": "3 dias úteis",
+        "onDemand": "Sob encomenda"
+      },
+      "recommended": "Recomendado",
+      "packageTitle": "Embalagem e peso",
+      "packageCaption": "Medidas externas da embalagem",
+      "presetsLabel": "Tamanho da embalagem",
+      "presets": {
+        "small": "Pequeno",
+        "medium": "Médio",
+        "large": "Grande",
+        "cargo": "Carga",
+        "custom": "Personalizado"
+      },
+      "modeTitle": "Modalidade de envio",
+      "modes": {
+        "integration": {
+          "title": "Integração Neutra+",
+          "description": "Cotação e etiqueta automáticas"
+        },
+        "freeShipping": {
+          "title": "Frete grátis",
+          "description": "O Vendedor absorve o valor"
+        },
+        "pickup": {
+          "title": "Retirada no local",
+          "description": "Comprador agenda a retirada"
+        },
+        "cargo": {
+          "title": "Frete de carga",
+          "description": "Cotado pela integração ou com o seu valor"
+        },
+        "toBeAgreed": {
+          "title": "Frete a combinar",
+          "description": "Negociado com o comprador por RFQ"
+        }
+      },
+      "extraFeeLabel": "Acréscimo opcional no frete",
+      "trackingTitle": "Rastreio automático",
+      "trackingDescription": "Atualiza buyer e timeline via integração.",
+      "simulationTitle": "Simulação para a capital mais próxima · {{capital}}",
+      "simulationTitlePending": "Simulação de frete",
+      "simulationPending": "Informe o CEP de origem para simular o frete até a capital mais próxima.",
+      "simulationDisclaimer": "Valores de exemplo, já com o acréscimo. A cotação real é feita no produto e no checkout.",
+      "simulationFreeShipping": "Valores de exemplo do frete que você absorve. O comprador vê frete grátis.",
+      "cheapest": "Mais barato",
+      "businessDays_one": "{{count}} dia útil",
+      "businessDays_other": "{{count}} dias úteis",
+      "pickupNote": "Sem frete: o comprador agenda a retirada no endereço informado.",
+      "onDemandDaysLabel": "Dias úteis para postagem",
+      "onDemandDaysHelper": "Sob encomenda: de {{min}} a {{max}} dias úteis.",
+      "presetHints": {
+        "small": "Até 1 kg · 15 × 15 × 15 cm, 500 g (ONU, ONT, roteador, SFP)",
+        "medium": "Até 5 kg · 30 × 30 × 30 cm, 3 kg (CTO, switch, DIO)",
+        "large": "De 5 a 30 kg · 40 × 50 × 60 cm, 15 kg (OLT em chassi, nobreak)",
+        "cargo": "Acima de 30 kg, 100 cm em um lado ou 200 cm na soma dos lados. Você informa as medidas.",
+        "custom": "Você informa as medidas e o peso."
+      },
+      "outOfLimitNote": "O pacote passa do limite de mercado (30 kg, 100 cm em um lado ou 200 cm na soma dos lados): o envio é frete de carga ou frete a combinar.",
+      "cargoPriceLabel": "Valor do frete de carga",
+      "cargoDaysLabel": "Prazo do frete de carga (dias úteis)",
+      "cargoHelper": "Usado quando a integração não cotar o pacote. Informe valor e prazo, ou deixe os dois em branco.",
+      "pickupAddressLabel": "Endereço de retirada",
+      "pickupHoursLabel": "Horário de retirada",
+      "extraFeeCarrierOnly": "Só na Integração Neutra+ e no frete de carga.",
+      "toBeAgreedNote": "O frete é combinado com o comprador pelo fluxo de RFQ, sem cotação automática."
+    },
+    "numbering": {
+      "title": "Recursos Numéricos — documentação LACNIC/ANATEL",
+      "resourceTypeLabel": "Tipo de recurso",
+      "resourceTypePlaceholder": "Selecione",
+      "blockLabel": "Bloco / Quantidade",
+      "blockPlaceholder": "Ex: 256 IPs, ASN 65000",
+      "holderLabel": "Titularidade / Uso permitido",
+      "holderPlaceholder": "Ex: cessão com transferência LACNIC",
+      "resourceTypes": {
+        "ipv4": "IPv4",
+        "ipv6": "IPv6",
+        "asn": "ASN",
+        "e164": "Numeração E.164"
+      }
+    },
+    "pricing": {
+      "pricingModelLabel": "Modelo de preço",
+      "pricingModelPlaceholder": "Selecione",
+      "pricingModels": {
+        "monthly": "Mensalidade recorrente",
+        "annual": "Anuidade recorrente",
+        "oneTime": "Pagamento único"
+      },
+      "currencyLabel": "Moeda",
+      "currencies": {
+        "BRL": "BRL (padrão)",
+        "USD": "USD"
+      },
+      "currencyHelper": "Moeda não pode ser alterada após publicação",
+      "priceLabel": "Preço ({{currency}})",
+      "setupLabel": "Setup / NRC",
+      "stockLabel": "Disponibilidade / Estoque",
+      "stockPlaceholder": "Ex: 2 (disponíveis) ou vazio para sob consulta",
+      "cancellationLabel": "Condições de cancelamento",
+      "cancellationPlaceholder": "Ex: 30 dias corridos com multa de 3 mensalidades para contratos com fidelidade",
+      "validUntilLabel": "Vigência da oferta",
+      "validUntilHelper": "Deixe vazio para vigência indeterminada",
+      "sponsoredLabel": "Patrocinar oferta",
+      "sponsoredDescription": "Destacada no topo dos resultados de busca · investimento adicional",
+      "setupHelper": "Taxa única de instalação. Deixe vazio se não houver."
+    },
+    "review": {
+      "moderationNotice": "Oferta irregular (informação falsa, preço irreal, cobertura divergente) pode ser removida com impacto no score. Sellers não podem duplicar ofertas na mesma categoria.",
+      "coveragePendingNotice": "A oferta será criada como rascunho. Para publicá-la, vincule a cobertura (KMZ) logo em seguida.",
+      "truthfulnessNotice": "Ao publicar você confirma que as informações são verdadeiras e que possui os direitos/titularidade para comercializar este serviço na Neutra+.",
+      "validUntilOpen": "Indeterminada",
+      "goToOffers": "Ver em Minhas Ofertas",
+      "fields": {
+        "name": "Nome",
+        "category": "Categoria",
+        "shortDescription": "Descrição curta",
+        "pricingModel": "Modelo de preço",
+        "price": "Preço",
+        "technicalSla": "SLA técnico",
+        "acceptanceSla": "SLA de aceite",
+        "deliveryTime": "Prazo de entrega",
+        "cancellation": "Cancelamento",
+        "validUntil": "Vigência",
+        "speed": "Velocidade",
+        "setup": "Setup / NRC",
+        "stock": "Estoque"
+      }
+    },
+    "publish": {
+      "savedAsDraft": "A oferta foi salva como rascunho, mas ainda não foi publicada.",
+      "errors": {
+        "createFailed": "Não foi possível criar a oferta. Tente de novo.",
+        "invalid": "A marketplace-api recusou os dados da oferta. Revise as etapas e tente de novo.",
+        "reviewInvalid": "Há campos inválidos nas etapas anteriores. Volte e corrija antes de publicar.",
+        "coveragePermission": "Seu usuário não tem permissão para vincular cobertura à oferta.",
+        "publishFailed": "Não foi possível publicar a oferta. Tente de novo.",
+        "ruleInvalid": "As regras da categoria mudaram ou um valor não é aceito. Revise as regras na etapa de especificações e tente de novo."
+      },
+      "warnings": {
+        "promotionForbidden": "O patrocínio não foi aplicado: seu usuário não tem permissão para patrocinar ofertas.",
+        "promotionFailed": "O patrocínio não foi aplicado. Você pode ativá-lo depois em Minhas Ofertas."
+      }
+    },
+    "published": {
+      "heading": "Produto publicado!",
+      "title": "Produto publicado com sucesso!",
+      "subtitle": "Auto-publicação com moderação reativa. Sua oferta está disponível no marketplace.",
+      "statusValue": "Publicada · moderação reativa",
+      "addPhotos": "Adicionar fotos",
+      "backToOffers": "Voltar para Minhas Ofertas",
+      "fields": {
+        "offer": "Oferta",
+        "category": "Categoria",
+        "price": "Preço",
+        "status": "Status",
+        "acceptanceSla": "SLA de aceite"
+      }
+    },
+    "created": {
+      "heading": "Oferta criada!",
+      "title": "Oferta criada como rascunho",
+      "subtitle": "Falta a cobertura: escolha o KMZ e a área atendida para poder publicar a oferta.",
+      "statusValue": "Rascunho · aguardando cobertura",
+      "addCoverage": "Adicionar cobertura"
+    },
+    "kmz": {
+      "label": "Selecionar versão do KMZ",
+      "upload": "Enviar KMZ",
+      "uploading": "Enviando...",
+      "uploaded": "KMZ \"{{name}}\" enviado.",
+      "unnamed": "Versão de {{date}}",
+      "regions_one": "{{count}} região",
+      "regions_other": "{{count}} regiões",
+      "polygons_one": "{{count}} polígono",
+      "polygons_other": "{{count}} polígonos",
+      "hint": "Novas versões de KMZ não atualizam ofertas automaticamente.",
+      "errors": {
+        "invalidExtension": "Envie um arquivo .kmz.",
+        "tooLarge": "O KMZ precisa ter até 50 MB.",
+        "invalidArchive": "Não foi possível ler o KMZ. Confira se o arquivo não está corrompido.",
+        "kmlCount": "O KMZ precisa conter exatamente um arquivo KML.",
+        "noGeometry": "O KMZ não tem nenhuma área, linha ou ponto.",
+        "forbidden": "Só o responsável pela organização pode enviar KMZ.",
+        "rejected": "A geo-api recusou o KMZ. Confira o arquivo e tente de novo.",
+        "failed": "Não foi possível enviar o KMZ. Tente de novo.",
+        "quota": "Sua organização não tem mais espaço para KMZ. Fale com a Neutra+ para ampliar o armazenamento.",
+        "busy": "Outro KMZ ainda está sendo importado. Aguarde alguns segundos e tente de novo.",
+        "timeout": "A geo-api demorou demais para responder. O KMZ pode ter sido importado mesmo assim: envie o mesmo arquivo de novo daqui a alguns minutos — ele não cria versão duplicada.",
+        "unavailable": "A geo-api não respondeu. Tente de novo em alguns minutos; se o erro continuar, avise o suporte da Neutra+."
+      },
+      "bound": "Vinculada",
+      "processing": "A geo-api importa o KMZ antes de responder. Arquivos grandes levam alguns minutos: mantenha esta página aberta.",
+      "listLoading": "Carregando os KMZs da organização...",
+      "listEmpty": "Nenhum KMZ enviado ainda. Envie um para usar nesta oferta.",
+      "confirm": {
+        "title": "Confirmar envio do KMZ",
+        "mb": "{{value}} MB",
+        "fileSize": "Tamanho do arquivo",
+        "required": "Espaço que a importação vai usar",
+        "usage": "Uso atual da cota",
+        "usageValue": "{{used}} de {{quota}}",
+        "availableAfter": "Saldo depois do envio",
+        "alreadyImported": "Este arquivo já foi importado pela organização: o envio não ocupa espaço novo.",
+        "shortfall": "O KMZ não cabe na cota: faltam {{value}}. Apague versões antigas ou fale com a Neutra+ para ampliar o armazenamento.",
+        "notReserved": "A prévia não reserva espaço. Se outro envio usar a cota antes, este pode ser recusado.",
+        "cancel": "Cancelar",
+        "submit": "Enviar KMZ",
+        "previewing": "Calculando o espaço que o KMZ vai usar..."
+      }
+    },
+    "preview": {
+      "title": "Preview do marketplace",
+      "noCategory": "Sem categoria",
+      "untitled": "Sem título",
+      "noReviews": "Sem avaliações",
+      "noDescription": "Sem descrição",
+      "noImage": "Sem imagem",
+      "technicalSla": "SLA técnico",
+      "acceptanceSla": "SLA de aceite",
+      "buyNow": "Comprar agora",
+      "moderationTitle": "Moderação reativa",
+      "moderationText": "Oferta fica disponível imediatamente após publicação. Irregularidades podem levar à remoção com impacto no score.",
+      "priceSuffix": {
+        "monthly": "/ mês",
+        "annual": "/ ano"
+      }
+    },
+    "errors": {
+      "categoryRequired": "Escolha a categoria da oferta.",
+      "locationTooLong": "Use até 120 caracteres.",
+      "imageType": "Envie imagens JPG, PNG ou WEBP.",
+      "imageSize": "Cada imagem precisa ter até 5 MB.",
+      "nameRequired": "Informe o nome do serviço.",
+      "nameTooLong": "Use até 100 caracteres.",
+      "shortDescriptionRequired": "Informe a descrição curta.",
+      "shortDescriptionTooLong": "Use até 160 caracteres.",
+      "descriptionRequired": "Informe a descrição completa.",
+      "descriptionTooShort": "A descrição completa precisa de pelo menos 50 caracteres.",
+      "descriptionTooLong": "Use até 5.000 caracteres.",
+      "speedRequired": "Informe a velocidade da oferta.",
+      "speedInvalid": "Informe um número maior que zero.",
+      "latencyInvalid": "Informe a latência em milissegundos, maior que zero.",
+      "acceptanceSlaRequired": "Informe o SLA de aceite.",
+      "acceptanceSlaRange": "Use um número inteiro de horas entre 1 e 72.",
+      "technicalSlaRequired": "Informe o SLA técnico.",
+      "technicalSlaRange": "Informe um percentual maior que 0 e até 100 (ex.: 98,5).",
+      "deliveryTimeRequired": "Informe o prazo de entrega ou ativação.",
+      "deliveryTimeTooLong": "Use até 120 caracteres.",
+      "manufacturerRequired": "Informe o fabricante.",
+      "modelRequired": "Informe o modelo.",
+      "conditionRequired": "Escolha a condição do equipamento.",
+      "hardwareTooLong": "Use até 80 caracteres.",
+      "pricingModelRequired": "Escolha o modelo de preço.",
+      "priceRequired": "Informe o preço.",
+      "priceInvalid": "Informe um valor maior que zero, com até 2 casas decimais.",
+      "setupInvalid": "Informe um valor a partir de zero, com até 2 casas decimais.",
+      "stockInvalid": "Informe a quantidade em números inteiros.",
+      "cancellationRequired": "Informe as condições de cancelamento.",
+      "cancellationTooLong": "Use até 300 caracteres.",
+      "validUntilPast": "A vigência não pode terminar no passado.",
+      "numberingTypeRequired": "Informe o tipo de recurso.",
+      "numberingBlockRequired": "Informe o bloco ou a quantidade.",
+      "numberingHolderRequired": "Informe a titularidade ou delegação.",
+      "numberingTooLong": "Use até 120 caracteres.",
+      "locationSelect": "Escolha um endereço da lista de sugestões.",
+      "radiusRequired": "Informe o raio de atendimento.",
+      "radiusRange": "Use um raio entre 1 e 80 km.",
+      "publicGeometryRequired": "Desenhe o polígono da cobertura editada ou escolha a cobertura completa.",
+      "coverageAreasRequired": "Selecione ao menos uma área do KMZ.",
+      "locationsMax": "Informe no máximo 10 localidades.",
+      "weightRequired": "Informe o peso embalado.",
+      "weightRange": "O peso deve ser maior que zero e até 1.000.000 g (1000 kg).",
+      "heightRequired": "Informe a altura.",
+      "widthRequired": "Informe a largura.",
+      "lengthRequired": "Informe o comprimento.",
+      "sideRange": "Cada medida deve ser maior que zero e até 400 cm.",
+      "postalCodeRequired": "Informe o CEP de onde o produto é enviado.",
+      "postalCodeInvalid": "Informe um CEP válido, com 8 dígitos.",
+      "insuranceInvalid": "Informe um valor maior que zero ou deixe em branco.",
+      "extraFeeInvalid": "Informe um valor válido ou deixe em branco.",
+      "onDemandDaysRange": "Informe de 4 a 30 dias úteis.",
+      "packageSizeMismatch": "O pacote não cabe no tamanho escolhido. Use Personalizado ou Carga.",
+      "cargoWithinLimit": "Carga é só acima de 30 kg, 100 cm em um lado ou 200 cm na soma dos lados.",
+      "shippingModeInvalid": "Essa modalidade não vale para o tamanho do pacote.",
+      "pickupTooLong": "Use no máximo 1000 caracteres.",
+      "cargoPriceInvalid": "Informe um valor maior que zero.",
+      "cargoPriceRequired": "Informe o valor junto com o prazo.",
+      "cargoDaysRange": "Informe de 1 a 90 dias úteis.",
+      "cargoDaysRequired": "Informe o prazo junto com o valor.",
+      "attributeNameRequired": "Informe o nome do atributo.",
+      "attributeNameTooLong": "Use até 60 caracteres.",
+      "attributeTypeRequired": "Selecione o tipo de dado.",
+      "attributeValuesRequired": "Informe ao menos um valor.",
+      "attributeValuesTooLong": "Use até 500 caracteres.",
+      "attributesMax": "Limite de 20 atributos.",
+      "locationRequired": "Informe a localidade A.",
+      "regionRequired": "Selecione o registro.",
+      "integerInvalid": "Use só números inteiros.",
+      "warrantyRequired": "Informe a garantia em meses.",
+      "serializationRequired": "Informe se o equipamento é serializado.",
+      "includedIpsRequired": "Informe quantos IPs estão inclusos.",
+      "capacityRequired": "Informe a capacidade.",
+      "soldUnitRequired": "Selecione a unidade vendida.",
+      "powerSpacePortRequired": "Descreva energia, espaço e porta.",
+      "infraTooLong": "Texto muito longo.",
+      "stockRequired": "Informe o estoque disponível.",
+      "templateRequired": "Preencha este campo.",
+      "templateNumber": "Informe um número.",
+      "templateRange": "Valor fora do intervalo permitido.",
+      "templateChoice": "Escolha uma das opções.",
+      "templateDate": "Informe uma data válida.",
+      "templateUrl": "Informe um link que comece com http:// ou https://.",
+      "templateTooLong": "Texto maior que o permitido."
+    },
+    "categories": {
+      "connectivity": {
+        "label": "Conectividade",
+        "description": "link dedicado, trânsito IP, L2L, VPLS, PABX tradicional, ramais locais, radiofrequência (PTP/PTMP), rede móvel (4G/5G)."
+      },
+      "physicalInfra": {
+        "label": "Infra Física",
+        "description": "dark fiber, cross-connect, colocation, espaço em torre, caixas de terminação (CTO), distribuidores ópticos (DIO), cabeamento de planta externa."
+      },
+      "hardware": {
+        "label": "Hardware / CPE",
+        "description": "ONUs, OLTs, roteadores, switches, ONTs, firewalls (NGFW), gateways de VPN, fontes retificadoras, nobreaks (UPS), geradores."
+      },
+      "numberingResources": {
+        "label": "Recursos Numéricos",
+        "description": "IPv4, IPv6, ASN, E.164 (numeração virtual/VoIP)."
+      },
+      "software": {
+        "label": "Softwares e Gerenciamento",
+        "description": "sistemas BSS/OSS, monitoramento (NMS/Zabbix), gerenciamento de IPs (IPAM)."
+      },
+      "protocols": {
+        "label": "Protocolos e Serviços",
+        "description": "BGP, OSPF, IS-IS, DNS, DHCP, NTP, mitigação DDoS em nuvem."
+      },
+      "custom": {
+        "label": "Outra categoria",
+        "description": "Categoria da plataforma com campos definidos pelo template."
+      }
+    },
+    "coverageScope": {
+      "title": "Escolher cobertura",
+      "subtitle": "Defina a área de cobertura que será vinculada a esta oferta.",
+      "typeLabel": "Tipo de cobertura",
+      "mode": {
+        "full": "Cobertura completa",
+        "areas": "Áreas do KMZ",
+        "custom": "Cobertura editada"
+      },
+      "modeDescription": {
+        "full": "Usar toda a cobertura do KMZ selecionado.",
+        "areas": "Escolher regiões do KMZ para esta oferta.",
+        "custom": "Definir uma área específica para esta oferta."
+      },
+      "fullInfoTitle": "Toda a cobertura do KMZ",
+      "fullInfoText": "Nenhum recorte será aplicado. Para escolher apenas parte da área, selecione Cobertura editada.",
+      "areasTitle": "Escolha as áreas do KMZ",
+      "areasText": "Marque na lista ou clique nas áreas do mapa. A cobertura da oferta será a união das áreas escolhidas.",
+      "areas": {
+        "title_one": "1 área no KMZ",
+        "title_other": "{{count}} áreas no KMZ",
+        "selectedCount_zero": "Nenhuma selecionada",
+        "selectedCount_one": "1 selecionada",
+        "selectedCount_other": "{{count}} selecionadas",
+        "search": "Buscar área por nome ou pasta",
+        "selectAll": "Selecionar todas",
+        "clear": "Limpar seleção",
+        "unnamed": "Área {{number}}",
+        "loading": "Carregando as áreas do KMZ…",
+        "loadError": "Não foi possível carregar as áreas do KMZ. Tente de novo mais tarde ou use outro tipo de cobertura.",
+        "empty": "Este KMZ não tem áreas (polígonos) para escolher. Use a cobertura completa ou desenhe no mapa.",
+        "noMatch": "Nenhuma área encontrada.",
+        "tooMany": "Escolha no máximo {{max}} áreas.",
+        "truncated": "O KMZ é grande demais para listar todas as áreas: só as primeiras aparecem."
+      },
+      "locationLabel": "Digite a localização da cobertura",
+      "locationPlaceholder": "Digite uma localização",
+      "locationHint": "Informe um endereço, bairro ou cidade.",
+      "drawTitle": "Ou selecione no mapa",
+      "drawText": "Clique no mapa para adicionar os pontos e no primeiro ponto para fechar o polígono. Você pode desenhar mais de um.",
+      "mapTitle": "Mapa de Cobertura",
+      "mapMode": {
+        "full": "Cobertura completa",
+        "areas": "Seleção por áreas",
+        "custom": "Seleção manual"
+      },
+      "zoomIn": "Aproximar",
+      "zoomOut": "Afastar",
+      "redo": "Apagar todos",
+      "legend": {
+        "full": "Área de cobertura do KMZ selecionado",
+        "areas": "Áreas escolhidas para esta oferta",
+        "custom": "Polígonos desenhados para esta oferta",
+        "lines": "Linhas do KMZ",
+        "points": "Pontos do KMZ"
+      },
+      "status": {
+        "full": "Cobertura completa selecionada",
+        "areas_one": "1 área selecionada",
+        "areas_other": "{{count}} áreas selecionadas",
+        "areasEmpty": "Selecione as áreas na lista ou no mapa",
+        "custom_one": "1 polígono selecionado",
+        "custom_other": "{{count}} polígonos selecionados",
+        "drawing": "Clique no mapa para desenhar um polígono",
+        "closing": "Clique no primeiro ponto para fechar o polígono"
+      },
+      "selected": {
+        "full": "Cobertura completa: toda a área do KMZ fica pública.",
+        "areas": "Áreas do KMZ: só as áreas escolhidas ficam públicas.",
+        "custom": "Cobertura editada: só os polígonos desenhados ficam públicos."
+      },
+      "cancel": "Cancelar",
+      "confirm": "Confirmar cobertura",
+      "cancelDraft": "Cancelar desenho",
+      "shapes": {
+        "title_one": "Polígono desenhado",
+        "title_other": "Polígonos desenhados ({{count}})",
+        "name": "Polígono {{number}}",
+        "summary": "{{area}} · {{vertices}} vértices",
+        "remove": "Remover {{name}}"
+      },
+      "shapeInfo": {
+        "area": "Área aproximada",
+        "vertices": "Vértices",
+        "status": "Situação",
+        "inside": "Nenhum problema encontrado",
+        "remove": "Remover polígono",
+        "close": "Fechar detalhes",
+        "issue": {
+          "invalid": "Se cruza ou não tem área",
+          "overlap": "Sobrepõe outro polígono",
+          "outside": "Fora da área do KMZ"
+        }
+      },
+      "issues": {
+        "invalid": "Há polígono que se cruza ou não tem área. Remova e desenhe de novo, sem cruzar os lados.",
+        "overlap": "Os polígonos não podem se sobrepor nem se encostar. Remova um deles ou redesenhe separado.",
+        "outside": "Todos os polígonos precisam ficar dentro da área do KMZ. Remova ou redesenhe os que estão fora."
+      }
+    },
+    "infra": {
+      "title": "Infra Física — campos obrigatórios",
+      "capacityLabel": "Capacidade",
+      "capacityPlaceholder": "Ex: 48 portas, 2U, 12 fibras",
+      "soldUnitLabel": "Unidade vendida",
+      "soldUnitPlaceholder": "Selecione",
+      "soldUnits": {
+        "port": "Porta",
+        "fiber": "Fibra",
+        "rack_unit": "Unidade de rack (U)",
+        "square_meter": "Metro quadrado",
+        "meter": "Metro",
+        "unit": "Unidade"
+      },
+      "powerSpacePortLabel": "Energia / espaço / porta",
+      "powerSpacePortPlaceholder": "Ex: 2 kW por rack, 1 m² de piso, porta 10G óptica"
+    },
+    "templateFields": {
+      "title": "Campos da categoria",
+      "loading": "Carregando os campos da categoria...",
+      "loadError": "Não deu para carregar os campos da categoria.",
+      "retry": "Tentar de novo",
+      "choose": "Selecione",
+      "yes": "Sim",
+      "no": "Não",
+      "rangeBetween": "Entre {{min}} e {{max}}",
+      "rangeMin": "A partir de {{min}}",
+      "rangeMax": "Até {{max}}",
+      "labels": {
+        "bandwidthMbps": "Velocidade/banda",
+        "technicalSlaPercent": "SLA técnico (disponibilidade)",
+        "locationA": "Localidade A",
+        "locationZ": "Localidade Z",
+        "includedIps": "IPs inclusos",
+        "technology": "Tecnologia",
+        "symmetric": "Simetria",
+        "activationDays": "Prazo de ativação",
+        "location": "Localidade",
+        "capacity": "Capacidade",
+        "soldUnit": "Unidade vendida",
+        "powerSpacePort": "Energia/espaço/porta",
+        "resourceType": "Tipo",
+        "portOrFiberCount": "Quantidade de portas ou fibras",
+        "splitterRatio": "Razão de splitter",
+        "connectorType": "Tipo de conector",
+        "availablePowerKw": "Energia disponível",
+        "manufacturer": "Fabricante",
+        "model": "Modelo",
+        "condition": "Condição",
+        "warrantyMonths": "Garantia",
+        "serialized": "Serializado",
+        "portCount": "Número de portas",
+        "technologyStandard": "Padrão/tecnologia",
+        "speedMbps": "Velocidade",
+        "powerW": "Potência",
+        "voltage": "Tensão",
+        "anatelHomologation": "Homologação Anatel",
+        "block": "Bloco/quantidade",
+        "allowedUse": "Titularidade/uso permitido",
+        "registry": "Região/registro",
+        "assignmentMode": "Forma de cessão",
+        "licenseType": "Tipo de licença",
+        "licensePeriodMonths": "Período",
+        "seatCount": "Usuários ou dispositivos",
+        "deployment": "Implantação",
+        "supportIncluded": "Suporte incluso",
+        "service": "Serviço",
+        "scope": "Escopo",
+        "capacityGbps": "Capacidade",
+        "periodMonths": "Período",
+        "sla": "SLA"
+      },
+      "options": {
+        "fiber": "Fibra",
+        "radio": "Rádio",
+        "mobile_4g": "Móvel 4G",
+        "mobile_5g": "Móvel 5G",
+        "copper": "Cobre",
+        "satellite": "Satélite",
+        "port": "Porta",
+        "rack_unit": "Unidade de rack (U)",
+        "square_meter": "Metro quadrado",
+        "meter": "Metro",
+        "unit": "Unidade",
+        "cto": "Caixa de terminação (CTO)",
+        "dio": "Distribuidor óptico (DIO)",
+        "dark_fiber": "Fibra apagada (dark fiber)",
+        "cross_connect": "Cross-connect",
+        "colocation": "Colocation",
+        "tower": "Espaço em torre",
+        "cabling": "Cabeamento",
+        "new": "Novo",
+        "used": "Usado",
+        "refurbished": "Recondicionado",
+        "ipv4": "IPv4",
+        "ipv6": "IPv6",
+        "asn": "ASN",
+        "e164": "E.164",
+        "lacnic": "LACNIC",
+        "nic_br": "NIC.br",
+        "arin": "ARIN",
+        "ripe": "RIPE NCC",
+        "apnic": "APNIC",
+        "afrinic": "AFRINIC",
+        "anatel": "Anatel",
+        "subscription": "Assinatura",
+        "perpetual": "Perpétua",
+        "cloud": "Nuvem",
+        "on_premises": "Local (on-premises)"
+      },
+      "units": {
+        "days": "dias",
+        "months": "meses"
+      }
+    },
+    "rules": {
+      "title": "Regras da categoria",
+      "hint": "Regras definidas pela plataforma para esta categoria. Preencha os valores de cada regra que se aplica à oferta; o efeito (selo ou campo ajustado) aparece depois de salvar.",
+      "required": "obrigatória",
+      "apply": "Aplicar esta regra"
+    }
+  },
+  "CoverageMap": {
+    "missingToken": "Mapa indisponível: configure NEXT_PUBLIC_MAPBOX_TOKEN.",
+    "expand": "Expandir mapa",
+    "collapse": "Fechar mapa expandido",
+    "info": {
+      "km": "{{value}} km",
+      "km2": "{{value}} km²",
+      "kmzArea": "Área do KMZ",
+      "kmzPoint": "Ponto do KMZ",
+      "publicArea": "Área pública {{number}} de {{total}}",
+      "location": "Localidade {{number}}",
+      "name": "Nome",
+      "address": "Endereço",
+      "coordinates": "Coordenadas",
+      "radius": "Raio",
+      "radiusArea": "Área do raio",
+      "area": "Área",
+      "vertices": "Vértices"
+    },
+    "loading": {
+      "download": "Baixando o arquivo original do KMZ...",
+      "read": "Lendo as áreas, linhas e pontos...",
+      "draw": "Desenhando a cobertura no mapa...",
+      "large": "Arquivos grandes podem levar um pouco mais...",
+      "stillWorking": "Ainda carregando — a tela não travou."
+    }
+  },
+  "SellerOfferImages": {
+    "title": "Fotos da oferta",
+    "subtitle": "Até 10 fotos. A primeira é a capa no marketplace.",
+    "pending": "Há alterações nas fotos ainda não confirmadas.",
+    "upToDate": "Fotos em dia com a oferta.",
+    "confirm": "Confirmar fotos",
+    "confirming": "Enviando fotos...",
+    "confirmed": "Fotos confirmadas na oferta.",
+    "notConfirmedOnSave": "As alterações nas fotos não foram salvas: use \"Confirmar fotos\" na etapa Informações básicas.",
+    "afterPublishNotice": "As fotos entram depois de criar a oferta: ela precisa existir antes. Logo em seguida você poderá adicioná-las.",
+    "errors": {
+      "reloadFailed": "As fotos foram enviadas, mas não foi possível recarregar a lista. Recarregue a página antes de alterar de novo."
+    },
+    "warnings": {
+      "imagesLimit": "Algumas fotos não foram enviadas: a oferta já tem o máximo de 10.",
+      "imagesUnavailable": "As fotos não foram enviadas: o armazenamento de imagens está indisponível. Tente de novo mais tarde.",
+      "imagesInvalid": "Alguma foto foi recusada por não ser um JPG, PNG ou WEBP válido de até 5 MB.",
+      "imagesFailed": "Alguma foto não foi enviada. Escolha-a de novo e confirme.",
+      "imagesDeleteFailed": "Não foi possível remover alguma foto. Tente de novo.",
+      "imagesOrderFailed": "As fotos foram enviadas, mas não na ordem escolhida. Ajuste a ordem e confirme de novo."
+    }
+  },
+  "SellerOfferCoverage": {
+    "title": "Cobertura da oferta",
+    "subtitle": "Escolha o KMZ e a área: o KMZ inteiro (cobertura total) ou um polígono desenhado dentro dele (cobertura manual).",
+    "pending": "Há alterações na cobertura ainda não confirmadas.",
+    "upToDate": "Cobertura vinculada à oferta.",
+    "missing": "Nenhuma cobertura vinculada: a oferta não pode ser publicada sem ela.",
+    "confirm": "Confirmar cobertura",
+    "confirming": "Vinculando cobertura...",
+    "confirmed": "Cobertura vinculada à oferta.",
+    "notConfirmedOnSave": "A cobertura alterada não foi vinculada: use \"Confirmar cobertura\" na etapa Categoria e cobertura.",
+    "errors": {
+      "failed": "Não foi possível vincular a cobertura agora. Tente de novo em instantes.",
+      "invalid": "A cobertura foi recusada: confira se o KMZ é da sua organização e se a área desenhada está dentro dele.",
+      "scopeUnavailable": "Não foi possível carregar o recorte salvo da cobertura. O mapa mostra a área toda do KMZ; confirme de novo só se quiser trocar o recorte.",
+      "pointsInvalid": "Confira as localidades de atendimento: cada endereço escolhido precisa de um raio entre 1 e 80 km.",
+      "pointOutside": "A localidade {{number}} fica fora do KMZ escolhido. Troque o endereço, reduza o raio ou escolha outro KMZ.",
+      "pointsOutside": "Uma das localidades fica fora do KMZ escolhido. Confira os endereços e os raios."
+    },
+    "loadingScope": "Carregando o recorte salvo..."
+  },
+  "SellerOfferDetail": {
+    "title": "Detalhe da oferta",
+    "noCover": "Sem imagem de capa",
+    "coverAlt": "Capa da oferta {{name}}",
+    "imageCount_one": "{{count}} imagem",
+    "imageCount_other": "{{count}} imagens",
+    "notFound": "Oferta não encontrada.",
+    "loadError": "Não foi possível carregar a oferta.",
+    "specs": {
+      "title": "Especificações Técnicas",
+      "speed": "Velocidade",
+      "latency": "Latência máxima",
+      "technicalSla": "SLA Técnico",
+      "acceptanceSla": "SLA de Aceite",
+      "deliveryTime": "Prazo de Entrega",
+      "cancellation": "Política de Cancelamento"
+    },
+    "coverage": {
+      "title": "Cobertura / KMZ",
+      "boundTitle": "Área de cobertura KMZ vinculada",
+      "boundText": "Versão {{version}} · edite a oferta para trocar o KMZ",
+      "emptyTitle": "Nenhuma cobertura vinculada",
+      "emptyText": "Edite a oferta para fazer upload do arquivo KMZ de cobertura",
+      "unknownCategory": "Categoria da oferta não identificada.",
+      "upload": "Upload KMZ",
+      "replace": "Trocar KMZ"
+    },
+    "pricing": {
+      "title": "Preço e Disponibilidade",
+      "model": "Modelo de Preço",
+      "models": {
+        "monthly": "Recorrente (mensalidade)",
+        "annual": "Recorrente (anuidade)",
+        "oneTime": "Pagamento único"
+      },
+      "currency": "Moeda",
+      "price": "Preço",
+      "setup": "Setup / NRC",
+      "stock": "Disponibilidade / Estoque",
+      "stockOnRequest": "Sob consulta",
+      "stockUnits_one": "{{count}} disponível",
+      "stockUnits_other": "{{count}} disponíveis",
+      "validUntil": "Vigência da Oferta",
+      "noExpiry": "Sem vencimento",
+      "sponsorNote": "Patrocinar oferta disponível para sellers com KYC verificado e ≥ 10 pedidos completos."
+    },
+    "description": {
+      "title": "Descrição",
+      "hide": "Ocultar descrição completa",
+      "show": "Ver descrição completa"
+    },
+    "actions": {
+      "back": "Voltar",
+      "edit": "Editar oferta",
+      "sponsor": "Patrocinar Oferta",
+      "unsponsor": "Remover patrocínio"
+    },
+    "toasts": {
+      "sponsored": "Oferta patrocinada.",
+      "unsponsored": "Patrocínio removido."
+    }
+  },
+  "SellerOfferEdit": {
+    "title": "Editar oferta",
+    "saved": "\"{{name}}\" atualizada.",
+    "actions": {
+      "save": "Salvar alterações",
+      "saving": "Salvando..."
+    },
+    "errors": {
+      "saveFailed": "Não foi possível salvar a oferta. Tente de novo.",
+      "forbidden": "Você não tem acesso a esta oferta.",
+      "readOnly": "Ofertas arquivadas não podem ser editadas."
+    }
+  },
+  "SellerCoverage": {
+    "title": "Cobertura/KMZ",
+    "subtitle": "Upload exclusivo do Dono · arquivo versionado e imutável · máx. 50 MB · privado (buyer vê apenas agregado)",
+    "ownerOnly": "Somente Dono pode subir KMZ",
+    "notOwner": "Seu usuário não é Dono da organização: você pode consultar as coberturas, mas não enviar KMZ.",
+    "privacy": {
+      "title": "Privacidade da cobertura",
+      "text": "O arquivo KMZ é <strong>privado</strong>. Buyers visualizam apenas os <strong>agregados públicos</strong> (países, estados, regiões, cidades). Traçados físicos, rotas, PoPs e o KMZ bruto nunca são expostos. Você pode ocultar subconjuntos da cobertura, mas não pode declarar áreas fora do KMZ válido nem usar ocultação para mascarar fraude ou indisponibilidade."
+    },
+    "list": {
+      "title": "Coberturas cadastradas",
+      "subtitle": "Gerencie áreas, regiões e arquivos KMZ vinculados",
+      "empty": "Nenhuma cobertura cadastrada ainda.",
+      "offers_one": "{{count}} oferta vinculada",
+      "offers_other": "{{count}} ofertas vinculadas",
+      "updatedAt": "Atualizado: {{date}}",
+      "details": "Detalhes",
+      "detailsOf": "Detalhes de {{name}}",
+      "emptyHint": "Envie um KMZ ao lado para cadastrar a primeira cobertura.",
+      "loading": "Carregando coberturas...",
+      "retry": "Tentar de novo",
+      "errors": {
+        "forbidden": "Você não tem acesso às coberturas desta organização.",
+        "failed": "Não foi possível carregar as coberturas. Tente de novo."
+      }
+    },
+    "form": {
+      "title": "Cadastro de cobertura",
+      "subtitle": "Envie o arquivo KMZ da nova área",
+      "dropTitle": "Arraste o arquivo KMZ aqui",
+      "dropHint": "ou clique para selecionar · máximo 50 MB",
+      "removeFile": "Remover arquivo",
+      "cancel": "Cancelar",
+      "save": "Salvar cobertura",
+      "saving": "Enviando..."
+    },
+    "details": {
+      "map": "Área da cobertura",
+      "close": "Fechar",
+      "fields": {
+        "offers": "Ofertas",
+        "size": "Tamanho",
+        "polygons": "Polígonos",
+        "createdAt": "Enviado em",
+        "version": "Versão",
+        "sha": "SHA-256"
+      }
+    },
+    "toasts": {
+      "saved": "Cobertura \"{{name}}\" salva."
+    },
+    "errors": {
+      "fileRequired": "Escolha o arquivo KMZ."
+    }
+  },
+  "CoverageStorage": {
+    "title": "Armazenamento de cobertura",
+    "used": "{{used}} de {{quota}} usados",
+    "available": "{{available}} livres",
+    "overQuota": "O consumo passou da cota. Os KMZ enviados continuam valendo, mas novos envios ficam bloqueados até liberar espaço ou ampliar a cota.",
+    "categories": {
+      "originals": "Arquivos KMZ originais",
+      "geometries": "Geometrias",
+      "metadata": "Metadados e classificações"
+    },
+    "hint": "Todas as versões contam, inclusive as antigas e as arquivadas. Arquivar não libera espaço.",
+    "retry": "Tentar de novo",
+    "errors": {
+      "loadFailed": "Não foi possível carregar o uso de armazenamento.",
+      "forbidden": "Você não tem acesso ao armazenamento desta organização."
+    },
+    "quota": {
+      "edit": "Alterar cota",
+      "title": "Atualizar cota de armazenamento",
+      "description": "Defina o limite da organização e registre o motivo administrativo.",
+      "belowUsage": "A nova cota fica abaixo do que a organização já usa ({{used}}). Os dados são mantidos, mas novos envios de KMZ ficam bloqueados.",
+      "reasonLabel": "Motivo do aumento",
+      "reasonPlaceholder": "Ex.: expansão temporária para armazenar documentos de homologação...",
+      "cancel": "Cancelar",
+      "save": "Salvar nova cota",
+      "saved": "Cota de {{name}} alterada para {{quota}}.",
+      "errors": {
+        "quotaRequired": "Informe a nova cota.",
+        "quotaInvalid": "Use um número inteiro de MB.",
+        "quotaRange": "Use de 50 a 1.000 MB.",
+        "reasonRequired": "Informe o motivo da alteração.",
+        "reasonTooLong": "Use até 500 caracteres.",
+        "forbidden": "Só o super admin da Neutra+ pode alterar a cota.",
+        "rejected": "A geo-api recusou o valor. Confira a cota e tente de novo.",
+        "failed": "Não foi possível alterar a cota. Tente de novo.",
+        "reasonTooShort": "Escreva pelo menos 10 caracteres."
+      },
+      "organizationLabel": "Organização",
+      "newQuota": "Nova cota",
+      "currentLimit": "Limite atual de {{quota}}",
+      "sliderLabel": "Cota de armazenamento em megabytes",
+      "manualLabel": "Quantidade manual",
+      "manualRange": "{{min}} a {{max}}",
+      "unit": "MB",
+      "reasonHelper": "{{count}}/{{min}} caracteres mínimos · alteração registrada na auditoria"
+    }
+  },
+  "Wallet": {
+    "back": "Voltar",
+    "retry": "Tentar de novo",
+    "buyer": {
+      "title": "Carteira",
+      "subtitle": "Saldo · métodos de pagamento · histórico"
+    },
+    "seller": {
+      "title": "Carteira Seller",
+      "subtitle": "Recebimentos · payout · antecipação · contas bancárias",
+      "notice": {
+        "title": "Carteira Seller · Recebimentos",
+        "description": "Gerencie seus recebimentos, payout mensal e contas bancárias cadastradas. Payout realizado todo dia 25 com valor mínimo de R$ 1.000. KYC completo obrigatório.",
+        "collapse": "Recolher aviso",
+        "expand": "Expandir aviso",
+        "dismiss": "Fechar aviso"
+      },
+      "advance": "Antecipar",
+      "payout": "Sacar",
+      "comingSoon": "A antecipação fica disponível quando o serviço de recebimentos tiver essa rota.",
+      "balance": {
+        "toReceive": {
+          "label": "Saldo a Receber",
+          "help": "Líquido dos pedidos pagos que ainda não entrou em um repasse.",
+          "caption_one": "{{count}} pedido",
+          "caption_other": "{{count}} pedidos"
+        },
+        "dispute": {
+          "label": "Em disputa"
+        },
+        "fees": {
+          "label": "Taxas Deduzidas",
+          "caption": "total"
+        }
+      },
+      "errors": {
+        "receivablesForbidden": "Sem acesso aos recebimentos desta organização.",
+        "receivablesFailed": "Não foi possível carregar os recebimentos."
+      },
+      "debt": {
+        "message": "Você possui uma dívida de {{amount}}, normalize agora!",
+        "action": "normalizar agora",
+        "soon": "A regularização pela plataforma ainda não está disponível. Fale com o Suporte."
+      }
+    },
+    "errors": {
+      "forbidden": "Seu perfil não tem acesso à carteira da organização.",
+      "balanceFailed": "Não foi possível carregar o saldo.",
+      "transactionsFailed": "Não foi possível carregar as transações."
+    },
+    "balance": {
+      "unavailable": "Disponível quando os pagamentos forem integrados",
+      "available": {
+        "label": "Saldo disponível",
+        "help": "Crédito Neutra+ livre para usar em novas compras.",
+        "caption": "Crédito Neutra+ · liberado para saque ou uso",
+        "reserved": "{{amount}} reservado em checkouts em andamento"
+      },
+      "escrow": {
+        "label": "Em escrow",
+        "help": "Valores de pedidos pagos aguardando o aceite da entrega."
+      },
+      "dispute": {
+        "label": "Em disputa (congelado)",
+        "help": "Valores bloqueados enquanto uma disputa está aberta."
+      },
+      "credit": {
+        "label": "Crédito Neutra+",
+        "noExpiry": "Não expira",
+        "caption": "Saldo disponível"
+      },
+      "monthCredited": {
+        "label": "Total creditado (mês)",
+        "caption_one": "{{count}} crédito gerado",
+        "caption_other": "{{count}} créditos gerados"
+      },
+      "monthSpent": {
+        "label": "Total gasto (mês)",
+        "caption_one": "{{count}} pagamento realizado",
+        "caption_other": "{{count}} pagamentos realizados"
+      },
+      "escrowNow": {
+        "label": "Em escrow agora"
+      }
+    },
+    "withdrawNotice": {
+      "title": "Sobre o saque de crédito",
+      "description": "O crédito Neutra+ não expira e não é transferível entre organizações. Para solicitar saque, você precisa ser Financeiro ou Dono. Podem incidir taxas conforme política vigente."
+    },
+    "methods": {
+      "add": "Adicionar",
+      "addNew": "Adicionar novo método",
+      "paymentTitle": "Métodos de pagamento",
+      "paymentEmpty": "Nenhum método de pagamento cadastrado.",
+      "combinedTitle": "Pagamento combinado disponível",
+      "combinedDescription": "Combine saldo da carteira + PIX ou cartão em um único checkout.",
+      "payoutTitle": "Contas de recebimento",
+      "payoutEmpty": "Nenhuma conta de recebimento cadastrada.",
+      "pixPayoutTitle": "PIX recomendado para payout",
+      "pixPayoutDescription": "Compensação imediata, disponível 24/7, sem custo para CNPJ"
+    },
+    "transactions": {
+      "title": "Histórico de transações",
+      "viewAll": "Ver tudo",
+      "viewAllFooter": "Ver todas as transações",
+      "empty": "Nenhuma transação na carteira ainda.",
+      "emptyFiltered": "Nenhuma transação encontrada com estes filtros.",
+      "summary": "{{total}} transações · {{debits}} débitos · {{credits}} créditos",
+      "export": "Exportar CSV",
+      "searchPlaceholder": "Buscar por descrição ou referência...",
+      "filters": "Filtros",
+      "filter": {
+        "all": "Todas",
+        "credits": "Créditos",
+        "debits": "Débitos",
+        "escrow": "Escrow"
+      },
+      "period": {
+        "from": "De",
+        "to": "Até",
+        "clear": "Limpar período"
+      },
+      "kpis": {
+        "total": "Total de transações",
+        "credits": "Créditos",
+        "debits": "Débitos",
+        "pending": "Em andamento"
+      },
+      "results_one": "{{count}} resultado",
+      "results_other": "{{count}} resultados",
+      "legend": {
+        "credit": "Crédito",
+        "debit": "Débito",
+        "escrow": "Escrow",
+        "release": "Liberação"
+      },
+      "loadMore": "Carregar mais",
+      "status": {
+        "completed": "Concluída",
+        "pending": "Pendente",
+        "failed": "Falha"
+      },
+      "kinds": {
+        "payment": "Pagamento · Pedido {{order}}",
+        "cancellationCredit": "Crédito Neutra+ · Pedido {{order}} cancelado",
+        "credit": "Crédito Neutra+ · Pedido {{order}}"
+      },
+      "currency": "Moeda do histórico"
+    },
+    "addMethod": {
+      "title": "Adicionar método de pagamento",
+      "subtitle": "Métodos são vinculados à organização e visíveis para perfis Financeiro e Dono.",
+      "typeStep": "1. Selecione o tipo de método",
+      "dataStep": "2. Preencha os dados",
+      "types": {
+        "pix": {
+          "title": "PIX",
+          "description": "Chave CNPJ, CPF, e-mail ou celular. Compensação imediata 24/7."
+        },
+        "card": {
+          "title": "Cartão de Crédito",
+          "description": "Visa, Mastercard, Elo, Amex. Processamento em até 2 dias úteis."
+        }
+      },
+      "pix": {
+        "keyType": "Tipo de chave PIX",
+        "keyTypes": {
+          "cnpj": "CNPJ",
+          "cpf": "CPF",
+          "email": "E-mail",
+          "phone": "Celular",
+          "random": "Chave aleatória"
+        },
+        "keyLabel": "Chave PIX ({{type}})",
+        "placeholders": {
+          "cnpj": "00.000.000/0000-00",
+          "cpf": "000.000.000-00",
+          "email": "financeiro@empresa.com.br",
+          "phone": "(00) 00000-0000",
+          "random": "00000000-0000-0000-0000-000000000000"
+        },
+        "hint": "✓ PIX disponível 24/7 · compensação imediata · sem custo para CNPJ"
+      },
+      "card": {
+        "number": "Número do cartão",
+        "name": "Nome impresso no cartão",
+        "namePlaceholder": "NOME COMPLETO",
+        "expiry": "Validade",
+        "expiryPlaceholder": "MM/AA",
+        "cvv": "CVV",
+        "hint": "Dados protegidos com criptografia PCI DSS nível 1. Nunca armazenamos o CVV."
+      },
+      "cancel": "Cancelar",
+      "submit": "Adicionar método",
+      "unavailable": {
+        "title": "Cadastro de métodos ainda não disponível",
+        "description": "O serviço de pagamentos ainda não recebe novos métodos. Nenhum dado foi enviado."
+      },
+      "errors": {
+        "pixKeyRequired": "Informe a chave PIX.",
+        "pixKeyInvalid": "Chave inválida para o tipo escolhido.",
+        "cardNumberRequired": "Informe o número do cartão.",
+        "cardNumberInvalid": "Número de cartão inválido.",
+        "cardNameRequired": "Informe o nome impresso no cartão.",
+        "cardNameInvalid": "Use de 3 a 26 caracteres, como no cartão.",
+        "cardExpiryRequired": "Informe a validade.",
+        "cardExpiryInvalid": "Validade inválida ou vencida.",
+        "cardCvvRequired": "Informe o CVV.",
+        "cardCvvInvalid": "O CVV tem 3 ou 4 dígitos."
+      }
+    },
+    "accounts": {
+      "default": "Padrão",
+      "status": {
+        "active": "Ativo",
+        "pending": "Pendente"
+      },
+      "changeTitle": "Adicionar ou alterar conta",
+      "changeDescription": "saídas estão bloqueadas até verificar a nova conta"
+    },
+    "withdraw": {
+      "header": {
+        "back": "Voltar à carteira",
+        "title": "Solicitar Saque",
+        "protected": "Transação protegida"
+      },
+      "steps": {
+        "amount": "Valor",
+        "destination": "Destino",
+        "review": "Revisão",
+        "confirmation": "Confirmação"
+      },
+      "nav": {
+        "back": "← Voltar",
+        "next": "Próximo →"
+      },
+      "amount": {
+        "title": "Quanto deseja sacar?",
+        "available": "Saldo disponível:",
+        "label": "Valor do saque",
+        "symbol": "R$",
+        "all": "Tudo",
+        "modeTitle": "Modalidade de saque",
+        "fee": "Taxa: {{rate}}",
+        "errors": {
+          "required": "Informe o valor do saque.",
+          "exceeds": "O valor passa do saldo disponível.",
+          "balance": "Não foi possível ler o saldo disponível."
+        }
+      },
+      "modes": {
+        "normal": {
+          "title": "Normal (dia útil seguinte)",
+          "badge": "Padrão",
+          "review": "Normal — Dia útil seguinte",
+          "processing": "Até 1 dia útil",
+          "forecast": "Próximo dia útil"
+        },
+        "express": {
+          "title": "Expresso (hoje, até 17h)",
+          "badge": "Urgente",
+          "review": "Expresso — Hoje, até 17h",
+          "processing": "Hoje, até 17h",
+          "forecast": "Hoje, até 17h"
+        }
+      },
+      "destination": {
+        "title": "Destino do saque",
+        "subtitle": "Selecione a conta de destino",
+        "empty": "Nenhuma conta de recebimento cadastrada. Cadastre uma conta no nome do CNPJ da organização para sacar.",
+        "pending": "Aguardando verificação · saídas bloqueadas",
+        "add": "Adicionar nova conta",
+        "hint": "O crédito Neutra+ só pode ser transferido para contas no nome do CNPJ da organização. Contas de terceiros serão bloqueadas automaticamente."
+      },
+      "review": {
+        "title": "Revise seu saque",
+        "subtitle": "Confirme os dados antes de prosseguir",
+        "rows": {
+          "gross": "Valor bruto",
+          "fee": "Taxa",
+          "net": "Valor líquido",
+          "destination": "Destino",
+          "account": "Conta",
+          "mode": "Modalidade",
+          "processing": "Processamento"
+        },
+        "youReceive": "Você receberá",
+        "hint": "O saque será confirmado via PIN de segurança no próximo passo. Após confirmação, não pode ser cancelado.",
+        "confirm": "Confirmar →"
+      },
+      "pin": {
+        "title": "Confirme sua identidade",
+        "subtitle": "Digite o código de autenticador (TOTP) de 6 dígitos para autorizar",
+        "label": "PIN financeiro",
+        "show": "Mostrar código",
+        "hide": "Ocultar código",
+        "helper": "Use o código de 6 dígitos do autenticador (TOTP) para transações financeiras",
+        "toReceive": "Valor a receber",
+        "authorize": "Autorizar saque",
+        "errors": {
+          "unavailable": "O saque ainda não está disponível: o serviço de pagamentos não tem a rota de saque. Nenhum valor foi movimentado.",
+          "invalidCode": "Código inválido ou expirado. Confira o autenticador e tente de novo.",
+          "forbidden": "Só o Financeiro ou o Dono podem sacar.",
+          "failed": "Não foi possível autorizar o saque. Tente de novo."
+        }
+      },
+      "processing": {
+        "title": "Processando saque...",
+        "subtitle": "Autorizando junto ao sistema financeiro",
+        "checks": {
+          "pin": "Validando PIN",
+          "balance": "Verificando saldo",
+          "transfer": "Iniciando transferência"
+        }
+      },
+      "receipt": {
+        "title": "Saque solicitado!",
+        "subtitle": "{{amount}} sendo transferido para {{destination}}",
+        "rows": {
+          "protocol": "Protocolo",
+          "amount": "Valor",
+          "destination": "Destino",
+          "forecast": "Previsão",
+          "status": "Status"
+        },
+        "processing": "Em processamento",
+        "copy": "Copiar protocolo",
+        "copied": "Protocolo copiado.",
+        "hint": "Guarde o protocolo <strong>{{protocol}}</strong> para acompanhamento. Em caso de não recebimento, acesse Suporte com este código.",
+        "back": "Voltar à carteira"
+      }
+    }
+  },
+  "Proposals": {
+    "title": "Propostas",
+    "subtitle": "Solicitações de cotação enviadas aos provedores · SLA de resposta: 72h úteis",
+    "newRfq": "Nova RFQ",
+    "comingSoon": "Esta tela chega em breve.",
+    "dialog": {
+      "close": "Fechar",
+      "back": "Voltar"
+    },
+    "howItWorks": {
+      "title": "Propostas e RFQ · Como funcionam",
+      "description": "Proposta direta: enviada a um único seller específico. RFQ: enviada em lote a todos os sellers elegíveis automaticamente.",
+      "collapse": "Recolher explicação",
+      "expand": "Expandir explicação",
+      "dismiss": "Fechar explicação"
+    },
+    "tabs": {
+      "label": "Tipo de negociação",
+      "direct": "Propostas/Ofertas",
+      "rfq": "Cotação/RFQ"
+    },
+    "errors": {
+      "required": "Campo obrigatório.",
+      "tooLong": "Texto muito longo.",
+      "priceInvalid": "Informe um preço maior que zero.",
+      "daysInvalid": "Informe um prazo entre 1 e 365 dias.",
+      "reasonRequired": "Escolha o motivo do cancelamento.",
+      "notOpen": "Esta proposta não pode mais ser alterada."
+    },
+    "direct": {
+      "businessDays_one": "{{count}} dia útil",
+      "businessDays_other": "{{count}} dias úteis",
+      "days_one": "{{count}} dia",
+      "days_other": "{{count}} dias",
+      "notice": {
+        "title": "Proposta direta — negociação individual",
+        "description": "Você escolhe um seller específico no catálogo e envia uma proposta com suas condições. O seller pode aceitar, recusar, ou pedir revisão. Você pode revisar ou cancelar enquanto não houver aceite."
+      },
+      "filters": {
+        "label": "Filtrar propostas por status",
+        "all": "Todas",
+        "awaiting": "Aguardando",
+        "revisionRequested": "Revisão",
+        "accepted": "Aceitas",
+        "rejected": "Recusadas",
+        "cancelled": "Canceladas"
+      },
+      "status": {
+        "awaiting": "Aguardando resposta",
+        "revisionRequested": "Revisão solicitada",
+        "accepted": "Aceita",
+        "rejected": "Recusada",
+        "cancelled": "Cancelada"
+      },
+      "card": {
+        "kyc": "KYC",
+        "version": "v{{version}}",
+        "sellerMessageTag": "Msg do seller",
+        "product": "{{product}} · {{category}}",
+        "meta": "Enviada: {{sent}} · Expira: {{expires}} · {{id}}",
+        "sellerMessage": "Mensagem do seller",
+        "sla": "SLA",
+        "delivery": "Entrega",
+        "validity": "Validade",
+        "progress": {
+          "awaiting": {
+            "title": "Análise em andamento",
+            "description": "A proposta já foi recebida e está sendo analisada pelo Seller."
+          },
+          "accepted": {
+            "title": "Pedido aceito",
+            "description": "A proposta foi analisada e aceita pelo Seller."
+          }
+        }
+      },
+      "actions": {
+        "revise": "Revisar proposta",
+        "view": "Ver proposta",
+        "cancel": "Cancelar proposta",
+        "viewOrder": "Ver pedido gerado",
+        "newProposal": "Nova proposta para este seller"
+      },
+      "empty": "Você ainda não enviou propostas diretas.",
+      "emptyFiltered": "Nenhuma proposta com este status.",
+      "details": {
+        "title": "Ver Proposta",
+        "acceptedTitle": "Proposta",
+        "kycVerified": "KYC Verificado",
+        "acceptedStatus": "Aceita pelo seller",
+        "price": "Preço proposto",
+        "priceValue": "{{amount}} ({{currency}})",
+        "sla": "SLA técnico",
+        "delivery": "Prazo de entrega",
+        "validity": "Validade da proposta",
+        "cancellation": "Política de cancelamento",
+        "notes": "Observações",
+        "dates": "Enviada em {{sent}} · Expira em {{expires}}",
+        "acceptedNotice": {
+          "title": "Proposta aceita pelo seller!",
+          "description": "Um pedido foi gerado automaticamente. Acesse a seção de Pedidos para realizar o pagamento em até 72h."
+        }
+      },
+      "revise": {
+        "title": "Revisar proposta",
+        "notice": "A revisão gera uma nova versão da proposta (v{{version}}). O seller será notificado. A moeda não pode ser alterada.",
+        "price": "Preço ({{currency}})",
+        "priceHelper": "Moeda fixada em {{currency}}",
+        "sla": "SLA técnico",
+        "delivery": "Prazo de entrega",
+        "deliveryUnit": "dias úteis",
+        "cancellation": "Política de cancelamento",
+        "notes": "Observações (opcional)",
+        "notesPlaceholder": "Condições especiais, escopo técnico, validade da proposta...",
+        "next": "Revisar antes de enviar",
+        "confirmTitle": "Confirmar revisão",
+        "confirmNotice": "Ao confirmar, a proposta será atualizada para <b>v{{version}}</b> com aceite eletrônico rastreável. A versão anterior fica registrada no histórico.",
+        "confirmHeading": "{{product}} — {{seller}}",
+        "confirmPrice": "Preço",
+        "confirmSla": "SLA",
+        "versionChange": "Versão: v{{from}} → v{{to}}",
+        "confirm": "Confirmar e enviar revisão"
+      },
+      "cancel": {
+        "title": "Cancelar Proposta",
+        "noticeTitle": "Cancelar proposta",
+        "noticeDescription": "O seller será notificado sobre o cancelamento. Esta ação não impacta seu score público mas entra em métricas comerciais.",
+        "target": "Proposta a cancelar",
+        "targetMeta": "{{seller}} · {{id}} · v{{version}}",
+        "reason": "Motivo do cancelamento",
+        "reasons": {
+          "otherSeller": "Compra realizada por outro seller",
+          "otherRfqSupplier": "Proposta aceita por outro fornecedor via RFQ",
+          "budgetRevised": "Orçamento revisado ou projeto suspenso",
+          "specChanged": "Spec técnica mudou — vou enviar nova proposta",
+          "sellerTooSlow": "Seller demorou demais para responder",
+          "other": "Outro motivo"
+        },
+        "notes": "Observações (opcional)",
+        "notesPlaceholder": "Informações adicionais para o seller...",
+        "keep": "Manter proposta",
+        "confirm": "Cancelar proposta"
+      },
+      "toasts": {
+        "revised": "Revisão enviada: {{id}} agora está na v{{version}}.",
+        "cancelled": "Proposta {{id}} cancelada."
+      }
+    },
+    "rfq": {
+      "title": "RFQ",
+      "filters": {
+        "label": "Filtrar RFQs por status",
+        "all": "Todas",
+        "proposalReceived": "Com Proposta",
+        "awaiting": "Aguardando",
+        "converted": "Convertidas",
+        "expired": "Expiradas",
+        "batch": "Selecionar em lote",
+        "batchExit": "Sair da seleção",
+        "batchCancel_one": "Cancelar {{count}} selecionada",
+        "batchCancel_other": "Cancelar {{count}} selecionadas"
+      },
+      "status": {
+        "proposalReceived": "Proposta recebida",
+        "awaiting": "Aguardando resposta",
+        "converted": "Convertida em pedido",
+        "expired": "Expirada",
+        "cancelled": "Cancelada"
+      },
+      "card": {
+        "hoursLeft": "{{count}}h restantes",
+        "notifiedSellers": "Sellers notificados",
+        "proposalsReceived": "Propostas recebidas",
+        "createdAt": "Criada em",
+        "bestProposal": "Melhor proposta",
+        "select": "Selecionar {{id}}"
+      },
+      "actions": {
+        "viewProposals_one": "Ver {{count}} proposta",
+        "viewProposals_other": "Ver {{count}} propostas",
+        "requestRevision": "Pedir revisão",
+        "follow": "Ver acompanhamento",
+        "cancel": "Cancelar RFQ",
+        "viewOrder": "Ver pedido gerado",
+        "newRfq": "Nova RFQ para este produto",
+        "export": "Exportar"
+      },
+      "empty": "Você ainda não abriu nenhuma RFQ.",
+      "emptyFiltered": "Nenhuma RFQ com este status.",
+      "cancel": {
+        "title_one": "Cancelar RFQ",
+        "title_other": "Cancelar {{count}} RFQs",
+        "description_one": "A RFQ {{id}} será encerrada e os sellers notificados não poderão mais enviar propostas.",
+        "description_other": "As {{count}} RFQs selecionadas serão encerradas e os sellers notificados não poderão mais enviar propostas.",
+        "keep_one": "Manter RFQ",
+        "keep_other": "Manter RFQs",
+        "confirm_one": "Cancelar RFQ",
+        "confirm_other": "Cancelar RFQs"
+      },
+      "toasts": {
+        "cancelled_one": "RFQ {{id}} cancelada.",
+        "cancelled_other": "{{count}} RFQs canceladas."
+      },
+      "create": {
+        "steps": {
+          "category": "Categoria",
+          "details": "Detalhes",
+          "review": "Revisão"
+        },
+        "titles": {
+          "category": "Nova RFQ — Selecionar categoria",
+          "details": "Nova RFQ — Detalhes da cotação",
+          "review": "Nova RFQ — Revisar e enviar",
+          "done": "RFQ enviada com sucesso!"
+        },
+        "categoryHint": "Selecione a categoria do produto ou serviço que você precisa cotar.",
+        "categories": {
+          "connectivity": "Links dedicados, MPLS, fibra, banda larga corporativa",
+          "physicalInfra": "Colocation, dark fiber, IRU, espaço em datacenter",
+          "hardware": "Roteadores, switches, ONTs, antenas, CPEs",
+          "numberingResources": "Blocos IPv4/IPv6, ASN, transferência de titularidade"
+        },
+        "change": "Trocar",
+        "next": "Próximo",
+        "review": "Revisar RFQ",
+        "send": "Enviar RFQ para sellers",
+        "finish": "Concluir",
+        "fields": {
+          "product": "Produto / Serviço",
+          "productPlaceholder": "Ex: Link Dedicado 500 Mbps, Colocation 4U, Bloco IPv4 /24...",
+          "description": "Descrição técnica",
+          "descriptionPlaceholder": "Descreva especificações técnicas, capacidade, SLA mínimo esperado, prazo de ativação, requisitos especiais...",
+          "location": "Localização / Endereço de instalação",
+          "locationPlaceholder": "Cidade/UF ou endereço completo",
+          "budget": "Orçamento disponível (opcional)",
+          "budgetPlaceholder": "Ex: Até R$ 5.000/mês ou US$ 10.000",
+          "deadline": "Prazo para respostas",
+          "deadlineOption": "{{count}} horas",
+          "deadlineDefault": "{{count}} Horas (Padrão)",
+          "urgent": "Urgente",
+          "urgentHint": "Destaca a RFQ para sellers",
+          "requirements": "Requisitos adicionais (opcional)",
+          "requirementsPlaceholder": "Condições contratuais, certificações exigidas, preferências de pagamento, NDA necessário..."
+        },
+        "detailsNotice": "Esta RFQ será enviada a <b>todos os sellers elegíveis</b> para esta categoria automaticamente. Sellers têm 72h úteis para responder. Não inclua anexos confidenciais — use o fluxo jurídico/NDA para isso.",
+        "reviewNotice": "Após envio, a RFQ não pode ser editada. Você pode cancelá-la enquanto nenhuma proposta aceita foi convertida em pedido.",
+        "summary": {
+          "urgent": "URGENTE",
+          "description": "Descrição técnica",
+          "location": "Localização",
+          "budget": "Orçamento",
+          "deadline": "Prazo para respostas",
+          "requirements": "Requisitos adicionais",
+          "none": "Nenhum",
+          "notInformed": "Não informado",
+          "recipients": "Destinatários",
+          "allSellers": "Todos os sellers elegíveis",
+          "id": "ID da RFQ",
+          "deadlineValue": "{{count}} horas",
+          "deadlineUrgent": "{{count}} horas (urgente)"
+        },
+        "done": {
+          "heading": "RFQ enviada!",
+          "description": "Sellers elegíveis foram notificados e têm {{count}}h para responder.",
+          "id": "ID da RFQ",
+          "product": "Produto",
+          "deadline": "Prazo de resposta",
+          "status": "Status",
+          "statusValue": "Aguardando respostas",
+          "notify": "Você será notificado quando propostas chegarem"
+        }
+      }
+    }
+  },
+  "BuyerSession": {
+    "loading": "Abrindo o perfil Buyer",
+    "forbidden": "Seu usuário não tem o perfil Buyer liberado nesta organização.",
+    "unavailable": "O serviço de autenticação está temporariamente indisponível. Tente de novo em instantes.",
+    "error": "Não foi possível abrir o perfil Buyer.",
+    "retry": "Tentar de novo"
+  },
+  "Contracts": {
+    "title": "Meus Contratos",
+    "subtitle": "Contratos dos seus pedidos pagos: baixe o documento e assine pela Autentique para liberar a execução do serviço",
+    "empty": "Você ainda não tem contratos. O contrato aparece aqui depois do pagamento e do aceite do pedido.",
+    "retry": "Tentar de novo",
+    "signNotice": {
+      "title_one": "{{count}} contrato aguarda a sua assinatura",
+      "title_other": "{{count}} contratos aguardam a sua assinatura",
+      "description": "A execução do serviço só começa depois do contrato assinado. A assinatura é feita na Autentique, em uma nova aba.",
+      "action": "Assinar"
+    },
+    "stats": {
+      "awaitingSignature": "Aguardando assinatura",
+      "processing": "Em processamento",
+      "signed": "Assinados",
+      "cancelled": "Cancelados"
+    },
+    "statuses": {
+      "awaiting_signer": "Aguardando assinatura",
+      "provider_pending": "Preparando assinatura",
+      "provider_uncertain": "Em processamento",
+      "provider_failed": "Assinatura indisponível",
+      "awaiting_signatures": "Aguardando assinatura",
+      "signed": "Assinado",
+      "cancelled": "Cancelado"
+    },
+    "statusDescriptions": {
+      "awaiting_signer": "O contrato está pronto. Um responsável do Buyer precisa assinar.",
+      "provider_pending": "Estamos enviando o documento para a Autentique. Isso leva alguns segundos.",
+      "provider_uncertain": "A assinatura está em processamento. Não é preciso enviar de novo; volte mais tarde.",
+      "provider_failed": "A assinatura está indisponível no momento. Nosso time de operação já foi avisado.",
+      "awaiting_signatures": "O documento está na Autentique. Depois de assinar, a confirmação pode levar alguns instantes.",
+      "signed": "Contrato assinado e conferido. A execução do serviço é liberada no pedido.",
+      "cancelled": "O pedido foi cancelado. Este contrato não pode mais ser assinado."
+    },
+    "card": {
+      "more": "{{name}} +{{count}}",
+      "untitled": "Pedido #{{id}}",
+      "order": "Pedido #{{id}}",
+      "contract": "Contrato #{{id}}",
+      "createdAt": "Pedido em {{date}}",
+      "perMonth": "/mês"
+    },
+    "actions": {
+      "title": "Ações",
+      "downloadPdf": "Baixar PDF",
+      "viewDetails": "Ver detalhes",
+      "viewOrder": "Ver pedido",
+      "back": "← Voltar"
+    },
+    "sign": {
+      "sign": "Assinar contrato",
+      "open": "Abrir assinatura",
+      "boundToOther": "Outro usuário da sua organização está assinando este contrato."
+    },
+    "signature": {
+      "title": "Assinatura",
+      "refresh": "Atualizar status",
+      "signer": "Signatário do Buyer",
+      "signed": "Assinatura",
+      "noSigner": "Ainda não definido",
+      "you": "Você",
+      "otherUser": "Outro usuário da organização",
+      "verified": "Conferida",
+      "notVerified": "Aguardando conferência"
+    },
+    "document": {
+      "title": "Documento do contrato",
+      "verified": "Integridade conferida",
+      "mismatch": "Arquivo diferente do registrado",
+      "hash": "SHA-256: {{hash}}"
+    },
+    "summary": {
+      "title": "Dados do contrato",
+      "contract": "Contrato",
+      "order": "Pedido",
+      "createdAt": "Data do pedido",
+      "total": "Valor do pedido",
+      "policy": "Quem assina",
+      "documentVersion": "Versão do documento",
+      "policies": {
+        "buyerOnly": "Somente o Buyer",
+        "other": "{{policy}}"
+      }
+    },
+    "detail": {
+      "breadcrumb": "Contratos",
+      "breadcrumbLabel": "Caminho"
+    },
+    "toasts": {
+      "alreadySigned": "Este contrato já está assinado.",
+      "signingOpened": "Assinatura aberta na Autentique.",
+      "signingOpenedDescription": "Assine na nova aba. O status atualiza quando você voltar para cá.",
+      "signingProcessing": "A assinatura ainda está sendo preparada.",
+      "signingProcessingDescription": "Tente de novo em alguns segundos."
+    },
+    "errors": {
+      "forbidden": "Seu perfil não tem acesso aos contratos.",
+      "notFound": "Contrato não encontrado.",
+      "unavailable": "Os contratos estão indisponíveis no momento. Tente de novo em instantes.",
+      "failed": "Não foi possível carregar os contratos.",
+      "signerBound": "Outro usuário da sua organização já está assinando este contrato.",
+      "orderCancelled": "O pedido foi cancelado ou o contrato mudou. Atualize a página.",
+      "emailNotConfirmed": "Confirme o seu e-mail para assinar contratos.",
+      "notSigner": "Só a organização compradora assina este contrato.",
+      "signForbidden": "Seu perfil não pode assinar contratos.",
+      "signFailed": "Não foi possível abrir a assinatura. Tente de novo.",
+      "noDocument": "Sem documento: o pedido foi cancelado antes de o contrato ser gerado.",
+      "documentFailed": "Não foi possível carregar o PDF do contrato."
+    }
+  },
+  "Returns": {
+    "title": "Devoluções e trocas",
+    "subtitle": "Solicite, envie comprovações e acompanhe o prazo do seller.",
+    "searchPlaceholder": "Buscar por devolução, pedido, produto ou empresa...",
+    "searchLabel": "Buscar devoluções",
+    "empty": "Você ainda não tem devoluções ou trocas.",
+    "emptyFiltered": "Nenhuma devolução encontrada para essa busca.",
+    "productWithQuantity": "{{name}} · {{count}} un.",
+    "slaLeft": "{{count}}h restantes",
+    "stats": {
+      "total": "Total",
+      "awaitingAction": "Aguardando ação",
+      "contested": "Contestadas",
+      "returning": "Em retorno"
+    },
+    "statuses": {
+      "awaitingSeller": "Aguardando seller",
+      "receivedBySeller": "Recebida pelo vendedor",
+      "contested": "Contestada",
+      "rejected": "Recusada",
+      "inMediation": "Em mediação",
+      "returning": "Em devolução",
+      "returnInTransit": "Retorno em trânsito"
+    },
+    "types": {
+      "return": {
+        "label": "Devolução",
+        "description": "Retornar o item e pedir reembolso.",
+        "note": "Receber o valor em crédito Neutra (até 7 dias).",
+        "submit": "Enviar solicitação de devolução"
+      },
+      "exchange": {
+        "label": "Troca",
+        "description": "Receber outro item após análise.",
+        "note": "O seller envia o novo item depois de receber e analisar o devolvido.",
+        "submit": "Enviar solicitação de troca"
+      }
+    },
+    "reasons": {
+      "defect": "Defeito",
+      "wrongProduct": "Produto errado",
+      "notAsDescribed": "Divergente do anunciado",
+      "transportDamage": "Avaria no transporte",
+      "regret": "Arrependimento",
+      "other": "Outro"
+    },
+    "freight": {
+      "summary": "{{payer}} · {{reason}}",
+      "payers": {
+        "seller": "Seller",
+        "carrier": "Transportadora",
+        "buyer": "Buyer",
+        "toBeDefined": "A definir"
+      },
+      "reasons": {
+        "defect": "defeito do produto",
+        "wrongProduct": "produto divergente",
+        "notAsDescribed": "divergente do anúncio",
+        "transportDamage": "avaria em trânsito",
+        "regret": "arrependimento",
+        "other": "conforme a análise do seller"
+      }
+    },
+    "timeline": {
+      "requested": "Solicitação enviada",
+      "sellerReview": "Prazo do seller em andamento",
+      "shipping": "Postagem após aceite"
+    },
+    "detail": {
+      "back": "Voltar à fila",
+      "notFound": "Devolução não encontrada.",
+      "sla": "SLA de atendimento · {{count}}h restantes",
+      "request": "Solicitação do buyer",
+      "buyer": "Buyer",
+      "seller": "Seller",
+      "reason": "Motivo",
+      "amount": "Valor",
+      "attachments": "Fotos e comprovações",
+      "noAttachments": "Nenhum arquivo enviado.",
+      "freight": "Frete de retorno",
+      "timeline": "Acompanhamento",
+      "mediation": "Pedir Mediação Neutra+",
+      "mediationHint": "A mediação fica disponível se o seller contestar ou recusar."
+    },
+    "form": {
+      "back": "Voltar às devoluções",
+      "title": "Solicitar devolução ou troca",
+      "subtitle": "Pedido {{orderId}} · {{product}} · recebido em {{date}}",
+      "orderNotFound": "Pedido não encontrado ou fora do prazo de devolução.",
+      "typeLabel": "Tipo de solicitação",
+      "reason": "Motivo",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Descreva o problema, quando percebeu e as condições da embalagem...",
+      "evidenceTitle": "Adicionar fotos e comprovações",
+      "evidenceHint": "JPG, PNG, PDF ou MP4 · até {{count}} arquivos",
+      "removeFile": "Remover {{name}}",
+      "freightTitle": "Quem paga o frete de retorno?",
+      "freightPending": "A responsabilidade será exibida após a seleção do motivo."
+    },
+    "errors": {
+      "reasonRequired": "Escolha o motivo.",
+      "descriptionRequired": "Descreva o problema.",
+      "tooLong": "Use no máximo 2000 caracteres.",
+      "tooManyFiles": "Envie no máximo 10 arquivos."
+    },
+    "toasts": {
+      "created": {
+        "return": "Solicitação de devolução enviada.",
+        "exchange": "Solicitação de troca enviada."
+      },
+      "createdDescription": "{{id}}. O seller foi notificado e o prazo de resposta já está correndo.",
+      "mediationRequested": "Mediação solicitada.",
+      "mediationRequestedDescription": "A equipe Neutra+ vai analisar o caso com o buyer e o seller.",
+      "actionFailed": "Não foi possível concluir a ação. Tente de novo."
+    }
+  },
+  "SellerQuestions": {
+    "title": "Perguntas recebidas",
+    "subtitle": "Respostas públicas nas ofertas · RN-RFQ-02",
+    "stats": {
+      "unanswered": "Sem resposta",
+      "answered": "Respondidas",
+      "responseRate": "Taxa de resposta"
+    },
+    "whoCanAnswer": {
+      "title": "Quem pode responder",
+      "description": "Dono, Comercial, Operação e Suporte. Respostas são públicas e passam pelo mesmo filtro de contatos, links externos e dados sensíveis."
+    },
+    "filters": {
+      "search": "Buscar perguntas",
+      "searchPlaceholder": "Buscar por oferta ou conteúdo",
+      "offering": "Oferta",
+      "filterBy": "Filtrar por",
+      "statusLabel": "Situação da pergunta",
+      "statuses": {
+        "all": "Todas",
+        "unanswered": "Sem resposta",
+        "answered": "Respondidas"
+      }
+    },
+    "status": {
+      "unanswered": "Sem resposta",
+      "answered": "Respondida"
+    },
+    "verifiedBuyer": "comprador verificado",
+    "empty": "Sem Perguntas",
+    "emptyFiltered": "Nenhuma pergunta com estes filtros.",
+    "answer": {
+      "label": "Resposta pública",
+      "placeholder": "Responda de forma objetiva. Esta resposta ficará visível para todos...",
+      "hint": "Sem contatos, links externos ou dados sensíveis.",
+      "publish": "Publicar resposta",
+      "publicTitle": "Resposta pública do seller",
+      "answeredIn": "Respondida em {{hours}}h",
+      "errors": {
+        "required": "Escreva a resposta antes de publicar.",
+        "blocked": "Remova contatos, links externos ou dados sensíveis da resposta.",
+        "unavailable": "A resposta ainda não pode ser publicada: as perguntas públicas não têm rota no backend. Nada foi publicado.",
+        "forbidden": "Só Dono, Comercial, Operação e Suporte podem responder.",
+        "failed": "Não foi possível publicar a resposta. Tente de novo."
+      }
+    }
+  },
+  "Tickets": {
+    "title": "Suporte ao Cliente",
+    "subtitle": "Suporte centralizado Neutra+ · SLA por prioridade · comunicação estruturada",
+    "open": "Abrir ticket",
+    "comingSoon": "A abertura de ticket chega em breve.",
+    "empty": "Você ainda não tem tickets.",
+    "emptyFiltered": "Nenhum ticket encontrado com esses filtros.",
+    "searchPlaceholder": "Buscar por título ou ID...",
+    "searchLabel": "Buscar tickets",
+    "slaHours": "SLA: {{count}}h",
+    "notice": {
+      "title": "Central de Suporte · Tickets",
+      "description": "P1 (4h) · P2 (24h) · P3 (48h) · P4 (72h). Perguntas sobre ofertas agora são públicas na própria página do produto.",
+      "collapse": "Recolher explicação",
+      "expand": "Expandir explicação",
+      "dismiss": "Fechar explicação"
+    },
+    "priorities": {
+      "label": "Prioridades e SLA",
+      "P1": {
+        "label": "Crítico",
+        "description": "Impacto total em produção"
+      },
+      "P2": {
+        "label": "Alto",
+        "description": "Degradação severa de serviço"
+      },
+      "P3": {
+        "label": "Médio",
+        "description": "Impacto parcial / questão técnica"
+      },
+      "P4": {
+        "label": "Baixo",
+        "description": "Dúvida geral / informação"
+      }
+    },
+    "stats": {
+      "open": "Abertos",
+      "critical": "Críticos (P1)",
+      "resolvedThisMonth": "Resolvidos (mês)",
+      "presale": "Pré-venda (P4)"
+    },
+    "filters": {
+      "label": "Filtrar tickets",
+      "all": "Todos",
+      "open": "Abertos",
+      "inProgress": "Em andamento",
+      "resolved": "Resolvidos",
+      "mine": "Meus Tickets"
+    },
+    "statuses": {
+      "open": "Aberto",
+      "inProgress": "Em andamento",
+      "awaitingSeller": "Aguard. seller",
+      "resolved": "Resolvido",
+      "closed": "Encerrado"
+    },
+    "categories": {
+      "provisioning": "Provisionamento",
+      "generalQuestion": "Dúvida geral",
+      "slaQuality": "SLA / Qualidade",
+      "contracts": "Contratos",
+      "fiscal": "Fiscal / NF"
+    },
+    "references": {
+      "order": "Pedido {{id}}",
+      "offer": "Oferta {{id}}",
+      "contract": "Contrato {{id}}"
+    },
+    "card": {
+      "presale": "PRÉ-VENDA P4",
+      "dates": "Aberto: {{opened}} · Atualizado: {{updated}}",
+      "sla": "SLA: {{count}}h",
+      "comments_one": "{{count}} comentário",
+      "comments_other": "{{count}} comentários",
+      "description": "Descrição",
+      "assignee": "Responsável:",
+      "closedNote": "Ticket finalizado. Se o problema voltar, abra um novo ticket."
+    },
+    "comment": {
+      "label": "Adicionar comentário",
+      "placeholder": "Descreva o andamento, evidências ou solicite informações...",
+      "submit": "Enviar"
+    },
+    "errors": {
+      "commentRequired": "Escreva o comentário.",
+      "tooLong": "Use no máximo 2000 caracteres."
+    },
+    "toasts": {
+      "commentSent": "Comentário enviado.",
+      "actionFailed": "Não foi possível concluir a ação. Tente de novo."
+    }
+  },
+  "ServiceOrders": {
+    "title": "Ordem de Serviço",
+    "subtitle": "Acompanhe o status de todos os pedidos",
+    "search": "Buscar por produto ou nome...",
+    "filters": "Filtros",
+    "filterAll": "Todas",
+    "filterLabel": "Filtrar ordens por status",
+    "empty": "Nenhuma ordem de serviço por aqui ainda.",
+    "emptyFiltered": "Nada encontrado com essa busca ou filtro.",
+    "notFound": "Ordem de serviço não encontrada.",
+    "breadcrumb": "Navegação das ordens de serviço",
+    "stats": {
+      "total": "Total de pedidos",
+      "inProgress": "Em execução",
+      "awaiting": "Aguardando aceite",
+      "withIssue": "Com problema",
+      "hints": {
+        "orders": {
+          "total": "Ordens de serviço de todos os seus pedidos recebidos.",
+          "inProgress": "Ordens com alguma OS em execução.",
+          "awaiting": "Pedidos em espera, aguardando a sua resposta.",
+          "withIssue": "Ordens em espera (hold), recusadas ou com risco de SLA."
+        },
+        "items": {
+          "total": "Demandas (OS) desta ordem.",
+          "inProgress": "OS em execução.",
+          "awaiting": "OS pendentes, aguardando técnico ou início.",
+          "withIssue": "OS em espera (hold) ou com risco de SLA (jeopardy)."
+        }
+      }
+    },
+    "card": {
+      "details": "Ver detalhes"
+    },
+    "order": {
+      "meta": "{{buyer}} · {{id}} · Criado em {{date}}",
+      "status": {
+        "acknowledged": "Aceito",
+        "pending": "Em espera",
+        "inProgress": "Em execução",
+        "held": "Em espera (Hold)",
+        "completed": "Concluído",
+        "rejected": "Recusado",
+        "cancelled": "Cancelado",
+        "credited": "Creditado"
+      },
+      "responseLeft": "{{count}}h para responder",
+      "caption": {
+        "acknowledged": "Pedido aceito — criando OS",
+        "pending_one": "✓ Recebido · há {{count}} dia",
+        "pending_other": "✓ Recebido · há {{count}} dias",
+        "inProgress": "Ordem de serviço criada",
+        "held_one": "✓ Recebido · há {{count}} dia",
+        "held_other": "✓ Recebido · há {{count}} dias",
+        "completed": "Todas as OS concluídas",
+        "rejected": "Pedido recusado · Crédito gerado",
+        "cancelled": "Pedido cancelado",
+        "credited": "Valor retornou como crédito Neutra+"
+      },
+      "cancel": "Cancelar pedido",
+      "viewCredit": "Ver crédito Neutra+"
+    },
+    "items": {
+      "title": "Demandas da Ordem",
+      "subtitle": "Acompanhe as demandas da ordem: {{id}}",
+      "filterLabel": "Filtrar demandas por status",
+      "empty": "Esta ordem ainda não tem demandas."
+    },
+    "item": {
+      "status": {
+        "pending": "Pendente",
+        "inProgress": "Em execução",
+        "held": "Em espera (Hold)",
+        "completed": "Concluída",
+        "cancelled": "Cancelada"
+      },
+      "summaryStatus": {
+        "pending": "Pendente",
+        "inProgress": "Em execução",
+        "held": "Em espera",
+        "postponed": "Adiada",
+        "completed": "Concluída",
+        "cancelled": "Cancelada"
+      },
+      "summaryMeta": "{{buyer}} · {{id}} · Atualizada em {{date}}",
+      "postponedTo": "Adiado para {{date}}",
+      "slaLeft": "SLA: {{count}}h restantes",
+      "slaLeft_zero": "SLA vencido",
+      "caption": {
+        "inProgress": "Ordem de serviço criada",
+        "pending": "✓ Recebido · aguardando técnico",
+        "pendingWithTechnician": "✓ Técnico {{name}} definido",
+        "held": "✓ Recebido · em espera",
+        "postponed_one": "✓ Adiado para {{date}} · {{count}} dia",
+        "postponed_other": "✓ Adiado para {{date}} · {{count}} dias",
+        "completed": "Ordem foi concluída em {{date}}",
+        "cancelled": "A ordem foi cancelada · Crédito gerado"
+      },
+      "expand": "Ver OS",
+      "collapse": "Recolher OS",
+      "jeopardy": "JEOPARDY",
+      "meta": "{{id}} · {{seller}} → {{buyer}}",
+      "remoteSchedule": "Digital / Sem visita",
+      "evidenceCount": "{{done}}/{{total}} evidências",
+      "noShowTitle_one": "{{count}} no-show registrado",
+      "noShowTitle_other": "{{count}} no-shows registrados",
+      "noShowText": "No-show requer foto + registro de presença + motivo estruturado. No-show do buyer gera cobrança com evidência do seller. Reagendamentos: {{used}}/{{allowed}} permitidos.",
+      "tiles": {
+        "orderId": "ID do Pedido",
+        "schedule": "Agendamento",
+        "sla": "Prazo SLA",
+        "updatedAt": "Última atualização"
+      },
+      "notes": "Observações",
+      "evidences": "Evidências de conclusão ({{done}}/{{total}})",
+      "evidenceRegistered": "Evidência {{index}} registrada",
+      "evidencePending": "Evidência {{index}} pendente",
+      "openDispute": "Abrir disputa",
+      "completedChip": "OS concluída",
+      "reschedule_zero": "Reagendar (nenhum restante)",
+      "reschedule_one": "Reagendar ({{count}} restante)",
+      "reschedule_other": "Reagendar ({{count}} restantes)"
+    },
+    "detail": {
+      "subtitle": "{{seller}} → {{buyer}} · {{id}} · Pedido {{orderId}}",
+      "progress": "Progresso TMF641",
+      "steps": {
+        "acknowledged": "Reconhecida",
+        "pending": "Pendente",
+        "inProgress": "Em execução",
+        "completed": "Concluída"
+      },
+      "slaDeadline": "SLA deadline: {{date}} · {{count}}h restantes",
+      "slaDeadline_zero": "SLA deadline: {{date}} · prazo vencido",
+      "completedOn": "Concluída em {{date}}",
+      "cancelled": "Ordem de serviço cancelada",
+      "currentStatus": "Status atual",
+      "map": "Local do atendimento: {{address}}",
+      "info": {
+        "title": "Informações da OS",
+        "address": "Endereço / Local",
+        "technician": "Técnico responsável",
+        "schedule": "Agendamento",
+        "sla": "Prazo SLA",
+        "updatedAt": "Última atualização",
+        "reschedules": "Reagendamentos",
+        "reschedulesValue": "{{used}}/{{allowed}} utilizados",
+        "notes": "Observações",
+        "remote": "Digital / Sem visita presencial"
+      },
+      "technicians": {
+        "title": "Técnicos",
+        "change": "Alterar técnico",
+        "empty": "Ainda não há técnicos inseridos nesta OS.",
+        "pendingNotice": "A OS permanece pendente até um técnico ser adicionado. Ao confirmar, o status muda automaticamente para Em execução."
+      },
+      "evidences": {
+        "title": "Evidências de conclusão",
+        "slot": "Evidência {{index}}",
+        "registered": "Registrada",
+        "pending": "Pendente",
+        "view": "Ver arquivo",
+        "register": "Registrar"
+      },
+      "parties": {
+        "company": "Empresa",
+        "technician": "Técnico",
+        "seller": "Seller"
+      },
+      "actions": {
+        "start": "Iniciar Agora",
+        "addTechnician": "Adicionar técnico",
+        "complete": "Concluir OS",
+        "completeBlocked": "Conclusão bloqueada: registre todas as {{total}} evidências obrigatórias ({{done}}/{{total}}).",
+        "postpone": "Adiar atendimento",
+        "back": "Voltar à lista"
+      }
+    },
+    "chat": {
+      "title": "Comunicação da OS",
+      "participants": "Buyer · Seller · Neutra+",
+      "empty": "Nenhuma mensagem ainda.",
+      "placeholder": "Enviar mensagem...",
+      "send": "Enviar mensagem",
+      "system": "Neutra+ (Sistema)",
+      "technicianAssigned": "Técnico {{name}} adicionado à OS.",
+      "technicianStarted": "Técnico {{name}} adicionado. Execução iniciada.",
+      "started": "Execução da OS iniciada pelo seller.",
+      "completed": "Seller concluiu a execução. Aguardando aceite técnico do buyer.",
+      "postponed": "Atendimento adiado para {{date}}. Motivo: {{reason}}",
+      "evidence": "Evidência {{done}}/{{total}} registrada pelo seller às {{time}}."
+    },
+    "postpone": {
+      "title": "Adiar ordem de serviço",
+      "subtitle": "Defina a nova previsão de atendimento.",
+      "date": "Nova data",
+      "time": "Horário",
+      "reason": "Motivo do adiamento",
+      "reasonPlaceholder": "Explique por que o atendimento precisa ser adiado...",
+      "reschedule": "Reagendamento",
+      "rescheduleHint": "Ative quando o adiamento alterar formalmente a agenda da OS.",
+      "rescheduleExhausted": "Limite de reagendamentos desta OS atingido.",
+      "rescheduleType": "Tipo de reagendamento",
+      "rescheduleTypes": {
+        "internal": "Reagendamento interno",
+        "buyerRequest": "A pedido do buyer",
+        "buyerNoShow": "No-show do buyer"
+      },
+      "rescheduleReason": "Motivo do reagendamento",
+      "rescheduleReasonPlaceholder": "Motivo obrigatório",
+      "confirm": "Confirmar adiamento"
+    },
+    "technician": {
+      "title": "Adicionar técnico",
+      "changeTitle": "Alterar técnico",
+      "subtitle": "Selecione um profissional cadastrado ou crie um novo.",
+      "tabs": {
+        "existing": "Selecionar cadastrado",
+        "new": "Cadastrar novo"
+      },
+      "noneRegistered": "Nenhum técnico cadastrado. Cadastre um novo.",
+      "confirmAdd": "Adicionar ou iniciar execução",
+      "confirmChange": "Salvar técnico",
+      "name": "Nome completo",
+      "namePlaceholder": "Ex.: Pedro Ortega",
+      "email": "E-mail",
+      "emailPlaceholder": "email-tecnico@neutramais.com.br",
+      "phone": "Telefone",
+      "specialty": "Especialidade",
+      "specialtyPlaceholder": "Fibra, redes, datacenter..."
+    },
+    "startPrompt": {
+      "title": "Ações",
+      "question": "Deseja iniciar agora?",
+      "onlyAdd": "Só adicionar",
+      "start": "Iniciar Agora"
+    },
+    "dialog": {
+      "cancel": "Cancelar"
+    },
+    "errors": {
+      "required": "Campo obrigatório",
+      "tooLong": "Texto muito longo",
+      "dateInvalid": "Data inválida",
+      "datePast": "A nova data não pode estar no passado",
+      "timeInvalid": "Horário inválido",
+      "emailInvalid": "E-mail inválido",
+      "phoneInvalid": "Telefone inválido"
+    },
+    "toasts": {
+      "comingSoon": "Em breve",
+      "actionFailed": "Não foi possível concluir a ação.",
+      "postponed": "Atendimento adiado",
+      "technicianAssigned": "Técnico adicionado",
+      "started": "Execução iniciada",
+      "completed": "OS concluída — aguardando aceite do buyer",
+      "evidenceRegistered": "Evidência registrada",
+      "evidenceTooLarge": "O arquivo passa de 25 MB"
+    }
+  },
+  "Profile": {
+    "unknown": "—",
+    "roles": {
+      "org_owner": "Dono(a) da organização",
+      "seller_owner": "Dono(a) · Seller",
+      "buyer_owner": "Dono(a) · Buyer",
+      "org_admin": "Administrador(a)",
+      "super_admin": "Super administrador(a)",
+      "seller_commercial": "Comercial",
+      "buyer_purchaser": "Compras",
+      "seller_finance": "Financeiro · Seller",
+      "buyer_finance": "Financeiro · Buyer",
+      "seller_operations": "Operações",
+      "seller_technical": "Técnico(a) · Seller",
+      "buyer_technical": "Técnico(a) · Buyer",
+      "seller_support": "Suporte · Seller",
+      "buyer_support": "Suporte · Buyer"
+    },
+    "notice": {
+      "title": "Perfil de Usuário",
+      "description": "Gerencie seus dados pessoais, empresa, papéis (Buyer/Seller), segurança e preferências de notificação.",
+      "collapse": "Recolher explicação",
+      "expand": "Expandir explicação",
+      "dismiss": "Fechar explicação"
+    },
+    "header": {
+      "edit": "Editar perfil",
+      "photo": "Alterar foto"
+    },
+    "tabs": {
+      "label": "Seções do perfil",
+      "personal": "Dados pessoais",
+      "company": "Minha empresa",
+      "access": "Papéis & acessos",
+      "security": "Segurança",
+      "preferences": "Preferências",
+      "support": "Suporte"
+    },
+    "actions": {
+      "save": "Salvar alterações",
+      "cancel": "Cancelar",
+      "back": "Voltar",
+      "retry": "Tentar de novo"
+    },
+    "errors": {
+      "unavailable": "Este recurso ainda não está disponível. Nada foi alterado.",
+      "failed": "Não foi possível concluir a ação. Tente de novo.",
+      "loadFailed": "Não foi possível carregar o seu perfil.",
+      "nameRequired": "Informe o seu nome.",
+      "nameTooShort": "Use pelo menos 3 caracteres.",
+      "phoneInvalid": "Informe um telefone válido.",
+      "tooLong": "Texto muito longo.",
+      "currentPasswordRequired": "Informe a senha atual.",
+      "newPasswordRequired": "Informe a nova senha.",
+      "passwordTooShort": "Use pelo menos 8 caracteres.",
+      "passwordUppercase": "Inclua ao menos uma letra maiúscula.",
+      "passwordDigit": "Inclua ao menos um número.",
+      "passwordSymbol": "Inclua ao menos um caractere especial.",
+      "passwordSame": "A nova senha deve ser diferente da atual.",
+      "confirmRequired": "Confirme a nova senha.",
+      "confirmMismatch": "As senhas não coincidem.",
+      "codeRequired": "Informe o código.",
+      "codeInvalid": "O código tem 6 dígitos."
+    },
+    "personal": {
+      "title": "Informações pessoais",
+      "fields": {
+        "name": "Nome completo",
+        "email": "E-mail",
+        "phone": "Telefone",
+        "jobTitle": "Cargo"
+      },
+      "bio": "Biografia",
+      "bioEmpty": "Nenhuma biografia cadastrada.",
+      "bioPlaceholder": "Conte um pouco sobre você e sua experiência.",
+      "identification": "Identificação",
+      "cpf": "CPF",
+      "organization": "Organização",
+      "cnpj": "CNPJ",
+      "memberSince": "Membro desde"
+    },
+    "company": {
+      "title": "Dados da empresa",
+      "fields": {
+        "legalName": "Razão social",
+        "taxId": "CNPJ",
+        "type": "Tipo",
+        "sector": "Setor",
+        "foundedAt": "Fundação",
+        "headOffice": "Sede",
+        "kyc": "Status KYC",
+        "scmLicense": "Outorga SCM"
+      },
+      "types": {
+        "buyer": "Buyer",
+        "seller": "Seller",
+        "platform_operator": "Operadora da plataforma"
+      },
+      "kycStates": {
+        "pending": "Pendente",
+        "basic": "Básico",
+        "verified": "Verificado",
+        "complete": "Completo",
+        "pending_documents": "Documentos pendentes",
+        "under_review": "Em análise",
+        "rejected": "Reprovado",
+        "suspended": "Suspenso"
+      }
+    },
+    "access": {
+      "kycTitle": "Verificação da conta (KYC)",
+      "kycSubtitle": "Cada nível libera novos recursos na plataforma.",
+      "currentLevel": {
+        "pending": "Nível atual: pendente",
+        "basic": "Nível atual: básico",
+        "verified": "Nível atual: verificado",
+        "complete": "Nível atual: completo"
+      },
+      "levels": {
+        "basic": {
+          "title": "Básico",
+          "description": "Cadastro da empresa confirmado."
+        },
+        "verified": {
+          "title": "Verificado",
+          "description": "Representante legal e conta bancária confirmados."
+        },
+        "complete": {
+          "title": "Completo",
+          "description": "Documentação completa da operação."
+        }
+      },
+      "stepStates": {
+        "done": "Concluído",
+        "next": "Próximo passo",
+        "locked": "Bloqueado"
+      },
+      "features": {
+        "viewMarketplace": "Ver marketplace",
+        "accessPanel": "Acessar o painel",
+        "buyOrders": "Fazer pedidos",
+        "transact": "Transacionar",
+        "withdraw": "Sacar",
+        "highValue": "Pedidos de alto valor",
+        "publishOffers": "Publicar ofertas"
+      },
+      "sendDocuments": "Documentos para enviar",
+      "send": "Enviar",
+      "soon": "Em breve",
+      "optional": {
+        "title": "Documentos opcionais",
+        "description": "Ampliam o que a sua empresa pode fazer na plataforma.",
+        "features": {
+          "numberResources": "Recursos de numeração",
+          "sales": "Mais vendas",
+          "extraVerification": "Selo de verificação extra"
+        },
+        "documents": {
+          "numberResources": "Autorização de recursos de numeração",
+          "legalOperation": "Comprovante de operação regular"
+        }
+      },
+      "personas": {
+        "active": "Ativo",
+        "inactive": "Inativo",
+        "buyer": {
+          "title": "Buyer",
+          "items": {
+            "0": "Buscar e comparar ofertas de rede",
+            "1": "Enviar RFQs e propostas diretas",
+            "2": "Acompanhar pedidos e contratos"
+          }
+        },
+        "seller": {
+          "title": "Seller",
+          "items": {
+            "0": "Publicar ofertas e coberturas",
+            "1": "Responder RFQs e perguntas",
+            "2": "Receber pagamentos na carteira"
+          }
+        }
+      }
+    },
+    "security": {
+      "password": {
+        "title": "Alterar senha",
+        "currentPassword": "Senha atual",
+        "newPassword": "Nova senha",
+        "confirmPassword": "Confirmar nova senha",
+        "submit": "Atualizar senha",
+        "show": "Mostrar senha",
+        "hide": "Ocultar senha"
+      },
+      "sessions": {
+        "title": "Sessões ativas",
+        "thisBrowser": "Este navegador",
+        "now": "Agora",
+        "current": "Atual",
+        "othersUnavailable": "A lista de sessões em outros dispositivos ainda não está disponível.",
+        "revokeOthers": "Encerrar outras sessões"
+      },
+      "twoFactor": {
+        "title": "Autenticação em 2 fatores",
+        "active": "Ativo",
+        "inactive": "Inativo",
+        "missing": "Sua conta ainda não tem 2FA. Ative para proteger o acesso.",
+        "enable": "Ativar 2FA agora",
+        "disable": "Desativar 2FA",
+        "enabledTitle": "2FA ativo",
+        "enabledMethod": "Código do app autenticador a cada login.",
+        "since": "Ativo desde {{date}}",
+        "methods": {
+          "soon": "em breve",
+          "totp": {
+            "title": "App autenticador",
+            "description": "Google Authenticator, Authy ou similar"
+          },
+          "email": {
+            "title": "E-mail"
+          },
+          "sms": {
+            "title": "SMS"
+          }
+        },
+        "dialog": {
+          "required": "A autenticação em 2 fatores protege as transações da sua conta.",
+          "chooseMethod": "Escolha o método",
+          "continue": "Continuar",
+          "confirm": "Confirmar e ativar",
+          "password": "Senha atual",
+          "passwordDescription": "Confirme sua senha para gerar o QR code.",
+          "scan": "Escaneie o QR code com o seu app autenticador.",
+          "qrLabel": "QR code para o app autenticador",
+          "manualKey": "Ou digite a chave manualmente:",
+          "recovery": "Guarde estes códigos de recuperação em local seguro. Cada um pode ser usado uma vez, se você perder o acesso ao app.",
+          "saved": "Guardei os códigos de recuperação",
+          "codeApp": "Código do app autenticador",
+          "disableDescription": "Para desativar, confirme sua senha e um código do app autenticador."
+        },
+        "errors": {
+          "statusFailed": "Não foi possível consultar o 2FA.",
+          "wrongPassword": "Senha incorreta.",
+          "invalidCode": "Código inválido. Confira o app e tente de novo.",
+          "wrongPasswordOrCode": "Senha ou código incorretos.",
+          "alreadyEnrolled": "O 2FA já está ativo nesta conta.",
+          "requiredByRole": "O seu papel exige 2FA: ele não pode ser desativado.",
+          "rateLimited": "Muitas tentativas. Aguarde um pouco e tente de novo.",
+          "failed": "Não foi possível concluir. Tente de novo."
+        }
+      },
+      "danger": {
+        "title": "Zona de perigo",
+        "description": "Encerrar a conta remove o acesso de todos os usuários da organização. O pedido é analisado pelo Suporte.",
+        "closeAccount": "Encerrar conta"
+      }
+    },
+    "preferences": {
+      "save": "Salvar",
+      "notifications": {
+        "title": "Notificações",
+        "email": {
+          "title": "Notificações por e-mail",
+          "description": "Avisos importantes da conta no seu e-mail."
+        },
+        "sms": {
+          "title": "Notificações por SMS",
+          "description": "Em breve."
+        },
+        "orders": {
+          "title": "Pedidos",
+          "description": "Novos pedidos, mudanças de status e entregas."
+        },
+        "rfq": {
+          "title": "RFQs e propostas",
+          "description": "Novas RFQs, propostas recebidas e respostas."
+        },
+        "marketing": {
+          "title": "Novidades e ofertas",
+          "description": "Lançamentos e conteúdos da Neutra+."
+        }
+      },
+      "sales": {
+        "title": "Vendas",
+        "autoSale": "Venda automática",
+        "autoSaleDescription": "Aceita pedidos das suas ofertas sem aprovação manual."
+      },
+      "currency": {
+        "title": "Moeda",
+        "choose": "Moeda de exibição",
+        "description": "Usada para mostrar valores na plataforma.",
+        "options": {
+          "BRL": "Real (BRL)",
+          "USD": "Dólar (USD)",
+          "EUR": "Euro (EUR)"
+        }
+      },
+      "language": {
+        "title": "Idioma",
+        "system": "Padrão do sistema",
+        "systemDescription": "Usa o idioma do seu navegador.",
+        "choose": "Idioma da plataforma",
+        "chooseDescription": "Vale para este navegador.",
+        "options": {
+          "pt": "Português",
+          "en": "English",
+          "es": "Español"
+        },
+        "saved": "Idioma atualizado."
+      }
+    },
+    "support": {
+      "ticketsLabel": "Seus tickets em atendimento",
+      "empty": "Você não tem tickets em atendimento.",
+      "helpTitle": "Precisa de ajuda?",
+      "openTicket": "Abrir ticket"
+    }
+  },
+  "TicketNew": {
+    "breadcrumb": "Caminho da página",
+    "back": "Tickets",
+    "heading": "Abrir novo ticket",
+    "pageTitle": "Abrir ticket de suporte",
+    "subtitle": "Descreva o problema. Nossa equipe responde conforme SLA da prioridade.",
+    "category": "Categoria",
+    "categories": {
+      "provisioning": {
+        "title": "Provisionamento",
+        "description": "Ativação, instalação, configuração"
+      },
+      "slaQuality": {
+        "title": "SLA / Qualidade",
+        "description": "Disponibilidade, latência, estabilidade"
+      },
+      "fiscal": {
+        "title": "Financeiro / NF",
+        "description": "Cobrança, nota fiscal, reembolso"
+      },
+      "contracts": {
+        "title": "Contratos",
+        "description": "Renovação, cancelamento, change request"
+      },
+      "generalQuestion": {
+        "title": "Dúvida geral (P4)",
+        "description": "Ajuda sobre conta e uso da plataforma"
+      },
+      "other": {
+        "title": "Outro",
+        "description": "Demanda não listada"
+      }
+    },
+    "priority": "Prioridade",
+    "priorityOption": "{{code}} · {{label}}",
+    "title": "Título",
+    "titlePlaceholder": "Resumo claro do problema (ex: Fibra sem sinal desde 07/07)",
+    "description": "Descrição detalhada",
+    "descriptionHint": "(mín. {{count}} caracteres)",
+    "descriptionPlaceholder": "Descreva o problema com detalhes: o que acontece, desde quando, impacto, mensagens de erro, logs...",
+    "characters_one": "{{count}} caractere",
+    "characters_other": "{{count}} caracteres",
+    "reference": "Pedido ou oferta relacionado",
+    "referencePlaceholder": "Ex: ORD-2026-001 ou OFR-CTS-002",
+    "optional": "(opcional)",
+    "attachments": "Anexos",
+    "dropzone": "Arraste arquivos ou clique para selecionar",
+    "dropzoneHint": "Imagens, PDFs, logs · máx 10 MB cada",
+    "removeFile": "Remover {{name}}",
+    "submit": "Abrir ticket",
+    "errors": {
+      "unavailable": "A abertura de tickets ainda não está disponível. Nenhum ticket foi aberto.",
+      "failed": "Não foi possível abrir o ticket. Tente de novo.",
+      "categoryRequired": "Escolha a categoria.",
+      "priorityRequired": "Escolha a prioridade.",
+      "titleRequired": "Informe o título.",
+      "titleTooLong": "Use no máximo 120 caracteres.",
+      "descriptionRequired": "Descreva o problema.",
+      "descriptionTooShort": "Use pelo menos 20 caracteres.",
+      "descriptionTooLong": "Use no máximo 2000 caracteres.",
+      "referenceTooLong": "Use no máximo 40 caracteres.",
+      "tooManyFiles": "Anexe no máximo 5 arquivos.",
+      "fileTooLarge": "Cada arquivo pode ter no máximo 10 MB."
+    }
+  },
+  "Offers": {
+    "notice": {
+      "title": "Ofertas",
+      "description": "Encontre até 50% de desconto em ofertas exclusivas!",
+      "collapse": "Recolher aviso",
+      "expand": "Expandir aviso",
+      "dismiss": "Fechar aviso"
+    },
+    "hero": {
+      "badge": "Ofertas Feitas Para você",
+      "title": "Você está na Página de ofertas.\nEncontre <highlight>Ofertas exclusivas</highlight> de diversos provedores para você.",
+      "shortcutsLabel": "Atalhos de categoria",
+      "shortcuts": {
+        "fiber": "Fibra óptica",
+        "dedicatedLink": "Link Dedicado",
+        "ip": "IPv4/IPv6",
+        "hardware": "Hardware CPE"
+      }
+    },
+    "specials": {
+      "title": "Ofertas Especiais",
+      "subtitle": "Melhores oportunidades para você",
+      "count_one": "{{count}} oferta especial",
+      "count_other": "{{count}} ofertas especiais",
+      "viewAll": "Ver todas →"
+    },
+    "featuredLabel": "Ofertas em destaque",
+    "bestDealsLabel": "Melhores ofertas para você",
+    "badges": {
+      "weekPromotion": "Promoção da Semana",
+      "bestOffers": "Melhores Ofertas",
+      "forYou": "Para você",
+      "newOffers": "Novas Ofertas",
+      "weekOffers": "Ofertas da Semana",
+      "regionalHighlight": "Destaque regional"
+    },
+    "covers": {
+      "connectivity": "Conectividade",
+      "hardware": "Hardware / CPE",
+      "forYou": "Ofertas relacionadas a você"
+    },
+    "topProviders": "TOP 3 PROVEDORES",
+    "sponsored": "Patrocinada",
+    "discount": "-{{percent}}%",
+    "expiresIn": "Expira em {{hours}}h {{minutes}}min",
+    "view": "Ver Oferta",
+    "categories": {
+      "fiber": "Fibra óptica",
+      "hardware": "Hardware"
+    },
+    "provider": {
+      "rating_one": "Nota {{rating}} de 5, {{count}} avaliação",
+      "rating_other": "Nota {{rating}} de 5, {{count}} avaliações",
+      "kyc": "KYC ✓"
+    },
+    "row": {
+      "previous": "Ver ofertas anteriores",
+      "next": "Ver mais ofertas"
+    },
+    "trending": {
+      "title": "Produtos em alta na Neutra+",
+      "subtitle": "Os mais contratados pelas empresas nos últimos 7 dias",
+      "filtersLabel": "Filtrar produtos em alta",
+      "filters": {
+        "all": "Todos",
+        "connectivity": "Conectividade",
+        "hardware": "Hardware",
+        "numbering": "Recursos"
+      },
+      "categories": {
+        "connectivity": "Conectividade",
+        "hardware": "Hardware",
+        "numbering": "Recursos"
+      },
+      "hot": "Em alta",
+      "rank": "{{rank}}º mais contratado",
+      "add": "Adicionar {{name}} ao carrinho",
+      "error": "Não foi possível carregar os produtos.",
+      "empty": "Ainda não há produtos no catálogo.",
+      "emptyFiltered": "Nenhum produto nesta categoria.",
+      "retry": "Tentar de novo"
+    }
+  },
+  "SellerPaymentAccount": {
+    "title": "Conta de recebimento",
+    "subtitle": "Conta Stripe Connect da organização. Sem ela ativa, suas ofertas não entram no checkout e não há repasse.",
+    "loading": "Verificando a conta no Stripe...",
+    "retry": "Tentar de novo",
+    "state": {
+      "active": {
+        "title": "Conta ativa",
+        "description": "Você pode vender e receber os repasses."
+      },
+      "pending": {
+        "title": "Cadastro incompleto no Stripe",
+        "description": "Termine o cadastro no Stripe para vender e receber. Se você acabou de voltar de lá, atualize o status."
+      },
+      "none": {
+        "title": "Nenhuma conta de recebimento",
+        "description": "Ative a conta no Stripe para que os compradores possam pagar suas ofertas."
+      }
+    },
+    "flags": {
+      "charges": {
+        "on": "Cobranças liberadas",
+        "off": "Cobranças pendentes"
+      },
+      "payouts": {
+        "on": "Repasses liberados",
+        "off": "Repasses pendentes"
+      }
+    },
+    "emailLabel": "E-mail da conta no Stripe",
+    "emailHelper": "O Stripe usa este e-mail para falar com a organização.",
+    "start": "Ativar no Stripe",
+    "continue": "Continuar no Stripe",
+    "refresh": "Atualizar status",
+    "ownerOnly": "Só o Dono da organização configura a conta de recebimento.",
+    "mfaReason": "Para alterar a conta de recebimento, confirme o código do seu app autenticador.",
+    "errors": {
+      "loadFailed": "Não foi possível ler a situação da conta no Stripe.",
+      "ownerOnly": "Só o Dono da organização pode configurar a conta de recebimento.",
+      "notStarted": "O cadastro no Stripe ainda não foi iniciado. Use Ativar no Stripe.",
+      "stripeUnavailable": "O Stripe não respondeu. Tente de novo em alguns minutos.",
+      "failed": "Não foi possível falar com o Stripe. Tente de novo."
+    }
+  },
+  "MfaStepUp": {
+    "title": "Confirme com o app autenticador",
+    "codeLabel": "Código de 6 dígitos",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "errors": {
+      "invalidCode": "Código errado ou já usado. Digite o próximo código do app.",
+      "enrollmentRequired": "Ative o app autenticador em Meu Perfil antes de continuar.",
+      "rateLimited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "sessionExpired": "Sua sessão acabou. Entre de novo para continuar.",
+      "failed": "Não foi possível confirmar o código. Tente de novo."
+    }
+  },
+  "SellerSalesSettings": {
+    "title": "Configurações de venda",
+    "subtitle": "Prazos de atendimento e aceite dos pedidos da organização.",
+    "loading": "Carregando...",
+    "retry": "Tentar de novo",
+    "saved": "Salvo.",
+    "sla": {
+      "title": "Prazos de atendimento (SLA)",
+      "description": "Valem para os próximos tickets e ordens de serviço. Os registros antigos mantêm o prazo de quando foram abertos.",
+      "firstLabel": "Primeira resposta (horas)",
+      "firstHelper": "Tempo máximo para responder a um ticket aberto.",
+      "resolutionLabel": "Resolução (horas)",
+      "resolutionHelper": "Tempo máximo para resolver. Não pode ser menor que a primeira resposta.",
+      "save": "Salvar prazos",
+      "readOnly": "Só quem tem permissão para alterar SLA muda estes prazos."
+    },
+    "autoAccept": {
+      "title": "Aceite automático",
+      "description": "Vale para todos os pedidos pagos de produtos físicos (Hardware / CPE). Serviços continuam com aceite manual.",
+      "label": "Aceitar pedidos de produtos físicos automaticamente",
+      "on": "Ligado: os pedidos pagos entram aceitos, sem esperar o SLA de aceite.",
+      "off": "Desligado: cada pedido espera o seu aceite dentro do SLA de aceite.",
+      "noPermission": "Seu papel não aceita pedidos, então não configura o aceite automático."
+    },
+    "errors": {
+      "loadFailed": "Não foi possível carregar esta configuração.",
+      "permission": "Seu usuário não tem permissão para alterar esta configuração.",
+      "slaOrder": "A resolução não pode ser menor que a primeira resposta.",
+      "saveFailed": "Não foi possível salvar. Tente de novo.",
+      "conflict": "Outra pessoa alterou o aceite automático agora há pouco. Confira o valor atual e tente de novo."
+    }
+  },
+  "SellerOfferPrices": {
+    "title": "Preços",
+    "subtitle": "Faixas de quantidade e histórico. Todos os preços ativos usam a moeda da oferta ({{currency}}).",
+    "showHistory": "Mostrar histórico",
+    "loading": "Carregando os preços...",
+    "retry": "Tentar de novo",
+    "empty": "Nenhum preço cadastrado.",
+    "columns": {
+      "type": "Tipo",
+      "range": "Quantidade",
+      "amount": "Valor",
+      "validity": "Vigência",
+      "actions": "Ações"
+    },
+    "types": {
+      "recurring": "Mensal",
+      "one_time": "Taxa única",
+      "full_purchase": "À vista"
+    },
+    "range": "{{min}} a {{max}}",
+    "rangeOpen": "A partir de {{min}}",
+    "since": "Desde {{date}}",
+    "between": "{{from}} a {{to}}",
+    "newAmount": "Novo valor",
+    "edit": "Alterar valor",
+    "end": "Encerrar",
+    "confirmEnd": "Encerrar preço",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "add": {
+      "title": "Adicionar preço",
+      "type": "Tipo",
+      "amount": "Valor ({{currency}})",
+      "minQuantity": "De (quantidade)",
+      "maxQuantity": "Até (quantidade)",
+      "noMax": "Sem limite",
+      "hint": "Faixas do mesmo tipo não podem se sobrepor: feche a faixa atual com um limite antes de criar a próxima.",
+      "submit": "Adicionar preço"
+    },
+    "errors": {
+      "loadFailed": "Não foi possível carregar os preços.",
+      "overlap": "Essa faixa se sobrepõe a outra do mesmo tipo. Ajuste as quantidades ou feche a faixa atual antes.",
+      "currencyMismatch": "Os preços de uma oferta usam uma moeda só.",
+      "invalid": "Preço inválido: confira o valor e a faixa (o fim não pode ser menor que o início; até 50 preços ativos).",
+      "priceRequired": "Uma oferta publicada precisa de um preço mensal ou à vista para 1 unidade.",
+      "permission": "Seu usuário não tem permissão para alterar preços.",
+      "failed": "Não foi possível salvar o preço. Tente de novo."
     }
   }
 }
