@@ -1,3 +1,5 @@
+import type React from "react";
+
 export type WalletVariant = "buyer" | "seller";
 
 export interface WalletOverviewProps {
@@ -10,4 +12,9 @@ export interface WalletOverviewProps {
   locale: string;
   /** Hoje — fixa o "mês" dos totais nos testes. */
   now?: Date;
+  /**
+   * Seller: conta de recebimento Stripe, montada pela página (depende da
+   * sessão de perfil Seller).
+   */
+  paymentAccount?: React.ReactNode;
 }

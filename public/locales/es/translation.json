@@ -6511,5 +6511,62 @@
       "emptyFiltered": "Ningún producto en esta categoría.",
       "retry": "Intentar de nuevo"
     }
+  },
+  "SellerPaymentAccount": {
+    "title": "Cuenta de cobro",
+    "subtitle": "Cuenta Stripe Connect de la organización. Sin ella activa, sus ofertas no entran al checkout y no hay transferencias.",
+    "loading": "Verificando la cuenta en Stripe...",
+    "retry": "Intentar de nuevo",
+    "state": {
+      "active": {
+        "title": "Cuenta activa",
+        "description": "Puede vender y recibir las transferencias."
+      },
+      "pending": {
+        "title": "Registro incompleto en Stripe",
+        "description": "Termine el registro en Stripe para vender y cobrar. Si acaba de volver de Stripe, actualice el estado."
+      },
+      "none": {
+        "title": "Ninguna cuenta de cobro",
+        "description": "Active la cuenta en Stripe para que los compradores puedan pagar sus ofertas."
+      }
+    },
+    "flags": {
+      "charges": {
+        "on": "Cobros habilitados",
+        "off": "Cobros pendientes"
+      },
+      "payouts": {
+        "on": "Transferencias habilitadas",
+        "off": "Transferencias pendientes"
+      }
+    },
+    "emailLabel": "Correo de la cuenta en Stripe",
+    "emailHelper": "Stripe usa este correo para contactar a la organización.",
+    "start": "Activar en Stripe",
+    "continue": "Continuar en Stripe",
+    "refresh": "Actualizar estado",
+    "ownerOnly": "Solo el Dueño de la organización configura la cuenta de cobro.",
+    "mfaReason": "Para cambiar la cuenta de cobro, confirme el código de su app autenticadora.",
+    "errors": {
+      "loadFailed": "No fue posible leer el estado de la cuenta en Stripe.",
+      "ownerOnly": "Solo el Dueño de la organización puede configurar la cuenta de cobro.",
+      "notStarted": "El registro en Stripe aún no comenzó. Use Activar en Stripe.",
+      "stripeUnavailable": "Stripe no respondió. Intente de nuevo en unos minutos.",
+      "failed": "No fue posible comunicarse con Stripe. Intente de nuevo."
+    }
+  },
+  "MfaStepUp": {
+    "title": "Confirme con la app autenticadora",
+    "codeLabel": "Código de 6 dígitos",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "errors": {
+      "invalidCode": "Código incorrecto o ya usado. Ingrese el próximo código de la app.",
+      "enrollmentRequired": "Active la app autenticadora en Mi Perfil antes de continuar.",
+      "rateLimited": "Demasiados intentos. Espere unos minutos e intente de nuevo.",
+      "sessionExpired": "Su sesión terminó. Inicie sesión de nuevo para continuar.",
+      "failed": "No fue posible confirmar el código. Intente de nuevo."
+    }
   }
 }

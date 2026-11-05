@@ -231,7 +231,12 @@ function CurrencySelect({
  * taxas e a dívida de frete vêm da payment-api. Escrow, disputas e contas de
  * recebimento ainda não têm endpoint e aparecem como "—" ou vazios.
  */
-export function WalletOverview({ variant, locale, now }: WalletOverviewProps) {
+export function WalletOverview({
+  variant,
+  locale,
+  now,
+  paymentAccount,
+}: WalletOverviewProps) {
   const { t } = useTranslation();
   const isSeller = variant === "seller";
   const basePath = isSeller ? "/seller/wallet" : "/wallet";
@@ -387,6 +392,9 @@ export function WalletOverview({ variant, locale, now }: WalletOverviewProps) {
         </Stack>
         {isSeller && <SellerActions withdrawHref={`${basePath}/withdraw`} />}
       </Flex>
+
+      {/* Sem conta Stripe ativa, o Seller não vende nem recebe. */}
+      {isSeller && paymentAccount}
 
       <WalletBalanceCards data={cards} />
 

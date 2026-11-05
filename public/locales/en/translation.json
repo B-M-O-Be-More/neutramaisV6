@@ -6523,5 +6523,62 @@
       "emptyFiltered": "No products in this category.",
       "retry": "Try again"
     }
+  },
+  "SellerPaymentAccount": {
+    "title": "Payout account",
+    "subtitle": "The organization's Stripe Connect account. Without it active, your offers cannot be checked out and there are no payouts.",
+    "loading": "Checking the Stripe account...",
+    "retry": "Try again",
+    "state": {
+      "active": {
+        "title": "Account active",
+        "description": "You can sell and receive payouts."
+      },
+      "pending": {
+        "title": "Stripe sign-up incomplete",
+        "description": "Finish the sign-up on Stripe to sell and get paid. If you just came back from Stripe, refresh the status."
+      },
+      "none": {
+        "title": "No payout account",
+        "description": "Activate the Stripe account so buyers can pay for your offers."
+      }
+    },
+    "flags": {
+      "charges": {
+        "on": "Charges enabled",
+        "off": "Charges pending"
+      },
+      "payouts": {
+        "on": "Payouts enabled",
+        "off": "Payouts pending"
+      }
+    },
+    "emailLabel": "Stripe account email",
+    "emailHelper": "Stripe uses this email to contact the organization.",
+    "start": "Activate on Stripe",
+    "continue": "Continue on Stripe",
+    "refresh": "Refresh status",
+    "ownerOnly": "Only the organization owner sets up the payout account.",
+    "mfaReason": "To change the payout account, confirm the code from your authenticator app.",
+    "errors": {
+      "loadFailed": "Could not read the Stripe account status.",
+      "ownerOnly": "Only the organization owner can set up the payout account.",
+      "notStarted": "The Stripe sign-up has not started yet. Use Activate on Stripe.",
+      "stripeUnavailable": "Stripe did not respond. Try again in a few minutes.",
+      "failed": "Could not reach Stripe. Try again."
+    }
+  },
+  "MfaStepUp": {
+    "title": "Confirm with your authenticator app",
+    "codeLabel": "6-digit code",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "errors": {
+      "invalidCode": "Wrong or already used code. Enter the next code from the app.",
+      "enrollmentRequired": "Set up the authenticator app in My Profile before continuing.",
+      "rateLimited": "Too many attempts. Wait a few minutes and try again.",
+      "sessionExpired": "Your session ended. Sign in again to continue.",
+      "failed": "Could not confirm the code. Try again."
+    }
   }
 }

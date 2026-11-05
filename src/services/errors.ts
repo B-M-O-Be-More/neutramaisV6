@@ -79,9 +79,13 @@ export function upstreamErrorCode(error: unknown): string | undefined {
   const fromErrors = error.errors[0]?.code;
   if (fromErrors) return fromErrors;
 
-  const metadata = (error.payload as { metadata?: { code?: unknown } } | null)
-    ?.metadata;
-  return typeof metadata?.code === "string" ? metadata.code : undefined;
+  const payload = error.payload as {
+    metadata?: { code?: unknown } | null;
+    code?: unknown;
+  } | null;
+  if (typeof payload?.metadata?.code === "string") return payload.metadata.code;
+  // A payment-api põe o código na raiz (ex.: `mfa_required`).
+  return typeof payload?.code === "string" ? payload.code : undefined;
 }
 
 /**

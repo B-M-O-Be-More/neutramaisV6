@@ -6502,5 +6502,62 @@
       "emptyFiltered": "Nenhum produto nesta categoria.",
       "retry": "Tentar de novo"
     }
+  },
+  "SellerPaymentAccount": {
+    "title": "Conta de recebimento",
+    "subtitle": "Conta Stripe Connect da organização. Sem ela ativa, suas ofertas não entram no checkout e não há repasse.",
+    "loading": "Verificando a conta no Stripe...",
+    "retry": "Tentar de novo",
+    "state": {
+      "active": {
+        "title": "Conta ativa",
+        "description": "Você pode vender e receber os repasses."
+      },
+      "pending": {
+        "title": "Cadastro incompleto no Stripe",
+        "description": "Termine o cadastro no Stripe para vender e receber. Se você acabou de voltar de lá, atualize o status."
+      },
+      "none": {
+        "title": "Nenhuma conta de recebimento",
+        "description": "Ative a conta no Stripe para que os compradores possam pagar suas ofertas."
+      }
+    },
+    "flags": {
+      "charges": {
+        "on": "Cobranças liberadas",
+        "off": "Cobranças pendentes"
+      },
+      "payouts": {
+        "on": "Repasses liberados",
+        "off": "Repasses pendentes"
+      }
+    },
+    "emailLabel": "E-mail da conta no Stripe",
+    "emailHelper": "O Stripe usa este e-mail para falar com a organização.",
+    "start": "Ativar no Stripe",
+    "continue": "Continuar no Stripe",
+    "refresh": "Atualizar status",
+    "ownerOnly": "Só o Dono da organização configura a conta de recebimento.",
+    "mfaReason": "Para alterar a conta de recebimento, confirme o código do seu app autenticador.",
+    "errors": {
+      "loadFailed": "Não foi possível ler a situação da conta no Stripe.",
+      "ownerOnly": "Só o Dono da organização pode configurar a conta de recebimento.",
+      "notStarted": "O cadastro no Stripe ainda não foi iniciado. Use Ativar no Stripe.",
+      "stripeUnavailable": "O Stripe não respondeu. Tente de novo em alguns minutos.",
+      "failed": "Não foi possível falar com o Stripe. Tente de novo."
+    }
+  },
+  "MfaStepUp": {
+    "title": "Confirme com o app autenticador",
+    "codeLabel": "Código de 6 dígitos",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "errors": {
+      "invalidCode": "Código errado ou já usado. Digite o próximo código do app.",
+      "enrollmentRequired": "Ative o app autenticador em Meu Perfil antes de continuar.",
+      "rateLimited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+      "sessionExpired": "Sua sessão acabou. Entre de novo para continuar.",
+      "failed": "Não foi possível confirmar o código. Tente de novo."
+    }
   }
 }

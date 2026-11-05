@@ -28,6 +28,10 @@ export interface PaymentForwardOptions {
   path: string;
   /** Query string a repassar. Valores nulos/vazios são descartados. */
   params?: Record<string, QueryValue>;
+  /** Padrão GET. */
+  method?: "GET" | "POST";
+  /** Corpo JSON (só no POST). */
+  body?: unknown;
 }
 
 function buildQueryString(params?: Record<string, QueryValue>): string {
@@ -55,13 +59,35 @@ async function resolvePaymentBearer(): Promise<string | undefined> {
 }
 
 /**
- * Encaminha uma leitura autenticada para a payment-api e devolve a resposta
+ * A payment-api recusa token vencido ou inválido com 403 ("Invalid token:
+ * …", "Missing Authorization header"), sem `code` — o mesmo status da
+ * falta de papel. Vira 401 para o front renovar a sessão e repetir; 403 com
+ * `code` (ex.: `mfa_required`) segue 403.
+ */
+function isExpiredTokenRefusal(status: number, text: string): boolean {
+  if (status !== 403) return false;
+  try {
+    const body = JSON.parse(text) as { message?: unknown; code?: unknown };
+    return (
+      !body.code &&
+      typeof body.message === "string" &&
+      /^(Invalid token|Missing Authorization header)/.test(body.message)
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Encaminha uma chamada autenticada para a payment-api e devolve a resposta
  * upstream sem alterar. Falhas de infraestrutura viram envelopes de erro
  * tipados. O `X-Correlation-ID` da resposta segue para o browser.
  */
 export async function forwardToPayment({
   path,
   params,
+  method = "GET",
+  body,
 }: PaymentForwardOptions): Promise<NextResponse> {
   if (!PAYMENT_API_URL) {
     return envelopeError(
@@ -77,19 +103,24 @@ export async function forwardToPayment({
     const upstream = await fetch(
       `${PAYMENT_API_URL}${path}${buildQueryString(params)}`,
       {
-        method: "GET",
+        method,
         headers: {
           Accept: "application/json",
           [CORRELATION_ID_HEADER]: crypto.randomUUID(),
+          ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
           ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
         },
+        body: body !== undefined ? JSON.stringify(body) : undefined,
         cache: "no-store",
       },
     );
 
     const correlationId = upstream.headers.get(CORRELATION_ID_HEADER);
-    return new NextResponse(await upstream.text(), {
-      status: upstream.status,
+    const text = await upstream.text();
+    return new NextResponse(text, {
+      status: isExpiredTokenRefusal(upstream.status, text)
+        ? 401
+        : upstream.status,
       headers: {
         "Content-Type":
           upstream.headers.get("Content-Type") ?? "application/json",
