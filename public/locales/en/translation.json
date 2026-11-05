@@ -4103,7 +4103,6 @@
       "currencyHelper": "Currency cannot be changed after publishing",
       "priceLabel": "Price ({{currency}})",
       "setupLabel": "Setup / NRC",
-      "setupPlaceholder": "E.g.: R$ 500.00 · or 0 for no setup",
       "stockLabel": "Availability / Stock",
       "stockPlaceholder": "E.g.: 2 (available) or empty for on request",
       "cancellationLabel": "Cancellation terms",
@@ -4111,7 +4110,8 @@
       "validUntilLabel": "Offer validity",
       "validUntilHelper": "Leave empty for no end date",
       "sponsoredLabel": "Sponsor offer",
-      "sponsoredDescription": "Highlighted at the top of search results · additional investment"
+      "sponsoredDescription": "Highlighted at the top of search results · additional investment",
+      "setupHelper": "One-time installation fee. Leave empty if there is none."
     },
     "review": {
       "moderationNotice": "Irregular offers (false information, unrealistic price, mismatched coverage) may be removed with an impact on the score. Sellers cannot duplicate offers in the same category.",
@@ -4621,7 +4621,9 @@
       "failed": "Could not link the coverage right now. Try again in a moment.",
       "invalid": "The coverage was rejected: check that the KMZ belongs to your organization and that the drawn area is inside it.",
       "scopeUnavailable": "We couldn't load the saved coverage area. The map shows the whole KMZ area; confirm again only if you want to change the area.",
-      "pointsInvalid": "Check the service locations: each chosen address needs a radius between 1 and 80 km."
+      "pointsInvalid": "Check the service locations: each chosen address needs a radius between 1 and 80 km.",
+      "pointOutside": "Location {{number}} is outside the selected KMZ. Change the address, reduce the radius or choose another KMZ.",
+      "pointsOutside": "One of the locations is outside the selected KMZ. Check the addresses and radii."
     },
     "loadingScope": "Loading the saved coverage area..."
   },

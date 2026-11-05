@@ -63,6 +63,7 @@ export function SellerOfferPricingStep({
   const cancellationError = tError(errors.cancellationTerms?.message);
   const validUntilError = tError(errors.validUntil?.message);
   const currencyHelper = t("SellerOfferCreate.pricing.currencyHelper");
+  const setupHelper = t("SellerOfferCreate.pricing.setupHelper");
   const validUntilHelper = t("SellerOfferCreate.pricing.validUntilHelper");
 
   const border = (error?: string) => (error ? "#EF4444" : "#E5E8EE");
@@ -202,21 +203,51 @@ export function SellerOfferPricingStep({
           id="offer-setup-fee"
           label={t("SellerOfferCreate.pricing.setupLabel")}
           error={setupError}
+          helper={setupHelper}
         >
-          <Input
-            id="offer-setup-fee"
-            {...register("setupFee")}
-            inputMode="decimal"
-            placeholder={t("SellerOfferCreate.pricing.setupPlaceholder")}
-            aria-invalid={!!setupError}
-            aria-describedby={offerFieldDescribedBy("offer-setup-fee", {
-              error: setupError,
-            })}
-            h="47px"
-            fontSize="14px"
-            borderColor={border(setupError)}
-            {...OFFER_INPUT_STYLES}
-          />
+          {/* Mesma máscara do preço: os dígitos entram pela direita, em
+              centavos. Vazio = sem setup. */}
+          <InputGroup
+            startElement={
+              <Text
+                color="#98A6B3"
+                fontSize="14px"
+                fontWeight={500}
+                aria-hidden="true"
+              >
+                {currencySymbol}
+              </Text>
+            }
+            startElementProps={{ ps: "13px" }}
+          >
+            <Controller
+              control={control}
+              name="setupFee"
+              render={({ field }) => (
+                <OfferMaskedInput
+                  id="offer-setup-fee"
+                  ref={field.ref}
+                  name={field.name}
+                  maskOptions={MONEY_MASK}
+                  value={field.value ?? ""}
+                  onAccept={field.onChange}
+                  onBlur={field.onBlur}
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  aria-invalid={!!setupError}
+                  aria-describedby={offerFieldDescribedBy("offer-setup-fee", {
+                    error: setupError,
+                    helper: setupHelper,
+                  })}
+                  h="47px"
+                  fontSize="14px"
+                  borderColor={border(setupError)}
+                  {...OFFER_INPUT_STYLES}
+                  ps={currencySymbol.length > 2 ? "48px" : "40px"}
+                />
+              )}
+            />
+          </InputGroup>
         </OfferFormField>
 
         <OfferFormField

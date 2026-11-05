@@ -2,10 +2,15 @@ import type { PublicGeometry } from "@/functions/geoShapes";
 import type { CoverageNetworkPoint } from "@/functions/coverageNetworkPoints";
 import type { CoverageScopeMode } from "@/schemas/sellerOffer";
 
+/** Chave de tradução, com valores de interpolação quando a mensagem tem. */
+export type OfferingCoverageMessage =
+  | string
+  | { key: string; values: Record<string, string | number> };
+
 /** Resultado do último "Confirmar cobertura" (chaves de tradução). */
 export interface OfferingCoverageNotice {
   tone: "success" | "error";
-  messages: string[];
+  messages: OfferingCoverageMessage[];
 }
 
 /**

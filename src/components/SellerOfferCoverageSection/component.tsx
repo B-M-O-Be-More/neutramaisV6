@@ -220,8 +220,12 @@ export function SellerOfferCoverageSection({
           rounded="12px"
           role={notice.tone === "success" ? "status" : "alert"}
         >
-          {notice.messages.map((key) => (
-            <Flex key={key} align="flex-start" gap="8px">
+          {notice.messages.map((message) => (
+            <Flex
+              key={typeof message === "string" ? message : message.key}
+              align="flex-start"
+              gap="8px"
+            >
               <Icon
                 as={notice.tone === "success" ? LuCircleCheck : LuCircleAlert}
                 boxSize="13px"
@@ -230,7 +234,9 @@ export function SellerOfferCoverageSection({
                 flexShrink={0}
               />
               <Text color={noticeStyle.color} fontSize="12px" lineHeight="18px">
-                {t(key)}
+                {typeof message === "string"
+                  ? t(message)
+                  : t(message.key, message.values)}
               </Text>
             </Flex>
           ))}

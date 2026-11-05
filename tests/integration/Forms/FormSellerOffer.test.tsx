@@ -1141,8 +1141,15 @@ describe("FormSellerOffer", { timeout: 90_000 }, () => {
       );
 
       expect(screen.getByText("BRL 1.890,00")).toBeInTheDocument();
-      // O símbolo da moeda acompanha o campo.
-      expect(screen.getByText("R$")).toBeInTheDocument();
+      // O símbolo da moeda acompanha o preço e o setup.
+      expect(screen.getAllByText("R$")).toHaveLength(2);
+
+      // Setup usa a máscara do preço: os dígitos entram em centavos.
+      const setup = screen.getByLabelText(
+        /SellerOfferCreate.pricing.setupLabel/,
+      );
+      await user.type(setup, "50000");
+      expect(setup).toHaveValue("500,00");
 
       const sponsored = screen.getByRole("checkbox", {
         name: /SellerOfferCreate.pricing.sponsoredLabel/,

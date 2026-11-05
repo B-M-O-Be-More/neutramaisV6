@@ -213,6 +213,37 @@ describe("useOfferingCoverageEditor", () => {
       expect(result.current.isDirty).toBe(false);
     });
 
+    it("ponto fora do KMZ (422) aponta qual localidade", async () => {
+      const outside = (detail: string) =>
+        new ApiError(422, [], detail, { detail });
+      vi.mocked(productCatalogService.bindCoverage)
+        .mockRejectedValueOnce(
+          outside("Point -46.635,-23.54 is outside the coverage"),
+        )
+        .mockRejectedValueOnce(outside("Point 10,10 is outside the coverage"));
+      const { result } = renderHook(() =>
+        useOfferingCoverageEditor(offering(BOUND), {
+          points: SAVED,
+          invalid: false,
+        }),
+      );
+      await waitFor(() => expect(result.current.canConfirm).toBe(true));
+
+      await act(() => result.current.confirm());
+      expect(result.current.notice?.messages).toEqual([
+        {
+          key: "SellerOfferCoverage.errors.pointOutside",
+          values: { number: 2 },
+        },
+      ]);
+
+      // Coordenada que não bate com nenhuma localidade: aviso geral.
+      await act(() => result.current.confirm());
+      expect(result.current.notice?.messages).toEqual([
+        "SellerOfferCoverage.errors.pointsOutside",
+      ]);
+    });
+
     it("localidade com ponto e sem raio válido bloqueia o confirmar", async () => {
       const { result } = renderHook(() =>
         useOfferingCoverageEditor(offering(BOUND), {

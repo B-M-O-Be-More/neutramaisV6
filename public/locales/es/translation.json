@@ -4091,7 +4091,6 @@
       "currencyHelper": "La moneda no puede cambiarse después de publicar",
       "priceLabel": "Precio ({{currency}})",
       "setupLabel": "Setup / NRC",
-      "setupPlaceholder": "Ej.: R$ 500,00 · o 0 sin setup",
       "stockLabel": "Disponibilidad / Stock",
       "stockPlaceholder": "Ej.: 2 (disponibles) o vacío para bajo consulta",
       "cancellationLabel": "Condiciones de cancelación",
@@ -4099,7 +4098,8 @@
       "validUntilLabel": "Vigencia de la oferta",
       "validUntilHelper": "Déjalo vacío para vigencia indefinida",
       "sponsoredLabel": "Patrocinar oferta",
-      "sponsoredDescription": "Destacada en la parte superior de los resultados · inversión adicional"
+      "sponsoredDescription": "Destacada en la parte superior de los resultados · inversión adicional",
+      "setupHelper": "Tarifa única de instalación. Déjelo vacío si no hay."
     },
     "review": {
       "moderationNotice": "Una oferta irregular (información falsa, precio irreal, cobertura divergente) puede ser removida con impacto en el score. Los sellers no pueden duplicar ofertas en la misma categoría.",
@@ -4609,7 +4609,9 @@
       "failed": "No fue posible vincular la cobertura ahora. Inténtalo de nuevo en unos instantes.",
       "invalid": "La cobertura fue rechazada: verifica que el KMZ sea de tu organización y que el área dibujada esté dentro de él.",
       "scopeUnavailable": "No fue posible cargar el recorte guardado de la cobertura. El mapa muestra toda el área del KMZ; confirma de nuevo solo si quieres cambiar el recorte.",
-      "pointsInvalid": "Revisa las ubicaciones de atención: cada dirección elegida necesita un radio entre 1 y 80 km."
+      "pointsInvalid": "Revisa las ubicaciones de atención: cada dirección elegida necesita un radio entre 1 y 80 km.",
+      "pointOutside": "La localidad {{number}} queda fuera del KMZ elegido. Cambie la dirección, reduzca el radio o elija otro KMZ.",
+      "pointsOutside": "Una de las localidades queda fuera del KMZ elegido. Revise las direcciones y los radios."
     },
     "loadingScope": "Cargando el recorte guardado..."
   },

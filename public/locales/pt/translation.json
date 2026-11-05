@@ -4082,7 +4082,6 @@
       "currencyHelper": "Moeda não pode ser alterada após publicação",
       "priceLabel": "Preço ({{currency}})",
       "setupLabel": "Setup / NRC",
-      "setupPlaceholder": "Ex: R$ 500,00 · ou 0 para sem setup",
       "stockLabel": "Disponibilidade / Estoque",
       "stockPlaceholder": "Ex: 2 (disponíveis) ou vazio para sob consulta",
       "cancellationLabel": "Condições de cancelamento",
@@ -4090,7 +4089,8 @@
       "validUntilLabel": "Vigência da oferta",
       "validUntilHelper": "Deixe vazio para vigência indeterminada",
       "sponsoredLabel": "Patrocinar oferta",
-      "sponsoredDescription": "Destacada no topo dos resultados de busca · investimento adicional"
+      "sponsoredDescription": "Destacada no topo dos resultados de busca · investimento adicional",
+      "setupHelper": "Taxa única de instalação. Deixe vazio se não houver."
     },
     "review": {
       "moderationNotice": "Oferta irregular (informação falsa, preço irreal, cobertura divergente) pode ser removida com impacto no score. Sellers não podem duplicar ofertas na mesma categoria.",
@@ -4600,7 +4600,9 @@
       "failed": "Não foi possível vincular a cobertura agora. Tente de novo em instantes.",
       "invalid": "A cobertura foi recusada: confira se o KMZ é da sua organização e se a área desenhada está dentro dele.",
       "scopeUnavailable": "Não foi possível carregar o recorte salvo da cobertura. O mapa mostra a área toda do KMZ; confirme de novo só se quiser trocar o recorte.",
-      "pointsInvalid": "Confira as localidades de atendimento: cada endereço escolhido precisa de um raio entre 1 e 80 km."
+      "pointsInvalid": "Confira as localidades de atendimento: cada endereço escolhido precisa de um raio entre 1 e 80 km.",
+      "pointOutside": "A localidade {{number}} fica fora do KMZ escolhido. Troque o endereço, reduza o raio ou escolha outro KMZ.",
+      "pointsOutside": "Uma das localidades fica fora do KMZ escolhido. Confira os endereços e os raios."
     },
     "loadingScope": "Carregando o recorte salvo..."
   },
