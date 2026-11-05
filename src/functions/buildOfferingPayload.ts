@@ -36,6 +36,7 @@ export const OFFERING_METADATA_KEYS = [
   "numbering",
   "additionalProps",
   "shippingPolicy",
+  "serviceLocations",
 ] as const;
 
 /** "1.890,00" → "1890.00" (formato decimal que a marketplace-api espera). */
@@ -133,6 +134,28 @@ export function buildShippingPolicy(
 }
 
 /**
+ * Localidades A/Z com ponto e raio (`metadata.serviceLocations`). A
+ * cobertura só é vinculada depois da oferta criada, na edição: sem elas, a
+ * tela de cobertura abriria sem os pontos digitados na criação. Linhas sem
+ * endereço escolhido ficam de fora.
+ */
+function serviceLocationsOf(values: SellerOfferValues) {
+  const locations = values.locations
+    .filter(
+      (location) =>
+        typeof location.longitude === "number" &&
+        typeof location.latitude === "number",
+    )
+    .map((location) => ({
+      label: location.label.trim(),
+      longitude: location.longitude,
+      latitude: location.latitude,
+      radiusKm: location.radiusKm,
+    }));
+  return locations.length ? locations : undefined;
+}
+
+/**
  * Atributos da oferta (`metadata.additionalProps`): linhas vazias ficam de
  * fora; os valores viram lista. Sem atributos, a chave não vai.
  */
@@ -207,6 +230,9 @@ function offeringFields(
         : undefined,
     additionalProps: buildAdditionalProps(values),
     shippingPolicy: isPhysical ? buildShippingPolicy(values) : undefined,
+    serviceLocations: values.requiresCoverage
+      ? serviceLocationsOf(values)
+      : undefined,
   });
 
   return {

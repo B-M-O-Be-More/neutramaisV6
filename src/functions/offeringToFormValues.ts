@@ -21,6 +21,7 @@ import {
   OFFER_SPEED_UNITS,
   SELLER_OFFER_DEFAULTS,
   type OfferAttribute,
+  type OfferLocation,
   type OfferShippingDispatchTime,
   type OfferShippingMode,
   type SellerOfferValues,
@@ -124,6 +125,22 @@ function attributesOf(additionalProps: unknown): OfferAttribute[] {
 const integerText = (value: unknown) =>
   typeof value === "number" && Number.isInteger(value) ? String(value) : "";
 
+/** `metadata.serviceLocations` → localidades; itens sem ponto ficam de fora. */
+function serviceLocationsOf(value: unknown): OfferLocation[] {
+  return (Array.isArray(value) ? value : [])
+    .map(record)
+    .filter(
+      (item) =>
+        typeof item.longitude === "number" && typeof item.latitude === "number",
+    )
+    .map((item) => ({
+      label: text(item.label),
+      longitude: item.longitude as number,
+      latitude: item.latitude as number,
+      radiusKm: text(item.radiusKm),
+    }));
+}
+
 /** "500 Mbps" → ["500", "Mbps"]. */
 function splitSpeed(speed: string | null) {
   const match = speed?.trim().match(/^([\d.,]+)\s*(\w+)?$/);
@@ -190,8 +207,10 @@ export function offeringToFormValues(
   const policy = record(metadata.shippingPolicy);
   const markup = Number(policy.sellerMarkup);
 
-  // Endereços da especificação (A/Z); as coordenadas e o raio chegam com a
-  // cobertura vinculada (`coverageNetworkPointsToLocations`).
+  // Localidades A/Z: as gravadas na criação (`metadata.serviceLocations`, com
+  // ponto e raio) ou, sem elas, os endereços da especificação. Com cobertura
+  // vinculada, os pontos dela substituem estes (`coverageNetworkPointsToLocations`).
+  const savedLocations = serviceLocationsOf(metadata.serviceLocations);
   const locationLabels = [spec.locationA ?? spec.location, spec.locationZ]
     .map(text)
     .filter(Boolean);
@@ -209,9 +228,11 @@ export function offeringToFormValues(
     ),
     // Regras do template: as que têm valores salvos voltam ligadas.
     ...ruleValuesToForm(offering.ruleValues),
-    locations: locationLabels.length
-      ? locationLabels.map((label) => ({ ...EMPTY_OFFER_LOCATION, label }))
-      : SELLER_OFFER_DEFAULTS.locations,
+    locations: savedLocations.length
+      ? savedLocations
+      : locationLabels.length
+        ? locationLabels.map((label) => ({ ...EMPTY_OFFER_LOCATION, label }))
+        : SELLER_OFFER_DEFAULTS.locations,
     name: offering.name,
     shortDescription: text(metadata.shortDescription),
     description: text(metadata.description),

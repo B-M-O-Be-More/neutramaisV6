@@ -224,7 +224,8 @@ describe("FormSellerOffer em modo edição", { timeout: 20_000 }, () => {
           {
             coverageVersionId: OTHER,
             publicGeometry: null,
-            coverageNetworkPoints: [],
+            // Sem pontos o campo não vai (a API recusa lista vazia).
+            coverageNetworkPoints: undefined,
           },
         ),
       );

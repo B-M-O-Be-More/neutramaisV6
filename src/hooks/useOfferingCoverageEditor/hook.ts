@@ -5,7 +5,6 @@ import React from "react";
 import { savedAreaIndexesOf } from "@/functions/coverageAreas";
 import { isPublicGeometry } from "@/functions/geoShapes";
 import {
-  coverageNetworkPointsOf,
   savedCoverageNetworkPointsOf,
   sameCoverageNetworkPoints,
   type CoverageNetworkPoint,
@@ -89,12 +88,6 @@ export function useOfferingCoverageEditor(
   const [savedPoints, setSavedPoints] = React.useState<
     CoverageNetworkPoint[] | null
   >(null);
-  // Sem vínculo, ou com o GET respondido, os pontos salvos são conhecidos.
-  // Se o GET falhou, não dá para saber: lista vazia não vai no PUT, para não
-  // apagar pontos que a tela não leu.
-  const [pointsKnown, setPointsKnown] = React.useState(
-    !offeringId || !initialVersionId,
-  );
   // O seller já escolheu outra versão ou outro recorte: o salvo que chegar
   // depois não sobrescreve a escolha.
   const touchedRef = React.useRef(false);
@@ -109,7 +102,6 @@ export function useOfferingCoverageEditor(
         const points = savedCoverageNetworkPointsOf(coverage);
         setBoundPoints(points);
         setSavedPoints(points);
-        setPointsKnown(true);
         if (touchedRef.current) return;
         // O recorte só vale sobre o KMZ que a oferta tem vinculado.
         if (coverage?.coverageVersionId !== initialVersionId) return;
@@ -131,9 +123,7 @@ export function useOfferingCoverageEditor(
       .catch((error) => {
         if (controller.signal.aborted) return;
         // 404: sem vínculo na geo-api — vale a área toda, sem pontos.
-        if (error instanceof NotFoundError) {
-          setPointsKnown(true);
-        } else {
+        if (!(error instanceof NotFoundError)) {
           setScopeLoadError("SellerOfferCoverage.errors.scopeUnavailable");
         }
       })
@@ -192,7 +182,9 @@ export function useOfferingCoverageEditor(
     setIsConfirming(true);
     setNotice(null);
     const points = formPoints.points;
-    const sendPoints = pointsKnown || points.length > 0;
+    // A API aceita de 1 a 500 pontos: lista vazia é 422. Sem pontos, o campo
+    // não vai e a oferta fica com o KMZ (ou o recorte) sem círculos.
+    const sendPoints = points.length > 0;
     try {
       await productCatalogService.bindCoverage(offeringId, {
         coverageVersionId: versionId,
@@ -203,10 +195,8 @@ export function useOfferingCoverageEditor(
       });
       setBoundVersionId(versionId);
       setScopeChanged(false);
-      if (sendPoints) {
-        setBoundPoints(points);
-        setPointsKnown(true);
-      }
+      // O PUT substitui o vínculo: sem pontos enviados, não fica nenhum.
+      setBoundPoints(points);
       setNotice({
         tone: "success",
         messages: ["SellerOfferCoverage.confirmed"],

@@ -113,6 +113,14 @@ describe("buildOfferingPayload", () => {
       currency: "BRL",
       cancellationTerms: "30 dias corridos",
       validUntil: "2026-12-31",
+      serviceLocations: [
+        {
+          label: "Av. Dom Luís, 300, Caucaia - CE",
+          longitude: -38.65,
+          latitude: -3.73,
+          radiusKm: "10",
+        },
+      ],
     });
   });
 
@@ -135,7 +143,7 @@ describe("buildOfferingPayload", () => {
     ]);
   });
 
-  it("não envia categoria, localidade, região nem imagem", () => {
+  it("não envia categoria, região nem imagem", () => {
     const payload = buildOfferingPayload(
       { ...BASE, coverageRegion: "lacnic" },
       "spec-1",
@@ -143,10 +151,35 @@ describe("buildOfferingPayload", () => {
     const json = JSON.stringify(payload);
 
     expect(json).not.toContain("connectivity");
-    expect(json).not.toContain("Caucaia");
-    expect(json).not.toContain("-38.65");
     expect(json).not.toContain("lacnic");
     expect(payload.metadata).not.toHaveProperty("images");
+  });
+
+  it("categoria com cobertura guarda as localidades com ponto e raio no metadata", () => {
+    const payload = buildOfferingPayload(
+      {
+        ...BASE,
+        locations: [
+          ...BASE.locations,
+          // Sem endereço escolhido: fica de fora.
+          { label: "Digitado", longitude: null, latitude: null, radiusKm: "" },
+        ],
+      },
+      "spec-1",
+    );
+
+    expect(payload.metadata?.serviceLocations).toEqual([
+      {
+        label: "Av. Dom Luís, 300, Caucaia - CE",
+        longitude: -38.65,
+        latitude: -3.73,
+        radiusKm: "10",
+      },
+    ]);
+    expect(
+      buildOfferingPayload({ ...BASE, requiresCoverage: false }, "spec-1")
+        .metadata,
+    ).not.toHaveProperty("serviceLocations");
   });
 
   it("inclui os dados de Hardware só nessa categoria", () => {

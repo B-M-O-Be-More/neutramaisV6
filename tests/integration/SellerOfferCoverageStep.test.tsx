@@ -299,7 +299,8 @@ describe("SellerOfferCoverageSection — KMZs da organização", () => {
       {
         coverageVersionId: BOUND,
         publicGeometry: null,
-        coverageNetworkPoints: [],
+        // Sem pontos o campo não vai (a API recusa lista vazia).
+        coverageNetworkPoints: undefined,
       },
     );
     expect(

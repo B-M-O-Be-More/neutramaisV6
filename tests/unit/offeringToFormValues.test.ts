@@ -249,6 +249,38 @@ describe("offeringToFormValues", () => {
     ).toBe("connectivity");
   });
 
+  it("localidades: as do metadata (com ponto e raio) antes dos endereços do plano", () => {
+    const point = {
+      label: "Av. Paulista, 1000",
+      longitude: -46.65,
+      latitude: -23.56,
+      radiusKm: "5",
+    };
+    const characteristics = { locationA: "Endereço do plano" };
+    expect(
+      offeringToFormValues(
+        {
+          ...OFFERING,
+          metadata: { ...OFFERING.metadata, serviceLocations: [point, {}] },
+        },
+        "Conectividade",
+        characteristics,
+      ).locations,
+    ).toEqual([point]);
+    // Sem as do metadata: o endereço do plano, ainda sem ponto.
+    expect(
+      offeringToFormValues(OFFERING, "Conectividade", characteristics)
+        .locations,
+    ).toEqual([
+      {
+        label: "Endereço do plano",
+        longitude: null,
+        latitude: null,
+        radiusKm: "",
+      },
+    ]);
+  });
+
   it("os campos do template vêm das characteristics da especificação", () => {
     expect(
       offeringToFormValues(OFFERING, "Conectividade", { includedIps: 8 }),
@@ -366,7 +398,6 @@ describe("buildOfferingUpdate", () => {
     expect(update.metadata).not.toHaveProperty("additionalProps");
     expect(update.metadata).toMatchObject({ externalRef: "ERP-77" });
   });
-
 });
 
 describe("offeringToFormValues com a árvore de categorias", () => {
