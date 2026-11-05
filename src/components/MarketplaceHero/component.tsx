@@ -8,8 +8,9 @@ import {
   LuClock,
   LuSearch,
   LuShieldCheck,
-  LuStar,
+  LuStar
 } from "react-icons/lu";
+import { HiOutlineBolt } from "react-icons/hi2";
 
 // Selos de confiança do rodapé do banner. O texto vem do i18n
 // (Marketplace.hero.trust.<key>); ícone e cor ficam fixos aqui.
@@ -41,163 +42,241 @@ export function MarketplaceHero() {
 
   return (
     <Flex
-      direction="column"
-      position="relative"
-      w="full"
-      bg="white"
-      borderWidth="1px"
-      borderColor="#E5E8EE"
-      rounded="16px"
-      overflow="hidden"
+      display={"flex"}
+      flexDirection={"column"}
+      gap="24px"
     >
-      {/* Painel de marca — metade direita no desktop, faixa no mobile.
-          O `order` só vale no mobile: a partir de `lg` o painel é absoluto e
-          sai do fluxo, então a ordem no DOM deixa de importar. */}
       <Flex
-        order={{ base: 1, lg: 0 }}
-        position={{ base: "static", lg: "absolute" }}
-        top="0"
-        right="0"
-        bottom="0"
-        w={{ base: "full", lg: "48.93%" }}
-        align="center"
-        justify={{ base: "center", lg: "flex-start" }}
-        ps={{ base: "24px", lg: "36px", xl: "49px" }}
-        pe="24px"
-        py={{ base: "32px", lg: 0 }}
-        bgImage={{ base: PANEL_GRADIENT_MOBILE, lg: PANEL_GRADIENT }}
-      >
-        <Image
-          src="/assets/logo-wordmark-white.svg"
-          alt={t("Marketplace.hero.logoAlt")}
-          objectFit="contain"
-          w="full"
-          maxW="522.758px"
-          aspectRatio={WORDMARK_RATIO}
-        />
-      </Flex>
-
-      {/* Conteúdo (esquerda) */}
-      <Stack
-        position="relative"
-        maxW={{ base: "full", lg: "672px" }}
-        px={{ base: 6, md: "40px" }}
-        py={{ base: 10, md: "48px" }}
-        gap={0}
+        display="flex"
+        padding="14px 20px"
+        alignItems="center"
+        alignSelf="stretch"
+        w="full"
+        bg={"#EEF3FF"}
+        borderWidth="1px"
+        borderColor={"#C7D8FF"}
+        rounded="14px"
+        flexWrap="wrap"
+        gap="12px"
       >
         <Flex
+          display="flex"
+          w="32px"
+          h="32px"
+          justify="center"
           align="center"
-          gap="8px"
-          w="fit-content"
-          bg="#EEF3FF"
-          borderWidth="1px"
-          borderColor="#C7D8FF"
-          rounded="full"
-          px="13px"
-          py="5px"
+          borderRadius="10px"
+          bg="rgba(31, 90, 255, 0.20)"
+
         >
-          <Icon as={LuShieldCheck} boxSize="11px" color="#1F5AFF" />
+          <Icon as={HiOutlineBolt} color="#1F5AFF" boxSize="16px" />
+        </Flex>
+
+        <Flex direction="column" gap={1} minW="0">
           <Text
-            fontSize="11px"
+            fontSize="13px"
             fontWeight={700}
-            lineHeight="16.5px"
+            lineHeight="19.5px"
             color="#1F5AFF"
           >
-            {t("Marketplace.hero.badge")}
+            {t("Marketplace.hero.headlineOpportunity")}
+          </Text>
+
+          <Text
+            fontSize="12px"
+            color="#5A7CE0"
+            fontWeight={400}
+            lineHeight="18px"
+          >
+            3 provedores com cobertura verificada via KMZ
+            disponíveis próximo a você.
           </Text>
         </Flex>
 
-        <Text
-          as="h1"
-          mt="23.5px"
-          fontSize={{ base: "28px", md: "38px" }}
-          fontWeight={800}
-          lineHeight="1.15"
-          color="#0F1729"
+
+        <Button
+          asChild
+          ml="auto"
+          h="40px"
+          px="12px"
+          gap="8px"
+          rounded="10px"
+          bg="#1F5AFF"
+          color="white"
+          fontSize="13px"
+          fontWeight={700}
+          boxShadow="0px 4px 3px rgba(0, 0, 0, 0.1), 0px 2px 2px rgba(0, 0, 0, 0.1)"
+          _hover={{ bg: "#1849CC" }}
         >
-          {t("Marketplace.hero.headline")}
-          <br />
-          <Text as="span" color="#1F5AFF">
-            {t("Marketplace.hero.headlineHighlight")}
-          </Text>
-        </Text>
+          <Link href="/catalogo">
+            {t("Marketplace.hero.catalog")}
+            <Icon as={LuArrowRight} boxSize="15px" />
+          </Link>
+        </Button>
+      </Flex>
 
-        <Text
-          mt="16px"
-          maxW="592px"
-          fontSize="15px"
-          lineHeight="24.375px"
-          color="#5A6478"
+
+
+      <Flex
+        direction="column"
+        position="relative"
+        w="full"
+        bg="white"
+        borderWidth="1px"
+        borderColor="#E5E8EE"
+        rounded="16px"
+        overflow="hidden"
+      >
+
+        {/* Painel de marca — metade direita no desktop, faixa no mobile.
+          O `order` só vale no mobile: a partir de `lg` o painel é absoluto e
+          sai do fluxo, então a ordem no DOM deixa de importar. */}
+        <Flex
+          order={{ base: 1, lg: 0 }}
+          position={{ base: "static", lg: "absolute" }}
+          top="0"
+          right="0"
+          bottom="0"
+          w={{ base: "full", lg: "48.93%" }}
+          align="center"
+          justify={{ base: "center", lg: "flex-start" }}
+          ps={{ base: "24px", lg: "36px", xl: "49px" }}
+          pe="24px"
+          py={{ base: "32px", lg: 0 }}
+          bgImage={{ base: PANEL_GRADIENT_MOBILE, lg: PANEL_GRADIENT }}
         >
-          {t("Marketplace.hero.subtitle")}
-        </Text>
+          <Image
+            src="/assets/logo-wordmark-white.svg"
+            alt={t("Marketplace.hero.logoAlt")}
+            objectFit="contain"
+            w="full"
+            maxW="522.758px"
+            aspectRatio={WORDMARK_RATIO}
+          />
+        </Flex>
 
-        <Flex mt="32px" align="center" gap="12px" wrap="wrap">
-          <Button
-            asChild
-            h="45px"
-            px="24px"
+        {/* Conteúdo (esquerda) */}
+        <Stack
+          position="relative"
+          maxW={{ base: "full", lg: "672px" }}
+          px={{ base: 6, md: "40px" }}
+          py={{ base: 10, md: "48px" }}
+          gap={0}
+        >
+          <Flex
+            align="center"
             gap="8px"
-            rounded="14px"
-            bg="#1F5AFF"
-            color="white"
-            fontSize="14px"
-            fontWeight={700}
-            boxShadow="0px 4px 3px rgba(0, 0, 0, 0.1), 0px 2px 2px rgba(0, 0, 0, 0.1)"
-            _hover={{ bg: "#1849CC" }}
-          >
-            <Link href="/marketplace">
-              <Icon as={LuSearch} boxSize="15px" />
-              {t("Marketplace.hero.exploreCta")}
-            </Link>
-          </Button>
-
-          <Button
-            asChild
-            variant="plain"
-            h="47px"
-            px="25px"
-            gap="8px"
-            rounded="14px"
+            w="fit-content"
             bg="#EEF3FF"
             borderWidth="1px"
             borderColor="#C7D8FF"
-            color="#1F5AFF"
-            fontSize="14px"
-            fontWeight={600}
-            _hover={{ bg: "#E1EAFF" }}
+            rounded="full"
+            px="13px"
+            py="5px"
           >
-            <Link href="/register">
-              {t("Marketplace.hero.registerCta")}
-              <Icon as={LuArrowRight} boxSize="15px" />
-            </Link>
-          </Button>
-        </Flex>
+            <Icon as={LuShieldCheck} boxSize="11px" color="#1F5AFF" />
+            <Text
+              fontSize="11px"
+              fontWeight={700}
+              lineHeight="16.5px"
+              color="#1F5AFF"
+            >
+              {t("Marketplace.hero.badge")}
+            </Text>
+          </Flex>
 
-        <Flex
-          mt="32px"
-          pt="25px"
-          align="center"
-          gap="20px"
-          wrap="wrap"
-          borderTopWidth="1px"
-          borderColor="#E5E8EE"
-        >
-          {TRUST_BADGES.map((badge) => (
-            <Flex key={badge.key} align="center" gap="6px">
-              <Icon
-                as={badge.icon}
-                boxSize="13px"
-                color={badge.color}
-                fill={badge.filled ? badge.color : "none"}
-              />
-              <Text fontSize="12px" lineHeight="18px" color="#5A6478">
-                {t(`Marketplace.hero.trust.${badge.key}`)}
-              </Text>
-            </Flex>
-          ))}
-        </Flex>
-      </Stack>
-    </Flex>
+          <Text
+            as="h1"
+            mt="23.5px"
+            fontSize={{ base: "28px", md: "38px" }}
+            fontWeight={800}
+            lineHeight="1.15"
+            color="#0F1729"
+          >
+            {t("Marketplace.hero.headline")}
+            <br />
+            <Text as="span" color="#1F5AFF">
+              {t("Marketplace.hero.headlineHighlight")}
+            </Text>
+          </Text>
+
+          <Text
+            mt="16px"
+            maxW="592px"
+            fontSize="15px"
+            lineHeight="24.375px"
+            color="#5A6478"
+          >
+            {t("Marketplace.hero.subtitle")}
+          </Text>
+
+          <Flex mt="32px" align="center" gap="12px" wrap="wrap">
+            <Button
+              asChild
+              h="45px"
+              px="24px"
+              gap="8px"
+              rounded="14px"
+              bg="#1F5AFF"
+              color="white"
+              fontSize="14px"
+              fontWeight={700}
+              boxShadow="0px 4px 3px rgba(0, 0, 0, 0.1), 0px 2px 2px rgba(0, 0, 0, 0.1)"
+              _hover={{ bg: "#1849CC" }}
+            >
+              <Link href="/marketplace">
+                {t("Marketplace.hero.exploreCta")}
+                <Icon as={LuSearch} boxSize="15px" />
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant="plain"
+              h="47px"
+              px="25px"
+              gap="8px"
+              rounded="14px"
+              bg="#EEF3FF"
+              borderWidth="1px"
+              borderColor="#C7D8FF"
+              color="#1F5AFF"
+              fontSize="14px"
+              fontWeight={600}
+              _hover={{ bg: "#E1EAFF" }}
+            >
+              <Link href="/register">
+                {t("Marketplace.hero.registerCta")}
+                <Icon as={LuArrowRight} boxSize="15px" />
+              </Link>
+            </Button>
+          </Flex>
+
+          <Flex
+            mt="32px"
+            pt="25px"
+            align="center"
+            gap="20px"
+            wrap="wrap"
+            borderTopWidth="1px"
+            borderColor="#E5E8EE"
+          >
+            {TRUST_BADGES.map((badge) => (
+              <Flex key={badge.key} align="center" gap="6px">
+                <Icon
+                  as={badge.icon}
+                  boxSize="13px"
+                  color={badge.color}
+                  fill={badge.filled ? badge.color : "none"}
+                />
+                <Text fontSize="12px" lineHeight="18px" color="#5A6478">
+                  {t(`Marketplace.hero.trust.${badge.key}`)}
+                </Text>
+              </Flex>
+            ))}
+          </Flex>
+        </Stack>
+      </Flex>
+    </Flex >
   );
 }

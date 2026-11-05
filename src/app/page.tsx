@@ -2,17 +2,21 @@
 
 import { Box, Stack } from "@chakra-ui/react";
 
+import MarketplaceCatalog from "@/components/MarketplaceCatalog";
 import MarketplaceCategories from "@/components/MarketplaceCategories";
 import { MarketplaceCategoryCounts } from "@/components/MarketplaceCategories/interface";
+import MarketplaceCreditBanner from "@/components/MarketplaceCreditBanner";
 import MarketplaceCtaBanner from "@/components/MarketplaceCtaBanner";
 import MarketplaceFooter from "@/components/MarketplaceFooter";
 import MarketplaceHeader from "@/components/MarketplaceHeader";
 import MarketplaceHero from "@/components/MarketplaceHero";
 import MarketplaceHowItWorks from "@/components/MarketplaceHowItWorks";
+import MarketplaceNetworkCoverage from "@/components/MarketplaceNetworkCoverage";
 import MarketplaceOffers from "@/components/MarketplaceOffers";
 import MarketplacePromotions from "@/components/MarketplacePromotions";
 import MarketplaceStats from "@/components/MarketplaceStats";
 import { MarketplaceStatsData } from "@/components/MarketplaceStats/interface";
+import MarketplaceVideoShowcase from "@/components/MarketplaceVideoShowcase";
 
 // Valores do design, usados até existir o endpoint de métricas da plataforma.
 // Ao ligar a API, troque por um hook (src/hooks) que devolva este mesmo formato
@@ -22,6 +26,7 @@ const PLACEHOLDER_STATS: MarketplaceStatsData = {
   activeProviders: "2.418",
   slaCompliance: "98,2%",
   averageResponseTime: "2m 47s",
+  assessment: "4,5/8",
 };
 
 // Contagens do design, no mesmo lugar e pelo mesmo motivo das métricas acima.
@@ -46,18 +51,24 @@ export default function Home() {
         maxW="1216px"
         mx="auto"
         px={{ base: 4, md: "24px" }}
-        py={{ base: 6, md: "32px" }}
+        pt={{ base: 6, md: "32px" }}
+        pb="0"
         gap={{ base: 6, md: "24px" }}
       >
         <MarketplaceHero />
         <MarketplaceStats data={PLACEHOLDER_STATS} />
+        <MarketplaceCatalog />
+        <MarketplaceNetworkCoverage />
         <MarketplaceCategories counts={PLACEHOLDER_CATEGORY_COUNTS} />
+        <MarketplaceCreditBanner />
+        <MarketplaceVideoShowcase />
         <MarketplacePromotions />
         <MarketplaceOffers />
         <MarketplaceHowItWorks />
         <MarketplaceCtaBanner />
-        <MarketplaceFooter />
       </Stack>
+
+      <MarketplaceFooter />
     </Box>
   );
 }

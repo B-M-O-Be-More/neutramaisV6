@@ -12,6 +12,8 @@ export interface MarketplaceStatsData {
   slaCompliance: string;
   /** Tempo médio até o aceite do pedido — ex.: "2m 47s". */
   averageResponseTime: string;
+  /** Avaliação do provedor — ex.: "4,8/5". */
+  assessment: string;
 }
 
 export interface MarketplaceStatsProps {
