@@ -3265,7 +3265,8 @@
     "tabs": {
       "label": "Áreas del catálogo",
       "catalog": "Mi Catálogo",
-      "coverage": "Cobertura"
+      "coverage": "Cobertura",
+      "settings": "Configuración de venta"
     },
     "stats": {
       "totalOffers": "Total de ofertas",
@@ -6567,6 +6568,38 @@
       "rateLimited": "Demasiados intentos. Espere unos minutos e intente de nuevo.",
       "sessionExpired": "Su sesión terminó. Inicie sesión de nuevo para continuar.",
       "failed": "No fue posible confirmar el código. Intente de nuevo."
+    }
+  },
+  "SellerSalesSettings": {
+    "title": "Configuración de venta",
+    "subtitle": "Plazos de atención y aceptación de pedidos de la organización.",
+    "loading": "Cargando...",
+    "retry": "Intentar de nuevo",
+    "saved": "Guardado.",
+    "sla": {
+      "title": "Plazos de atención (SLA)",
+      "description": "Valen para los próximos tickets y órdenes de servicio. Los registros anteriores mantienen el plazo con el que se abrieron.",
+      "firstLabel": "Primera respuesta (horas)",
+      "firstHelper": "Tiempo máximo para responder un ticket abierto.",
+      "resolutionLabel": "Resolución (horas)",
+      "resolutionHelper": "Tiempo máximo para resolver. No puede ser menor que la primera respuesta.",
+      "save": "Guardar plazos",
+      "readOnly": "Solo quien tiene permiso para cambiar el SLA edita estos plazos."
+    },
+    "autoAccept": {
+      "title": "Aceptación automática",
+      "description": "Vale para todos los pedidos pagados de productos físicos (Hardware / CPE). Los servicios siguen con aceptación manual.",
+      "label": "Aceptar pedidos de productos físicos automáticamente",
+      "on": "Activado: los pedidos pagados quedan aceptados, sin esperar el SLA de aceptación.",
+      "off": "Desactivado: cada pedido espera su aceptación dentro del SLA de aceptación.",
+      "noPermission": "Su rol no acepta pedidos, así que no configura la aceptación automática."
+    },
+    "errors": {
+      "loadFailed": "No fue posible cargar esta configuración.",
+      "permission": "Su usuario no tiene permiso para cambiar esta configuración.",
+      "slaOrder": "La resolución no puede ser menor que la primera respuesta.",
+      "saveFailed": "No fue posible guardar. Intente de nuevo.",
+      "conflict": "Otra persona acaba de cambiar la aceptación automática. Revise el valor actual e intente de nuevo."
     }
   }
 }

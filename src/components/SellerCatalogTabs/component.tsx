@@ -5,9 +5,12 @@ import { useTranslation } from "react-i18next";
 
 import { SellerCatalogTab, SellerCatalogTabsProps } from "./interface";
 
-const TABS: SellerCatalogTab[] = ["catalog", "coverage"];
+const TABS: SellerCatalogTab[] = ["catalog", "coverage", "settings"];
 
-/** Alternância entre "Catálogo" e "Cobertura" no topo do catálogo do seller. */
+/**
+ * Alternância entre "Catálogo", "Cobertura" e "Configurações de venda" no
+ * topo do catálogo do seller.
+ */
 export function SellerCatalogTabs({
   value,
   available,

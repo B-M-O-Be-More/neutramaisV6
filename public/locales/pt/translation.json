@@ -3256,7 +3256,8 @@
     "tabs": {
       "label": "Áreas do catálogo",
       "catalog": "Meu Catálogo",
-      "coverage": "Cobertura"
+      "coverage": "Cobertura",
+      "settings": "Configurações de venda"
     },
     "stats": {
       "totalOffers": "Total de ofertas",
@@ -6558,6 +6559,38 @@
       "rateLimited": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
       "sessionExpired": "Sua sessão acabou. Entre de novo para continuar.",
       "failed": "Não foi possível confirmar o código. Tente de novo."
+    }
+  },
+  "SellerSalesSettings": {
+    "title": "Configurações de venda",
+    "subtitle": "Prazos de atendimento e aceite dos pedidos da organização.",
+    "loading": "Carregando...",
+    "retry": "Tentar de novo",
+    "saved": "Salvo.",
+    "sla": {
+      "title": "Prazos de atendimento (SLA)",
+      "description": "Valem para os próximos tickets e ordens de serviço. Os registros antigos mantêm o prazo de quando foram abertos.",
+      "firstLabel": "Primeira resposta (horas)",
+      "firstHelper": "Tempo máximo para responder a um ticket aberto.",
+      "resolutionLabel": "Resolução (horas)",
+      "resolutionHelper": "Tempo máximo para resolver. Não pode ser menor que a primeira resposta.",
+      "save": "Salvar prazos",
+      "readOnly": "Só quem tem permissão para alterar SLA muda estes prazos."
+    },
+    "autoAccept": {
+      "title": "Aceite automático",
+      "description": "Vale para todos os pedidos pagos de produtos físicos (Hardware / CPE). Serviços continuam com aceite manual.",
+      "label": "Aceitar pedidos de produtos físicos automaticamente",
+      "on": "Ligado: os pedidos pagos entram aceitos, sem esperar o SLA de aceite.",
+      "off": "Desligado: cada pedido espera o seu aceite dentro do SLA de aceite.",
+      "noPermission": "Seu papel não aceita pedidos, então não configura o aceite automático."
+    },
+    "errors": {
+      "loadFailed": "Não foi possível carregar esta configuração.",
+      "permission": "Seu usuário não tem permissão para alterar esta configuração.",
+      "slaOrder": "A resolução não pode ser menor que a primeira resposta.",
+      "saveFailed": "Não foi possível salvar. Tente de novo.",
+      "conflict": "Outra pessoa alterou o aceite automático agora há pouco. Confira o valor atual e tente de novo."
     }
   }
 }
