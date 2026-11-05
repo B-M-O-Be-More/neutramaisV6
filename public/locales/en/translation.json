@@ -6613,5 +6613,54 @@
       "saveFailed": "Could not save. Try again.",
       "conflict": "Someone else just changed automatic acceptance. Check the current value and try again."
     }
+  },
+  "SellerOfferPrices": {
+    "title": "Prices",
+    "subtitle": "Quantity tiers and history. All active prices use the offer currency ({{currency}}).",
+    "showHistory": "Show history",
+    "loading": "Loading prices...",
+    "retry": "Try again",
+    "empty": "No prices yet.",
+    "columns": {
+      "type": "Type",
+      "range": "Quantity",
+      "amount": "Amount",
+      "validity": "Valid",
+      "actions": "Actions"
+    },
+    "types": {
+      "recurring": "Monthly",
+      "one_time": "One-time fee",
+      "full_purchase": "Full purchase"
+    },
+    "range": "{{min}} to {{max}}",
+    "rangeOpen": "From {{min}}",
+    "since": "Since {{date}}",
+    "between": "{{from}} to {{to}}",
+    "newAmount": "New amount",
+    "edit": "Change amount",
+    "end": "End",
+    "confirmEnd": "End price",
+    "save": "Save",
+    "cancel": "Cancel",
+    "add": {
+      "title": "Add price",
+      "type": "Type",
+      "amount": "Amount ({{currency}})",
+      "minQuantity": "From (quantity)",
+      "maxQuantity": "To (quantity)",
+      "noMax": "No limit",
+      "hint": "Tiers of the same type cannot overlap: close the current tier with a limit before creating the next one.",
+      "submit": "Add price"
+    },
+    "errors": {
+      "loadFailed": "Could not load the prices.",
+      "overlap": "This tier overlaps another of the same type. Adjust the quantities or close the current tier first.",
+      "currencyMismatch": "An offer's prices use a single currency.",
+      "invalid": "Invalid price: check the amount and the tier (the end cannot be lower than the start; up to 50 active prices).",
+      "priceRequired": "A published offer needs a monthly or full-purchase price for 1 unit.",
+      "permission": "Your user is not allowed to change prices.",
+      "failed": "Could not save the price. Try again."
+    }
   }
 }

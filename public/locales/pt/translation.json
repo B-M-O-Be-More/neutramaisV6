@@ -6592,5 +6592,54 @@
       "saveFailed": "Não foi possível salvar. Tente de novo.",
       "conflict": "Outra pessoa alterou o aceite automático agora há pouco. Confira o valor atual e tente de novo."
     }
+  },
+  "SellerOfferPrices": {
+    "title": "Preços",
+    "subtitle": "Faixas de quantidade e histórico. Todos os preços ativos usam a moeda da oferta ({{currency}}).",
+    "showHistory": "Mostrar histórico",
+    "loading": "Carregando os preços...",
+    "retry": "Tentar de novo",
+    "empty": "Nenhum preço cadastrado.",
+    "columns": {
+      "type": "Tipo",
+      "range": "Quantidade",
+      "amount": "Valor",
+      "validity": "Vigência",
+      "actions": "Ações"
+    },
+    "types": {
+      "recurring": "Mensal",
+      "one_time": "Taxa única",
+      "full_purchase": "À vista"
+    },
+    "range": "{{min}} a {{max}}",
+    "rangeOpen": "A partir de {{min}}",
+    "since": "Desde {{date}}",
+    "between": "{{from}} a {{to}}",
+    "newAmount": "Novo valor",
+    "edit": "Alterar valor",
+    "end": "Encerrar",
+    "confirmEnd": "Encerrar preço",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "add": {
+      "title": "Adicionar preço",
+      "type": "Tipo",
+      "amount": "Valor ({{currency}})",
+      "minQuantity": "De (quantidade)",
+      "maxQuantity": "Até (quantidade)",
+      "noMax": "Sem limite",
+      "hint": "Faixas do mesmo tipo não podem se sobrepor: feche a faixa atual com um limite antes de criar a próxima.",
+      "submit": "Adicionar preço"
+    },
+    "errors": {
+      "loadFailed": "Não foi possível carregar os preços.",
+      "overlap": "Essa faixa se sobrepõe a outra do mesmo tipo. Ajuste as quantidades ou feche a faixa atual antes.",
+      "currencyMismatch": "Os preços de uma oferta usam uma moeda só.",
+      "invalid": "Preço inválido: confira o valor e a faixa (o fim não pode ser menor que o início; até 50 preços ativos).",
+      "priceRequired": "Uma oferta publicada precisa de um preço mensal ou à vista para 1 unidade.",
+      "permission": "Seu usuário não tem permissão para alterar preços.",
+      "failed": "Não foi possível salvar o preço. Tente de novo."
+    }
   }
 }

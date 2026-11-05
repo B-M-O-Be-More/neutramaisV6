@@ -10,8 +10,12 @@ import { LuChevronLeft } from "react-icons/lu";
 import AuthenticatedLayout from "@/components/Layouts/Authenticated";
 import SellerOfferDetail from "@/components/SellerOfferDetail";
 import SellerOfferLoadState from "@/components/SellerOfferLoadState";
+import SellerOfferPrices from "@/components/SellerOfferPrices";
 import { toaster } from "@/components/ui/toaster";
-import { SellerSessionProvider } from "@/contexts/SellerSessionContext";
+import {
+  SellerSessionProvider,
+  useSellerSession,
+} from "@/contexts/SellerSessionContext";
 import { currencyLocale } from "@/functions/currencyLocale";
 import { useOffering } from "@/hooks/useOffering";
 import { useOfferingImages } from "@/hooks/useOfferingImages";
@@ -23,6 +27,7 @@ function OfferDetailContent() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { offeringId } = useParams<{ offeringId: string }>();
+  const { context } = useSellerSession();
   const { offering, isLoading, notFound, hasError, refetch } =
     useOffering(offeringId);
   const { specifications } = useProductSpecifications();
@@ -93,7 +98,7 @@ function OfferDetailContent() {
         </Text>
       </Flex>
 
-      {offering ? (
+      {offering && (
         <SellerOfferDetail
           offering={offering}
           specificationName={specificationName}
@@ -113,7 +118,24 @@ function OfferDetailContent() {
           }
           onTogglePromotion={togglePromotion}
         />
-      ) : (
+      )}
+
+      {offering && (
+        // Preços por faixa e histórico (D-20); mudar um preço muda o mensal
+        // projetado da oferta, que é relida.
+        <SellerOfferPrices
+          offeringId={offering.id}
+          currency={offering.currency ?? "BRL"}
+          locale={currencyLocale(i18n.language)}
+          canEdit={
+            !!context?.permissions.includes("price:change") &&
+            offering.status !== "archived"
+          }
+          onChanged={refetch}
+        />
+      )}
+
+      {!offering && (
         <SellerOfferLoadState
           status={
             isLoading ? "loading" : notFound || !hasError ? "notFound" : "error"

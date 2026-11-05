@@ -6601,5 +6601,54 @@
       "saveFailed": "No fue posible guardar. Intente de nuevo.",
       "conflict": "Otra persona acaba de cambiar la aceptación automática. Revise el valor actual e intente de nuevo."
     }
+  },
+  "SellerOfferPrices": {
+    "title": "Precios",
+    "subtitle": "Rangos de cantidad e historial. Todos los precios activos usan la moneda de la oferta ({{currency}}).",
+    "showHistory": "Mostrar historial",
+    "loading": "Cargando los precios...",
+    "retry": "Intentar de nuevo",
+    "empty": "Ningún precio registrado.",
+    "columns": {
+      "type": "Tipo",
+      "range": "Cantidad",
+      "amount": "Valor",
+      "validity": "Vigencia",
+      "actions": "Acciones"
+    },
+    "types": {
+      "recurring": "Mensual",
+      "one_time": "Tarifa única",
+      "full_purchase": "Al contado"
+    },
+    "range": "{{min}} a {{max}}",
+    "rangeOpen": "Desde {{min}}",
+    "since": "Desde {{date}}",
+    "between": "{{from}} a {{to}}",
+    "newAmount": "Nuevo valor",
+    "edit": "Cambiar valor",
+    "end": "Finalizar",
+    "confirmEnd": "Finalizar precio",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "add": {
+      "title": "Agregar precio",
+      "type": "Tipo",
+      "amount": "Valor ({{currency}})",
+      "minQuantity": "Desde (cantidad)",
+      "maxQuantity": "Hasta (cantidad)",
+      "noMax": "Sin límite",
+      "hint": "Los rangos del mismo tipo no pueden superponerse: cierre el rango actual con un límite antes de crear el siguiente.",
+      "submit": "Agregar precio"
+    },
+    "errors": {
+      "loadFailed": "No fue posible cargar los precios.",
+      "overlap": "Este rango se superpone con otro del mismo tipo. Ajuste las cantidades o cierre el rango actual antes.",
+      "currencyMismatch": "Los precios de una oferta usan una sola moneda.",
+      "invalid": "Precio inválido: revise el valor y el rango (el fin no puede ser menor que el inicio; hasta 50 precios activos).",
+      "priceRequired": "Una oferta publicada necesita un precio mensual o al contado para 1 unidad.",
+      "permission": "Su usuario no tiene permiso para cambiar precios.",
+      "failed": "No fue posible guardar el precio. Intente de nuevo."
+    }
   }
 }
