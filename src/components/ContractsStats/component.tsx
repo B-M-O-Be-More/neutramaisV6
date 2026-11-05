@@ -4,10 +4,10 @@ import { Flex, Icon, SimpleGrid, Stack, Text } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 import type { IconType } from "react-icons";
 import {
-  LuChartNoAxesColumn,
-  LuCircleAlert,
-  LuFileText,
-  LuRotateCcw,
+  LuCircleCheckBig,
+  LuCircleX,
+  LuClock,
+  LuPenLine,
 } from "react-icons/lu";
 
 import type { ContractsSummary } from "@/types/contracts";
@@ -23,40 +23,40 @@ const STATS: {
   bg: string;
 }[] = [
   {
-    key: "active",
-    icon: LuFileText,
-    iconSize: "16px",
-    iconColor: "#8B5CF6",
-    color: "#8B5CF6",
-    bg: "#F3EEFF",
-  },
-  {
-    key: "renewing",
-    icon: LuRotateCcw,
+    key: "awaitingSignature",
+    icon: LuPenLine,
     iconSize: "16px",
     iconColor: "#D97706",
-    color: "#F1BF00",
+    color: "#D97706",
     bg: "rgba(210, 153, 34, 0.09)",
   },
   {
-    key: "suspended",
-    icon: LuCircleAlert,
-    iconSize: "15px",
-    iconColor: "#EF4444",
-    color: "#EF4444",
-    bg: "rgba(239, 68, 68, 0.2)",
+    key: "processing",
+    icon: LuClock,
+    iconSize: "16px",
+    iconColor: "#1F5AFF",
+    color: "#1F5AFF",
+    bg: "#EEF3FF",
   },
   {
-    key: "changeRequests",
-    icon: LuChartNoAxesColumn,
-    iconSize: "18px",
+    key: "signed",
+    icon: LuCircleCheckBig,
+    iconSize: "16px",
+    iconColor: "#10B981",
+    color: "#10B981",
+    bg: "#EDFBF5",
+  },
+  {
+    key: "cancelled",
+    icon: LuCircleX,
+    iconSize: "16px",
     iconColor: "#9AAABF",
     color: "#5A6478",
     bg: "rgba(154, 170, 191, 0.21)",
   },
 ];
 
-/** Contadores dos contratos do buyer (Figma 2084-13505). */
+/** Contadores dos contratos do buyer, pelo status da assinatura. */
 export function ContractsStats({ data, locale }: ContractsStatsProps) {
   const { t } = useTranslation();
   const format = new Intl.NumberFormat(locale).format;

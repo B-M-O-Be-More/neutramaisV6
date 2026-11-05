@@ -3,15 +3,19 @@
 import { chakra, Flex, Icon, SimpleGrid, Stack, Text } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 
-import { OFFER_CATEGORIES } from "@/data/offerCategories";
+import { offerCategory } from "@/data/offerCategories";
+import { descendantsOf } from "@/functions/offerCategoryTree";
 
 import { OfferCategoryPickerProps } from "./interface";
 
 /**
- * Escolha da categoria da oferta em cards (radio group). A categoria
- * escolhida assume as cores dela; as demais ficam neutras.
+ * Escolha da categoria raiz da oferta em cards (radio group), na ordem da
+ * árvore da API. A escolhida assume as cores da família; as demais ficam
+ * neutras. Raiz sem tela própria (família `custom`) mostra o nome e a
+ * descrição da API.
  */
 export function OfferCategoryPicker({
+  options,
   value,
   onChange,
   error,
@@ -40,15 +44,17 @@ export function OfferCategoryPicker({
         columns={{ base: 1, md: 2 }}
         gap="12px"
       >
-        {OFFER_CATEGORIES.map((category) => {
-          const isSelected = category.key === value;
+        {options.map((root) => {
+          const category = offerCategory(root.family)!;
+          const isCustom = root.family === "custom";
+          const isSelected = root.id === value;
           return (
             <chakra.button
-              key={category.key}
+              key={root.id}
               type="button"
               role="radio"
               aria-checked={isSelected}
-              onClick={() => onChange(category.key)}
+              onClick={() => onChange(root)}
               display="flex"
               alignItems="flex-start"
               gap="12px"
@@ -96,7 +102,9 @@ export function OfferCategoryPicker({
                   fontWeight={700}
                   lineHeight="19.5px"
                 >
-                  {t(`SellerOfferCreate.categories.${category.key}.label`)}
+                  {isCustom
+                    ? root.name
+                    : t(`SellerOfferCreate.categories.${category.key}.label`)}
                 </Text>
                 <Text
                   color="#A0ABB8"
@@ -104,10 +112,26 @@ export function OfferCategoryPicker({
                   fontWeight={500}
                   lineHeight="16.5px"
                 >
-                  {t(
-                    `SellerOfferCreate.categories.${category.key}.description`,
-                  )}
+                  {isCustom
+                    ? root.description ||
+                      t("SellerOfferCreate.categories.custom.description")
+                    : t(
+                        `SellerOfferCreate.categories.${category.key}.description`,
+                      )}
                 </Text>
+                {root.children.length > 0 && (
+                  <Text
+                    color={isSelected ? category.tone.fg : "#5A6478"}
+                    fontSize="11px"
+                    fontWeight={600}
+                    lineHeight="16.5px"
+                    mt="4px"
+                  >
+                    {t("SellerOfferCreate.coverage.subcategoriesCount", {
+                      count: descendantsOf(root).length,
+                    })}
+                  </Text>
+                )}
               </Stack>
             </chakra.button>
           );

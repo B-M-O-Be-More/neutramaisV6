@@ -31,6 +31,7 @@ export function AddressAutocomplete({
   id,
   label,
   labelHint,
+  required = false,
   placeholder,
   inputValue,
   onInputChange,
@@ -109,6 +110,11 @@ export function AddressAutocomplete({
           lineHeight="21px"
         >
           {label}
+          {required && (
+            <Text as="span" color="#EF4444">
+              {" *"}
+            </Text>
+          )}
           {labelHint && (
             <Text
               as="span"

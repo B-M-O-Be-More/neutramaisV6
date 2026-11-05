@@ -1,4 +1,5 @@
 import type { SellerOfferValues } from "@/schemas/sellerOffer";
+import type { OfferTemplate } from "@/functions/templateFields";
 import type { ProductOffering } from "@/services/productCatalog.service";
 
 export type UpdateOfferingOutcome =
@@ -14,5 +15,7 @@ export interface UseUpdateOfferingReturn {
     values: SellerOfferValues,
     /** Valores de quando o formulário abriu: mesma categoria mantém o plano. */
     initialValues?: SellerOfferValues,
+    /** Campos genéricos e regras do template da categoria. */
+    template?: OfferTemplate,
   ) => Promise<UpdateOfferingOutcome>;
 }

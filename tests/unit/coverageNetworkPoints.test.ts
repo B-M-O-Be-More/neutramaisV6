@@ -6,6 +6,7 @@ import {
   coverageNetworkPointsOf,
   coverageNetworkPointsToLocations,
   sameCoverageNetworkPoints,
+  savedCoverageNetworkPointsOf,
 } from "@/functions/coverageNetworkPoints";
 
 const SAO_PAULO = { longitude: -46.655, latitude: -23.56 };
@@ -46,6 +47,31 @@ describe("coverageNetworkPoints", () => {
       },
     ]);
     expect(formatCoordinates(-46.655, -23.56)).toBe("-23.56000, -46.65500");
+  });
+
+  it("o rótulo é o endereço da especificação na mesma posição, quando há", () => {
+    expect(
+      coverageNetworkPointsToLocations(
+        [
+          { ...SAO_PAULO, radiusMeters: 5000 },
+          { longitude: -46.634, latitude: -23.55, radiusMeters: 3000 },
+        ],
+        ["Av. Paulista, 1000"],
+      ).map((location) => location.label),
+    ).toEqual(["Av. Paulista, 1000", formatCoordinates(-46.634, -23.55)]);
+  });
+
+  it("lê os pontos salvos também de `publicSelection.networkPoints`", () => {
+    const point = { ...SAO_PAULO, radiusMeters: 5000 };
+    expect(
+      savedCoverageNetworkPointsOf({
+        publicSelection: { networkPoints: [point, { latitude: 1 }] },
+      }),
+    ).toEqual([point]);
+    expect(
+      savedCoverageNetworkPointsOf({ coverageNetworkPoints: [point] }),
+    ).toEqual([point]);
+    expect(savedCoverageNetworkPointsOf(null)).toEqual([]);
   });
 
   it("compara tolerando o arredondamento do campo (100 m)", () => {

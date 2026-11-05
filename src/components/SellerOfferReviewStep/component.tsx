@@ -105,9 +105,11 @@ export function SellerOfferReviewStep({
     { key: "name", value: values.name?.trim() },
     {
       key: "category",
-      value: category
-        ? t(`SellerOfferCreate.categories.${category.key}.label`)
-        : undefined,
+      value:
+        values.categoryLabel ||
+        (category
+          ? t(`SellerOfferCreate.categories.${category.key}.label`)
+          : undefined),
     },
     { key: "shortDescription", value: values.shortDescription?.trim() },
     {

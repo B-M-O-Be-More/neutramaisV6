@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { ValidationError, type AnyObjectSchema } from "yup";
 
+import { offerCategory, type OfferCategory } from "@/data/offerCategories";
 import {
   OFFER_ATTRIBUTES_MAX,
   OFFER_IMAGE_MAX_BYTES,
+  OFFER_INFRA_DETAILS_MAX,
+  OFFER_INFRA_TEXT_MAX,
   OFFER_LOCATIONS_MAX,
   offerImageErrorKey,
   sellerOfferBasicInfoSchema,
@@ -11,14 +14,36 @@ import {
   sellerOfferLogisticsSchema,
   sellerOfferPricingSchema,
   sellerOfferTechnicalSpecsSchema,
+  type SellerOfferValidationContext,
 } from "@/schemas/sellerOffer";
+
+/**
+ * Como escolher o card da família no assistente: grava o `categoryId` da
+ * raiz e as flags dela (a menos que o teste informe os seus).
+ */
+function withRootSelection(
+  values: Record<string, unknown>,
+): Record<string, unknown> {
+  const family = offerCategory(values.category as OfferCategory);
+  if (!family || values.category === "custom") return values;
+  return {
+    categoryId: family.categoryId,
+    requiresCoverage: family.requiresCoverage,
+    hasNumericStock: !!family.hasNumericStock,
+    ...values,
+  };
+}
 
 async function validate(
   schema: AnyObjectSchema,
   values: Record<string, unknown>,
+  context?: SellerOfferValidationContext,
 ): Promise<string[]> {
   try {
-    await schema.validate(values, { abortEarly: false });
+    await schema.validate(withRootSelection(values), {
+      abortEarly: false,
+      context,
+    });
     return [];
   } catch (error) {
     if (error instanceof ValidationError) return error.errors;
@@ -46,7 +71,9 @@ describe("sellerOfferCoverageSchema (etapa Categoria e cobertura)", () => {
   ])(
     "não pede KMZ para %s: a cobertura é vinculada depois de criar",
     async (category) => {
-      expect(await errorsFor({ category })).toEqual([]);
+      // Recursos Numéricos pedem só o registro (sem KMZ).
+      const coverageRegion = category === "numberingResources" ? "lacnic" : "";
+      expect(await errorsFor({ category, coverageRegion })).toEqual([]);
     },
   );
 
@@ -58,18 +85,20 @@ describe("sellerOfferCoverageSchema (etapa Categoria e cobertura)", () => {
       locations,
     });
 
-    it("são opcionais (lista vazia ou linha em branco)", async () => {
-      expect(await errorsFor(connectivity)).toEqual([]);
-      expect(
-        await errorsFor(
-          withLocations({
-            label: "",
-            longitude: null,
-            latitude: null,
-            radiusKm: "",
-          }),
-        ),
-      ).toEqual([]);
+    const BLANK = { label: "", longitude: null, latitude: null, radiusKm: "" };
+
+    it.each(["connectivity", "physicalInfra"])(
+      "em %s, a primeira (Localidade A do template) é obrigatória",
+      async (category) => {
+        expect(await errorsFor({ category, locations: [BLANK] })).toEqual([
+          "SellerOfferCreate.errors.locationRequired",
+        ]);
+      },
+    );
+
+    it("as demais linhas são opcionais (linha em branco depois da primeira)", async () => {
+      const ok = { ...POINT, label: "Fortaleza", radiusKm: "5" };
+      expect(await errorsFor(withLocations(ok, BLANK))).toEqual([]);
     });
 
     it("exige escolher o endereço na lista (texto solto não vale)", async () => {
@@ -120,19 +149,32 @@ describe("sellerOfferCoverageSchema (etapa Categoria e cobertura)", () => {
           locations: [{ ...POINT, label: "Texto solto", radiusKm: "" }],
         }),
       ).toEqual([]);
+      expect(
+        await errorsFor({ category: "hardware", locations: [BLANK] }),
+      ).toEqual([]);
     });
   });
 
-  it("aceita a região de recursos numéricos opcional, até 120 caracteres", async () => {
+  it("exige o registro dos recursos numéricos, entre as opções do template", async () => {
     expect(
       await errorsFor({ category: "numberingResources", coverageRegion: "" }),
+    ).toEqual(["SellerOfferCreate.errors.regionRequired"]);
+    expect(
+      await errorsFor({
+        category: "numberingResources",
+        coverageRegion: "nic_br",
+      }),
     ).toEqual([]);
     expect(
       await errorsFor({
         category: "numberingResources",
-        coverageRegion: "x".repeat(121),
+        coverageRegion: "LACNIC / Brasil",
       }),
-    ).toEqual(["SellerOfferCreate.errors.locationTooLong"]);
+    ).toHaveLength(1);
+    // Fora de Recursos Numéricos o registro não é pedido.
+    expect(
+      await errorsFor({ category: "software", coverageRegion: "" }),
+    ).toEqual([]);
   });
 });
 
@@ -231,12 +273,34 @@ describe("sellerOfferTechnicalSpecsSchema (etapa Especificações técnicas)", (
     expect(await specsErrors({})).toEqual([]);
   });
 
-  it("exige velocidade só para Conectividade", async () => {
+  it("exige velocidade e IPs inclusos só para Conectividade", async () => {
     expect(await specsErrors({ category: "connectivity" })).toEqual([
       "SellerOfferCreate.errors.speedRequired",
+      "SellerOfferCreate.errors.includedIpsRequired",
     ]);
     expect(
-      await specsErrors({ category: "connectivity", speedValue: "500" }),
+      await specsErrors({
+        category: "connectivity",
+        speedValue: "500",
+        includedIps: "8",
+      }),
+    ).toEqual([]);
+  });
+
+  it("IPs inclusos é um inteiro (só dígitos)", async () => {
+    expect(
+      await specsErrors({
+        category: "connectivity",
+        speedValue: "500",
+        includedIps: "8 IPs",
+      }),
+    ).toEqual(["SellerOfferCreate.errors.integerInvalid"]);
+    expect(
+      await specsErrors({
+        category: "connectivity",
+        speedValue: "500",
+        includedIps: "0",
+      }),
     ).toEqual([]);
   });
 
@@ -338,20 +402,101 @@ describe("sellerOfferTechnicalSpecsSchema · Hardware / CPE", () => {
     hardwareManufacturer: "Mikrotik",
     hardwareModel: "RB4011",
     hardwareCondition: "refurbished",
+    hardwareWarranty: "12",
+    hardwareSerialization: "yes",
   };
-  it("exige fabricante, modelo e condição só para Hardware", async () => {
+  it("exige fabricante, modelo, condição, garantia e serialização só para Hardware", async () => {
     expect(await hardwareErrors({ category: "hardware" })).toEqual([
       "SellerOfferCreate.errors.manufacturerRequired",
       "SellerOfferCreate.errors.modelRequired",
       "SellerOfferCreate.errors.conditionRequired",
+      "SellerOfferCreate.errors.warrantyRequired",
+      "SellerOfferCreate.errors.serializationRequired",
     ]);
     expect(await hardwareErrors({ category: "software" })).toEqual([]);
   });
 
-  it("aceita Hardware completo, com garantia e serialização opcionais", async () => {
+  it("aceita Hardware completo, inclusive usado e não serializado", async () => {
     expect(await hardwareErrors({ category: "hardware", ...DEVICE })).toEqual(
       [],
     );
+    expect(
+      await hardwareErrors({
+        category: "hardware",
+        ...DEVICE,
+        hardwareCondition: "used",
+        hardwareSerialization: "no",
+      }),
+    ).toEqual([]);
+  });
+
+  it("garantia é em meses inteiros e serialização só aceita sim/não", async () => {
+    expect(
+      await hardwareErrors({
+        category: "hardware",
+        ...DEVICE,
+        hardwareWarranty: "12 meses",
+      }),
+    ).toEqual(["SellerOfferCreate.errors.integerInvalid"]);
+    expect(
+      await hardwareErrors({
+        category: "hardware",
+        ...DEVICE,
+        hardwareSerialization: "talvez",
+      }),
+    ).toHaveLength(1);
+  });
+});
+
+describe("sellerOfferTechnicalSpecsSchema · Infra Física", () => {
+  const BASE = {
+    acceptanceSla: "48",
+    technicalSla: "99",
+    deliveryTime: "15 dias úteis",
+  };
+  const infraErrors = (values: Record<string, unknown>) =>
+    validate(sellerOfferTechnicalSpecsSchema, { ...BASE, ...values });
+
+  const INFRA = {
+    infraCapacity: "48 portas",
+    infraSoldUnit: "port",
+    infraPowerSpacePort: "Energia redundante 48V, 2U no rack 3",
+  };
+
+  it("exige capacidade, unidade vendida e energia/espaço/porta só para Infra Física", async () => {
+    expect(await infraErrors({ category: "physicalInfra" })).toEqual([
+      "SellerOfferCreate.errors.capacityRequired",
+      "SellerOfferCreate.errors.soldUnitRequired",
+      "SellerOfferCreate.errors.powerSpacePortRequired",
+    ]);
+    expect(await infraErrors({ category: "software" })).toEqual([]);
+  });
+
+  it("aceita Infra Física completa", async () => {
+    expect(await infraErrors({ category: "physicalInfra", ...INFRA })).toEqual(
+      [],
+    );
+  });
+
+  it("aplica os limites de tamanho e as unidades do template", async () => {
+    expect(
+      await infraErrors({
+        category: "physicalInfra",
+        ...INFRA,
+        infraCapacity: "x".repeat(OFFER_INFRA_TEXT_MAX + 1),
+        infraPowerSpacePort: "x".repeat(OFFER_INFRA_DETAILS_MAX + 1),
+      }),
+    ).toEqual([
+      "SellerOfferCreate.errors.infraTooLong",
+      "SellerOfferCreate.errors.infraTooLong",
+    ]);
+    expect(
+      await infraErrors({
+        category: "physicalInfra",
+        ...INFRA,
+        infraSoldUnit: "caixa",
+      }),
+    ).toHaveLength(1);
   });
 });
 
@@ -594,6 +739,22 @@ describe("sellerOfferPricingSchema (etapa Preço e disponibilidade)", () => {
     ]);
   });
 
+  it.each(["hardware", "numberingResources"])(
+    "exige o estoque em %s (publica com stockQuantity)",
+    async (category) => {
+      expect(await pricingErrors({ category, stock: "" })).toEqual([
+        "SellerOfferCreate.errors.stockRequired",
+      ]);
+      expect(await pricingErrors({ category, stock: "10" })).toEqual([]);
+    },
+  );
+
+  it("não exige o estoque nas categorias sem estoque numérico", async () => {
+    expect(
+      await pricingErrors({ category: "connectivity", stock: "" }),
+    ).toEqual([]);
+  });
+
   it("recusa vigência no passado", async () => {
     expect(await pricingErrors({ validUntil: "2000-01-01" })).toEqual([
       "SellerOfferCreate.errors.validUntilPast",
@@ -626,10 +787,142 @@ describe("sellerOfferTechnicalSpecsSchema · Recursos Numéricos", () => {
     expect(
       await numberingErrors({
         category: "numberingResources",
-        numberingResourceType: "IPv6 /48",
+        numberingResourceType: "ipv6",
         numberingBlock: "1 bloco /48",
         numberingHolder: "LACNIC · transferência com suporte",
       }),
     ).toEqual([]);
+  });
+
+  it("o tipo só aceita as opções do template", async () => {
+    expect(
+      await numberingErrors({
+        category: "numberingResources",
+        numberingResourceType: "IPv6 /48",
+        numberingBlock: "1 bloco /48",
+        numberingHolder: "LACNIC · transferência com suporte",
+      }),
+    ).toHaveLength(1);
+  });
+});
+
+describe("templateValues (campos genéricos do template)", () => {
+  const context: SellerOfferValidationContext = {
+    templateFields: [
+      {
+        key: "capacityKva",
+        label: "Capacidade",
+        type: "number_with_unit",
+        unit: "kVA",
+        required: true,
+        min: 1,
+      },
+      {
+        key: "technology",
+        label: "Tecnologia",
+        type: "single_choice",
+        required: false,
+        options: ["fiber", "radio"],
+      },
+    ],
+  };
+  const specsErrorsWith = (values: Record<string, unknown>) =>
+    validate(sellerOfferTechnicalSpecsSchema, values, context);
+
+  it("valida cada campo pelo tipo e pelas regras do template", async () => {
+    const errors = await specsErrorsWith({
+      category: "custom",
+      templateValues: { capacityKva: "0", technology: "copper" },
+    });
+    expect(errors).toContain("SellerOfferCreate.errors.templateRange");
+    expect(errors).toContain("SellerOfferCreate.errors.templateChoice");
+  });
+
+  it("exige os obrigatórios e passa com os valores válidos", async () => {
+    expect(
+      await specsErrorsWith({ category: "custom", templateValues: {} }),
+    ).toContain("SellerOfferCreate.errors.templateRequired");
+    expect(
+      await specsErrorsWith({
+        category: "custom",
+        templateValues: { capacityKva: "12,5", technology: "fiber" },
+      }),
+    ).not.toEqual(
+      expect.arrayContaining([expect.stringMatching(/errors\.template/)]),
+    );
+  });
+
+  it("sem campos no contexto, não valida nada do template", async () => {
+    expect(
+      await validate(sellerOfferTechnicalSpecsSchema, {
+        category: "custom",
+        templateValues: { capacityKva: "x" },
+      }),
+    ).not.toEqual(
+      expect.arrayContaining([expect.stringMatching(/errors\.template/)]),
+    );
+  });
+});
+
+describe("categoria escolhida na API", () => {
+  it("exige o categoryId quando há categoria", async () => {
+    expect(
+      await errorsFor({ category: "software", categoryId: "" }),
+    ).toContain("SellerOfferCreate.errors.categoryRequired");
+  });
+
+  it("subcategoria de Conectividade sem cobertura não pede a localidade", async () => {
+    expect(
+      await errorsFor({
+        category: "connectivity",
+        categoryId: "0193a000-0000-7000-8000-0000000000d2",
+        requiresCoverage: false,
+        locations: [{ label: "", longitude: null, latitude: null, radiusKm: "" }],
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe("ruleValues (regras condicionais do template)", () => {
+  const context: SellerOfferValidationContext = {
+    rules: [
+      {
+        key: "fastActivation",
+        name: "Ativação rápida",
+        required: true,
+        valueFields: [
+          {
+            key: "maxAcceptanceHours",
+            label: "Horas",
+            type: "number",
+            required: false,
+            min: 1,
+            max: 72,
+          },
+        ],
+      },
+    ],
+  };
+
+  it("regra obrigatória vazia trava a etapa; preenchida passa", async () => {
+    expect(
+      await validate(
+        sellerOfferTechnicalSpecsSchema,
+        { category: "software", ruleValues: {} },
+        context,
+      ),
+    ).toContain("SellerOfferCreate.errors.templateRequired");
+    expect(
+      await validate(
+        sellerOfferTechnicalSpecsSchema,
+        {
+          category: "software",
+          ruleValues: { fastActivation: { maxAcceptanceHours: "24" } },
+        },
+        context,
+      ),
+    ).not.toEqual(
+      expect.arrayContaining([expect.stringMatching(/errors\.template/)]),
+    );
   });
 });

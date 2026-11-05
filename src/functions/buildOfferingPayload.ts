@@ -1,4 +1,5 @@
 import { parseDecimal } from "@/functions/parseDecimal";
+import { buildRuleValues } from "@/functions/templateFields";
 import {
   isBlankOfferAttribute,
   offerAttributeValues,
@@ -9,6 +10,7 @@ import {
   type SellerOfferValues,
 } from "@/schemas/sellerOffer";
 import type {
+  CategoryTemplateRule,
   CreateOfferingInput,
   OfferingShippingInput,
   OfferingShippingMode,
@@ -149,16 +151,22 @@ function buildAdditionalProps(values: SellerOfferValues) {
  * Campos comuns ao POST e ao PATCH.
  *
  * A oferta só tem campo para nome, preço, setup, velocidade e, no produto
- * físico, o pacote de envio. O resto vai no `metadata` (texto livre, sem
- * validação no backend). Ficam de fora a categoria (representada pelo plano),
- * a localidade A/Z, a região de recursos numéricos — aguardam campos próprios
- * na API. Fotos têm rotas próprias, depois da oferta criada
- * (`syncOfferingImages`).
+ * físico, o pacote de envio, além do estoque nas categorias com estoque
+ * numérico. O resto vai no `metadata` (texto livre, sem validação no
+ * backend). A categoria, a localidade A/Z e o registro de recursos numéricos
+ * vão na especificação (`buildSpecificationPayload`). Fotos têm rotas
+ * próprias, depois da oferta criada (`syncOfferingImages`).
  */
 function offeringFields(
   values: SellerOfferValues,
   specificationId: string,
+  rules: CategoryTemplateRule[],
 ): Omit<CreateOfferingInput, "productType"> {
+  const ruleValues = buildRuleValues(
+    rules,
+    values.rulesEnabled,
+    values.ruleValues,
+  );
   const hasSpeed =
     values.category !== "numberingResources" && !!values.speedValue?.trim();
   const isPhysical = offerProductType(values) === "physical";
@@ -206,24 +214,39 @@ function offeringFields(
     specificationId,
     monthlyPrice: toApiDecimal(values.price),
     installationPrice: values.setupFee ? toApiDecimal(values.setupFee) : "0.00",
+    // A moeda dos preços vai no corpo (exigida em serviço); a do `metadata`
+    // é só a escolha da tela.
+    currency: values.currency,
     speed: hasSpeed ? `${values.speedValue.trim()} ${values.speedUnit}` : null,
     metadata: metadata ?? null,
+    // Campos da oferta exigidos para publicar (SLA de aceite) e públicos no
+    // checkout (cancelamento). Também ficam no `metadata` (telas antigas).
+    acceptanceSlaHours: Number(values.acceptanceSla),
+    cancellationTerms: values.cancellationTerms.trim() || null,
+    // Categoria com estoque numérico (flag da API) só publica com o estoque
+    // na oferta.
+    ...(values.hasNumericStock && values.stock
+      ? { stockQuantity: Number(values.stock) }
+      : {}),
     // Serviço com `shipping` volta 422: só o produto físico manda o pacote.
     ...(isPhysical ? { shipping: buildOfferingShipping(values) } : {}),
+    // Regras condicionais do template, só na categoria que tem regras.
+    ...(ruleValues ? { ruleValues } : {}),
   };
 }
 
 /**
  * Corpo de `POST /productOffering` a partir do assistente. Hardware / CPE
  * nasce `physical` (publicar exige o pacote de envio, não cobertura); as
- * demais categorias, `service`.
+ * demais categorias, `service`. `rules`: regras condicionais da categoria.
  */
 export function buildOfferingPayload(
   values: SellerOfferValues,
   specificationId: string,
+  rules: CategoryTemplateRule[] = [],
 ): CreateOfferingInput {
   return {
-    ...offeringFields(values, specificationId),
+    ...offeringFields(values, specificationId, rules),
     productType: offerProductType(values),
   };
 }
@@ -239,8 +262,9 @@ export function buildOfferingUpdate(
   values: SellerOfferValues,
   specificationId: string,
   offering: ProductOffering,
+  rules: CategoryTemplateRule[] = [],
 ): UpdateOfferingInput {
-  const payload = offeringFields(values, specificationId);
+  const payload = offeringFields(values, specificationId, rules);
   const managed = new Set<string>(OFFERING_METADATA_KEYS);
   const kept = Object.fromEntries(
     Object.entries(offering.metadata ?? {}).filter(

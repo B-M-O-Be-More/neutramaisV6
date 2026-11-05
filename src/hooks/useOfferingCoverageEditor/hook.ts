@@ -6,6 +6,7 @@ import { savedAreaIndexesOf } from "@/functions/coverageAreas";
 import { isPublicGeometry } from "@/functions/geoShapes";
 import {
   coverageNetworkPointsOf,
+  savedCoverageNetworkPointsOf,
   sameCoverageNetworkPoints,
   type CoverageNetworkPoint,
 } from "@/functions/coverageNetworkPoints";
@@ -105,7 +106,7 @@ export function useOfferingCoverageEditor(
     geoCoverageService
       .getOfferCoverage(offeringId, { signal: controller.signal })
       .then((coverage) => {
-        const points = coverageNetworkPointsOf(coverage?.coverageNetworkPoints);
+        const points = savedCoverageNetworkPointsOf(coverage);
         setBoundPoints(points);
         setSavedPoints(points);
         setPointsKnown(true);

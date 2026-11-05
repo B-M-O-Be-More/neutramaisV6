@@ -1,93 +1,88 @@
-import type { OfferCategory } from "@/data/offerCategories";
-import type { Money } from "@/types/proposals";
+import type { ProductOrder } from "@/services/orders.service";
 
 /**
- * Contratos do buyer (Figma 2084-11696 e 2190-14094). A API de contratos
- * ainda não existe: estes formatos são o que o hook devolve até ela entrar.
- * Os rótulos vêm do i18n (Contracts.*).
+ * Contrato do pedido (contracts-api `/order-contracts`, NEU-521). O Orders
+ * pede o contrato depois do pagamento integral; o Buyer assina na Autentique
+ * e a assinatura conferida libera a execução no Orders.
  */
 
-export const CONTRACT_STATUSES = ["active", "renewing", "suspended"] as const;
+/**
+ * awaiting_signer: ninguém do Buyer pediu para assinar.
+ * provider_pending: signatário vinculado, envio à Autentique a começar (curto).
+ * provider_uncertain: envio sem resposta; o worker reconcilia.
+ * provider_failed: Autentique não configurada; a operação resolve.
+ * awaiting_signatures: documento na Autentique, link de assinatura pronto.
+ * signed: assinatura conferida (estado final).
+ * cancelled: o Orders cancelou o pedido (estado final).
+ */
+export const CONTRACT_STATUSES = [
+  "awaiting_signer",
+  "provider_pending",
+  "provider_uncertain",
+  "provider_failed",
+  "awaiting_signatures",
+  "signed",
+  "cancelled",
+] as const;
 export type ContractStatus = (typeof CONTRACT_STATUSES)[number];
 
-/** Ciclo de cobrança: o valor sai como "/mês" ou "/ano". */
-export type ContractBillingCycle = "monthly" | "yearly";
-
-/** Último reajuste aplicado: "IPCA +3,2% (mai/26)". */
-export interface ContractAdjustment {
-  index: string;
-  /** Percentual aplicado (3.2 = 3,2%). */
-  rate: number;
-  /** ISO — mês em que o reajuste entrou. */
-  appliedAt: string;
+export interface ContractSignature {
+  /** Usuário vinculado como signatário (`sub` do token dele). */
+  subject: string;
+  organizationId: string;
+  /** true só depois da conferência na Autentique. */
+  signed: boolean;
 }
 
-/** Cláusula do documento do contrato, no idioma em que foi assinado. */
-export interface ContractClause {
-  title: string;
-  body: string;
-}
-
-export type ContractPaymentStatus = "paid" | "pending" | "overdue";
-
-export interface ContractPayment {
-  id: string;
-  /** ISO. */
-  dueDate: string;
-  /** Ex.: NF-88210. */
-  invoiceNumber: string;
-  amount: Money;
-  status: ContractPaymentStatus;
-}
-
-export type ContractChangeRequestStatus = "pending" | "accepted" | "rejected";
-
-/** Aditivo (change request) pedido pelo buyer; o seller aceita ou recusa. */
-export interface ContractChangeRequest {
-  id: string;
-  description: string;
-  /** ISO. */
-  requestedAt: string;
-  status: ContractChangeRequestStatus;
-}
-
-export interface Contract {
-  /** Ex.: CTR-2026-001. */
-  id: string;
-  /** Pedido que originou o contrato. Ex.: ORD-2026-001. */
+export interface OrderContract {
+  contractId: string;
   orderId: string;
-  productName: string;
-  sellerName: string;
-  category: OfferCategory;
-  /** ISO. */
-  startDate: string;
-  /** ISO; null quando não há cobrança prevista (ex.: suspenso). */
-  nextBillingDate: string | null;
-  /** ISO — fim do período atual, quando a renovação automática acontece. */
-  renewsAt: string;
-  autoRenew: boolean;
+  checkoutId: string;
   status: ContractStatus;
-  price: Money;
-  billingCycle: ContractBillingCycle;
-  /** Disponibilidade contratual (99.5 = 99,5%). */
-  slaPercent: number;
-  loyaltyMonths: number;
-  /** Multa de saída hoje; null quando sair não gera multa. */
-  exitFee: Money | null;
-  adjustment: ContractAdjustment | null;
-  overdueInvoices: number;
-  clauses: ContractClause[];
-  /** Do mais recente ao mais antigo. */
-  payments: ContractPayment[];
-  changeRequests: ContractChangeRequest[];
-  /** O buyer já pediu o cancelamento; o seller ainda vai processar. */
-  cancellationRequested: boolean;
+  documentVersion: number;
+  /** SHA-256 do PDF; null quando o pedido foi cancelado antes do contrato. */
+  documentHash: string | null;
+  snapshotVersion: string | null;
+  /** Hoje sempre `buyer-only-v1`: só a organização Buyer assina. */
+  policy: string;
+  requiredSignerOrganizations: string[];
+  aggregateVersion: number;
+  /** true em provider_failed e provider_uncertain. */
+  recoveryRequired: boolean;
+  lastError: string | null;
+  /** No máximo 1 item: o usuário do Buyer que pediu para assinar. */
+  signatures: ContractSignature[];
+}
+
+export interface OrderContractPage {
+  items: OrderContract[];
+  total: number;
+  page: number;
+  size: number;
+}
+
+/** Resposta de `POST /sign`: o link pessoal de assinatura do Buyer. */
+export interface ContractSigning {
+  status: ContractStatus;
+  /** null enquanto o envio à Autentique não terminou. */
+  signingUrl: string | null;
+  documentHash: string;
+  /** Só quando a Autentique não gerou o link; tente de novo. */
+  recoveryRequired?: boolean;
+  lastError?: string;
+}
+
+/** Contrato com o pedido que o originou (produto, valor, data). */
+export interface ContractEntry {
+  contract: OrderContract;
+  /** null quando a leitura do pedido falhou. */
+  order: ProductOrder | null;
 }
 
 /** Contadores do topo da página. */
 export interface ContractsSummary {
-  active: number;
-  renewing: number;
-  suspended: number;
-  changeRequests: number;
+  awaitingSignature: number;
+  processing: number;
+  signed: number;
+  cancelled: number;
 }

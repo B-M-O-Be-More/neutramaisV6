@@ -1,6 +1,6 @@
-import type { Contract } from "@/types/contracts";
+import type { ContractEntry } from "@/types/contracts";
 
 export interface ContractSummaryProps {
-  contract: Contract;
+  entry: ContractEntry;
   locale: string;
 }

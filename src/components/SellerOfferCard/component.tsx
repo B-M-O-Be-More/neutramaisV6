@@ -117,11 +117,15 @@ function categoryIcon(name: string): IconType {
   }
 }
 
-function formatPrice(value: number | string, locale: string): string {
+function formatPrice(
+  value: number | string,
+  currency: string,
+  locale: string,
+): string {
   const amount = Number(value);
   return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "BRL",
+    currency,
   }).format(Number.isFinite(amount) ? amount : 0);
 }
 
@@ -177,10 +181,12 @@ export function SellerOfferCard({
     : null;
   // Ofertas antigas foram publicadas sem cobertura (migração 004 da
   // marketplace-api) e fazem a busca por região falhar. Produto físico é
-  // enviado: cobertura não se aplica.
+  // enviado e categorias sem cobertura (`coverageRequired: false`) não têm
+  // KMZ: o aviso não se aplica.
   const publishedWithoutCoverage =
     status === "published" &&
     offering.productType !== "physical" &&
+    offering.coverageRequired !== false &&
     !offering.coverageVersionId;
   const notice = publishedWithoutCoverage
     ? t("SellerOffers.card.publishedWithoutCoverage")
@@ -199,13 +205,23 @@ export function SellerOfferCard({
     .filter(Boolean)
     .join(" · ");
 
+  // Moeda da oferta (a API devolve a dos preços); "/mês" só na mensalidade —
+  // oferta antiga sem modelo de preço conta como mensal.
+  const pricingModel = offering.metadata?.pricingModel;
+  const perMonth = !pricingModel || pricingModel === "monthly";
+  const price = formatPrice(
+    offering.monthlyPrice,
+    offering.currency ??
+      (typeof offering.metadata?.currency === "string"
+        ? offering.metadata.currency
+        : "BRL"),
+    locale,
+  );
   const metrics = [
     {
       key: "price",
       color: "#8B5CF6",
-      value: t("SellerOffers.card.perMonth", {
-        price: formatPrice(offering.monthlyPrice, locale),
-      }),
+      value: perMonth ? t("SellerOffers.card.perMonth", { price }) : price,
     },
     { key: "views", color: "#1F5AFF", value: "—" },
     { key: "orders", color: "#10B981", value: "—" },

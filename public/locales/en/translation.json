@@ -3358,7 +3358,12 @@
       "coverageRequired": "Link a coverage (KMZ) to the offer before publishing.",
       "invalidTransition": "The current status of the offer does not allow this action. Refresh the page.",
       "transitionFailed": "We could not update the offer. Please try again.",
-      "shippingRequired": "Fill in shipping (weight, dimensions and origin postal code) in Edit offer before publishing."
+      "shippingRequired": "Fill in shipping (weight, dimensions and origin postal code) in Edit offer before publishing.",
+      "acceptanceSlaRequired": "Set the acceptance SLA (1 to 72 hours) in Edit offer before publishing.",
+      "stockRequired": "Enter the available stock in Edit offer before publishing.",
+      "priceRequired": "Set the offer price before publishing.",
+      "expired": "The offer validity has ended. Adjust the date in Edit offer.",
+      "ruleValuesRequired": "Fill in the category's required rules to publish."
     }
   },
   "SellerOrders": {
@@ -3852,16 +3857,16 @@
       "chooseCoverage": "Choose Coverage",
       "previewUnavailable": "No map preview: the KMZ exceeds the coordinate limit the browser reads.",
       "locationLabel": "Location A / Z",
-      "locationOptional": "(when applicable)",
       "locationPlaceholder": "Search an address (e.g.: Av. Dom Luís, Fortaleza)",
       "notApplicableTitle": "Coverage not applicable",
       "regionLabel": "Region or registry",
-      "regionPlaceholder": "E.g.: Brazil (LACNIC) · São Paulo metro area",
+      "regionPlaceholder": "Select the registry",
       "notApplicable": {
         "hardware": "Hardware/CPE: nationwide or stock-based availability — no geographic polygon.",
         "numberingResources": "Numbering resources: coverage by region/registry (LACNIC, ANATEL). Enter the region below.",
         "software": "Software and Management: digital or remote delivery — no geographic polygon.",
-        "protocols": "Protocols and Services: remote or cloud delivery — no geographic polygon."
+        "protocols": "Protocols and Services: remote or cloud delivery — no geographic polygon.",
+        "custom": "This category doesn't depend on location — no geographic polygon."
       },
       "locationSearching": "Searching addresses...",
       "locationNoResults": "No address found. Try with street and city.",
@@ -3880,7 +3885,22 @@
         "noOriginal": "No map preview: this version was uploaded before the geo-api kept the original file.",
         "unreadable": "No map preview: the original KMZ couldn't be read.",
         "failed": "Couldn't load the KMZ map. Open it again to retry."
-      }
+      },
+      "registries": {
+        "lacnic": "LACNIC",
+        "nic_br": "NIC.br",
+        "arin": "ARIN",
+        "ripe": "RIPE NCC",
+        "apnic": "APNIC",
+        "afrinic": "AFRINIC",
+        "anatel": "ANATEL"
+      },
+      "subcategoryLabel": "Subcategory",
+      "subcategoryNone": "No subcategory (main category)",
+      "subcategoryHint": "The subcategory inherits the main category's fields and may ask for its own fields in the specifications step.",
+      "subcategoriesCount_one": "{{count}} subcategory",
+      "subcategoriesCount_other": "{{count}} subcategories",
+      "categoriesFallback": "We couldn't load the platform categories. Showing the main categories, without subcategories."
     },
     "basicInfo": {
       "autoPublishNotice": "Auto-publishing available for sellers with verified KYC.",
@@ -3916,7 +3936,9 @@
       "acceptanceSlaHelper": "Between {{min}}h and {{max}}h · default 48h",
       "technicalSlaLabel": "Technical SLA",
       "deliveryTimeLabel": "Delivery / activation time",
-      "deliveryTimePlaceholder": "E.g.: 30 days after acceptance"
+      "deliveryTimePlaceholder": "E.g.: 30 days after acceptance",
+      "includedIpsLabel": "Included IPs",
+      "includedIpsPlaceholder": "E.g. 8"
     },
     "hardware": {
       "title": "Hardware / CPE — required fields",
@@ -3925,15 +3947,20 @@
       "modelLabel": "Model",
       "modelPlaceholder": "E.g.: RB4011",
       "conditionLabel": "Condition",
-      "conditionPlaceholder": "New / Refurbished",
+      "conditionPlaceholder": "New / Used / Refurbished",
       "conditions": {
         "new": "New",
-        "refurbished": "Refurbished"
+        "refurbished": "Refurbished",
+        "used": "Used"
       },
-      "warrantyLabel": "Warranty",
-      "warrantyPlaceholder": "E.g.: 12 months",
-      "serializationLabel": "Serialization",
-      "serializationPlaceholder": "Serial number required"
+      "warrantyLabel": "Warranty (months)",
+      "warrantyPlaceholder": "E.g. 12",
+      "serializationLabel": "Serialized",
+      "serializationPlaceholder": "Select",
+      "serializationOptions": {
+        "yes": "Yes — serial number per unit",
+        "no": "No"
+      }
     },
     "attributes": {
       "title": "Attributes",
@@ -4048,11 +4075,17 @@
     "numbering": {
       "title": "Numbering Resources — LACNIC/ANATEL documentation",
       "resourceTypeLabel": "Resource type",
-      "resourceTypePlaceholder": "E.g.: IPv4 /24, IPv6 /48, ASN",
+      "resourceTypePlaceholder": "Select",
       "blockLabel": "Block / Quantity",
       "blockPlaceholder": "E.g.: 256 IPs, ASN 65000",
-      "holderLabel": "Holder / Delegation",
-      "holderPlaceholder": "E.g.: LACNIC · transfer with support"
+      "holderLabel": "Ownership / Allowed use",
+      "holderPlaceholder": "E.g. assignment with LACNIC transfer",
+      "resourceTypes": {
+        "ipv4": "IPv4",
+        "ipv6": "IPv6",
+        "asn": "ASN",
+        "e164": "E.164 numbering"
+      }
     },
     "pricing": {
       "pricingModelLabel": "Pricing model",
@@ -4109,7 +4142,8 @@
         "invalid": "The marketplace-api rejected the offer data. Review the steps and try again.",
         "reviewInvalid": "Some fields in the previous steps are invalid. Go back and fix them before publishing.",
         "coveragePermission": "Your user is not allowed to link coverage to the offer.",
-        "publishFailed": "We could not publish the offer. Please try again."
+        "publishFailed": "We could not publish the offer. Please try again.",
+        "ruleInvalid": "The category rules changed or a value isn't accepted. Review the rules in the specifications step and try again."
       },
       "warnings": {
         "promotionForbidden": "Sponsoring was not applied: your user is not allowed to sponsor offers.",
@@ -4252,7 +4286,25 @@
       "attributeTypeRequired": "Select the data type.",
       "attributeValuesRequired": "Enter at least one value.",
       "attributeValuesTooLong": "Use up to 500 characters.",
-      "attributesMax": "Limit of 20 attributes."
+      "attributesMax": "Limit of 20 attributes.",
+      "locationRequired": "Enter location A.",
+      "regionRequired": "Select the registry.",
+      "integerInvalid": "Use whole numbers only.",
+      "warrantyRequired": "Enter the warranty in months.",
+      "serializationRequired": "Tell whether the equipment is serialized.",
+      "includedIpsRequired": "Enter how many IPs are included.",
+      "capacityRequired": "Enter the capacity.",
+      "soldUnitRequired": "Select the unit sold.",
+      "powerSpacePortRequired": "Describe power, space and port.",
+      "infraTooLong": "Text is too long.",
+      "stockRequired": "Enter the available stock.",
+      "templateRequired": "Fill in this field.",
+      "templateNumber": "Enter a number.",
+      "templateRange": "Value outside the allowed range.",
+      "templateChoice": "Choose one of the options.",
+      "templateDate": "Enter a valid date.",
+      "templateUrl": "Enter a link starting with http:// or https://.",
+      "templateTooLong": "Text is longer than allowed."
     },
     "categories": {
       "connectivity": {
@@ -4278,6 +4330,10 @@
       "protocols": {
         "label": "Protocols and Services",
         "description": "BGP, OSPF, IS-IS, DNS, DHCP, NTP, cloud DDoS mitigation."
+      },
+      "custom": {
+        "label": "Other category",
+        "description": "Platform category with fields defined by its template."
       }
     },
     "coverageScope": {
@@ -4379,6 +4435,127 @@
         "overlap": "Polygons can't overlap or touch. Remove one of them or redraw it apart.",
         "outside": "Every polygon must stay inside the KMZ area. Remove or redraw the ones outside it."
       }
+    },
+    "infra": {
+      "title": "Physical Infra — required fields",
+      "capacityLabel": "Capacity",
+      "capacityPlaceholder": "E.g. 48 ports, 2U, 12 fibers",
+      "soldUnitLabel": "Unit sold",
+      "soldUnitPlaceholder": "Select",
+      "soldUnits": {
+        "port": "Port",
+        "fiber": "Fiber",
+        "rack_unit": "Rack unit (U)",
+        "square_meter": "Square meter",
+        "meter": "Meter",
+        "unit": "Unit"
+      },
+      "powerSpacePortLabel": "Power / space / port",
+      "powerSpacePortPlaceholder": "E.g. 2 kW per rack, 1 m² of floor, 10G optical port"
+    },
+    "templateFields": {
+      "title": "Category fields",
+      "loading": "Loading the category fields...",
+      "loadError": "We couldn't load the category fields.",
+      "retry": "Try again",
+      "choose": "Select",
+      "yes": "Yes",
+      "no": "No",
+      "rangeBetween": "Between {{min}} and {{max}}",
+      "rangeMin": "From {{min}}",
+      "rangeMax": "Up to {{max}}",
+      "labels": {
+        "bandwidthMbps": "Speed/bandwidth",
+        "technicalSlaPercent": "Technical SLA (availability)",
+        "locationA": "Location A",
+        "locationZ": "Location Z",
+        "includedIps": "Included IPs",
+        "technology": "Technology",
+        "symmetric": "Symmetry",
+        "activationDays": "Activation time",
+        "location": "Location",
+        "capacity": "Capacity",
+        "soldUnit": "Unit sold",
+        "powerSpacePort": "Power/space/port",
+        "resourceType": "Type",
+        "portOrFiberCount": "Number of ports or fibers",
+        "splitterRatio": "Splitter ratio",
+        "connectorType": "Connector type",
+        "availablePowerKw": "Available power",
+        "manufacturer": "Manufacturer",
+        "model": "Model",
+        "condition": "Condition",
+        "warrantyMonths": "Warranty",
+        "serialized": "Serialized",
+        "portCount": "Number of ports",
+        "technologyStandard": "Standard/technology",
+        "speedMbps": "Speed",
+        "powerW": "Power",
+        "voltage": "Voltage",
+        "anatelHomologation": "Anatel certification",
+        "block": "Block/quantity",
+        "allowedUse": "Ownership/permitted use",
+        "registry": "Region/registry",
+        "assignmentMode": "Assignment mode",
+        "licenseType": "License type",
+        "licensePeriodMonths": "Period",
+        "seatCount": "Users or devices",
+        "deployment": "Deployment",
+        "supportIncluded": "Support included",
+        "service": "Service",
+        "scope": "Scope",
+        "capacityGbps": "Capacity",
+        "periodMonths": "Period",
+        "sla": "SLA"
+      },
+      "options": {
+        "fiber": "Fiber",
+        "radio": "Radio",
+        "mobile_4g": "Mobile 4G",
+        "mobile_5g": "Mobile 5G",
+        "copper": "Copper",
+        "satellite": "Satellite",
+        "port": "Port",
+        "rack_unit": "Rack unit (U)",
+        "square_meter": "Square meter",
+        "meter": "Meter",
+        "unit": "Unit",
+        "cto": "Terminal box (CTO)",
+        "dio": "Optical distributor (DIO)",
+        "dark_fiber": "Dark fiber",
+        "cross_connect": "Cross-connect",
+        "colocation": "Colocation",
+        "tower": "Tower space",
+        "cabling": "Cabling",
+        "new": "New",
+        "used": "Used",
+        "refurbished": "Refurbished",
+        "ipv4": "IPv4",
+        "ipv6": "IPv6",
+        "asn": "ASN",
+        "e164": "E.164",
+        "lacnic": "LACNIC",
+        "nic_br": "NIC.br",
+        "arin": "ARIN",
+        "ripe": "RIPE NCC",
+        "apnic": "APNIC",
+        "afrinic": "AFRINIC",
+        "anatel": "Anatel",
+        "subscription": "Subscription",
+        "perpetual": "Perpetual",
+        "cloud": "Cloud",
+        "on_premises": "On-premises"
+      },
+      "units": {
+        "days": "days",
+        "months": "months"
+      }
+    },
+    "rules": {
+      "title": "Category rules",
+      "hint": "Rules set by the platform for this category. Fill in the values of each rule that applies to the offer; the effect (badge or adjusted field) shows after saving.",
+      "required": "required",
+      "apply": "Apply this rule"
     }
   },
   "CoverageMap": {
@@ -5240,132 +5417,113 @@
   },
   "Contracts": {
     "title": "My Contracts",
-    "subtitle": "My active contracts, automatic renewals, amendments and lock-in / penalty management",
-    "empty": "You don't have any contracts yet.",
-    "renewalNotice": {
-      "title_one": "{{count}} contract renewing soon",
-      "title_other": "{{count}} contracts renewing soon",
-      "description": "Automatic renewal happens in 60 days. You'll be notified 7 days before. To avoid renewing, turn off automatic renewal before the deadline. Price adjustments above IPCA+5pp allow exit without penalty.",
-      "manage": "Manage"
+    "subtitle": "Contracts for your paid orders: download the document and sign it on Autentique to release the service",
+    "empty": "You don't have any contracts yet. A contract shows up here after the order is paid and accepted.",
+    "retry": "Try again",
+    "signNotice": {
+      "title_one": "{{count}} contract awaits your signature",
+      "title_other": "{{count}} contracts await your signature",
+      "description": "The service only starts after the contract is signed. You sign on Autentique, in a new tab.",
+      "action": "Sign"
     },
     "stats": {
-      "active": "Active contracts",
-      "renewing": "Renewing in 60D",
-      "suspended": "Suspended",
-      "changeRequests": "Change Requests"
+      "awaitingSignature": "Awaiting signature",
+      "processing": "Processing",
+      "signed": "Signed",
+      "cancelled": "Cancelled"
     },
     "statuses": {
-      "active": "Active",
-      "renewing": "Renewing",
-      "suspended": "Suspended"
+      "awaiting_signer": "Awaiting signature",
+      "provider_pending": "Preparing signature",
+      "provider_uncertain": "Processing",
+      "provider_failed": "Signature unavailable",
+      "awaiting_signatures": "Awaiting signature",
+      "signed": "Signed",
+      "cancelled": "Cancelled"
+    },
+    "statusDescriptions": {
+      "awaiting_signer": "The contract is ready. Someone responsible at the Buyer needs to sign it.",
+      "provider_pending": "We're sending the document to Autentique. This takes a few seconds.",
+      "provider_uncertain": "The signature is being processed. No need to send it again; check back later.",
+      "provider_failed": "Signing is unavailable right now. Our operations team has been notified.",
+      "awaiting_signatures": "The document is on Autentique. After you sign, confirmation may take a moment.",
+      "signed": "Contract signed and verified. The service is released on the order.",
+      "cancelled": "The order was cancelled. This contract can no longer be signed."
     },
     "card": {
-      "startDate": "Start: {{date}}",
-      "nextBilling": "Next billing: {{date}}",
-      "autoRenew": "Auto-renewal:",
-      "autoRenewOn": "on",
-      "autoRenewOff": "off",
-      "renewsIn": "⚠ RENEWS IN {{count}}d",
-      "overdueInvoices_one": "{{count}} OVERDUE INVOICE",
-      "overdueInvoices_other": "{{count}} OVERDUE INVOICES",
-      "per": {
-        "monthly": "/mo",
-        "yearly": "/yr"
-      },
-      "expand": "Show contract terms",
-      "collapse": "Hide contract terms"
-    },
-    "comingSoon": "This feature is coming soon.",
-    "months_one": "{{count}} month",
-    "months_other": "{{count}} months",
-    "errors": {
-      "required": "Describe the change you want.",
-      "tooLong": "Use at most 2000 characters."
-    },
-    "details": {
-      "renewsAt": "Renews on",
-      "renewsAtValue": "{{date}} ({{count}}d)",
-      "sla": "Contractual SLA",
-      "loyalty": "Lock-in",
-      "exitFee": "Exit fee",
-      "noExitFee": "No fee",
-      "adjustment": "Adjustment: {{value}}",
-      "adjustmentNote": "The seller can't change the adjustment index on an active contract — only in the next cycle."
-    },
-    "amendment": {
-      "title": "Request Amendment (Change Request)",
-      "description": "The seller will review and send an amendment proposal. The seller may decline without charging a change fee.",
-      "sectionDescription": "Describe the change. The seller will review and send an amendment proposal. They may decline at no charge.",
-      "placeholder": "Describe the requested change (speed, term, location, SLA...)",
-      "sectionPlaceholder": "E.g.: Increase speed to 1 Gbps, change installation address...",
-      "label": "Requested change",
-      "cancel": "Cancel",
-      "submit": "Send change request",
-      "sectionSubmit": "Send amendment"
+      "more": "{{name}} +{{count}}",
+      "untitled": "Order #{{id}}",
+      "order": "Order #{{id}}",
+      "contract": "Contract #{{id}}",
+      "createdAt": "Ordered on {{date}}",
+      "perMonth": "/mo"
     },
     "actions": {
       "title": "Actions",
-      "amendment": "Request amendment",
-      "disableAutoRenew": "Turn off auto-renewal",
-      "enableAutoRenew": "Turn on auto-renewal",
-      "cancel": "Request cancellation",
-      "cancellationRequested": "Cancellation requested",
-      "viewFull": "View full contract",
+      "downloadPdf": "Download PDF",
+      "viewDetails": "View details",
+      "viewOrder": "View order",
       "back": "← Back"
     },
-    "cancel": {
-      "title": "Confirm cancellation?",
-      "fee": "Applicable fee: {{value}}",
-      "noFee": "No fee applies.",
-      "back": "Back",
-      "confirm": "Confirm"
+    "sign": {
+      "sign": "Sign contract",
+      "open": "Open signature",
+      "boundToOther": "Another user in your organization is signing this contract."
     },
-    "toasts": {
-      "autoRenewOn": "Auto-renewal turned on.",
-      "autoRenewOff": "Auto-renewal turned off.",
-      "amendmentSent": "Amendment sent to the seller.",
-      "amendmentSentDescription": "Request {{id}}. You'll be notified when the seller replies.",
-      "cancellationRequested": "Cancellation requested.",
-      "cancellationRequestedDescription": "The seller has been notified. The contract stays active until it ends.",
-      "actionFailed": "We couldn't complete the action. Try again."
+    "signature": {
+      "title": "Signature",
+      "refresh": "Refresh status",
+      "signer": "Buyer signer",
+      "signed": "Signature",
+      "noSigner": "Not defined yet",
+      "you": "You",
+      "otherUser": "Another user in the organization",
+      "verified": "Verified",
+      "notVerified": "Awaiting verification"
+    },
+    "document": {
+      "title": "Contract document",
+      "verified": "Integrity verified",
+      "mismatch": "File differs from the record",
+      "hash": "SHA-256: {{hash}}"
     },
     "summary": {
       "title": "Contract details",
-      "startDate": "Start",
-      "nextBilling": "Next billing",
-      "renewsAt": "Renewal",
-      "price": "Price",
-      "sla": "SLA",
-      "loyalty": "Lock-in",
-      "exitFee": "Termination fee",
-      "adjustment": "Adjustment"
+      "contract": "Contract",
+      "order": "Order",
+      "createdAt": "Order date",
+      "total": "Order total",
+      "policy": "Who signs",
+      "documentVersion": "Document version",
+      "policies": {
+        "buyerOnly": "Buyer only",
+        "other": "{{policy}}"
+      }
     },
     "detail": {
       "breadcrumb": "Contracts",
-      "breadcrumbLabel": "Breadcrumb",
-      "order": "Order {{id}}",
-      "downloadPdf": "Download PDF",
-      "clauses": "Contract clauses",
-      "payments": "Payment history",
-      "paymentDue": "Due {{date}} · {{invoice}}",
-      "invoice": "Invoice",
-      "downloadInvoice": "Download invoice {{invoice}}",
-      "noPayments": "No invoices issued yet.",
-      "changeRequests": "Change Requests",
-      "newAmendment": "New amendment",
-      "changeRequestMeta": "{{id}} · Requested on {{date}}",
-      "noChangeRequests": "No amendments requested.",
-      "notFound": "Contract not found."
+      "breadcrumbLabel": "Breadcrumb"
     },
-    "paymentStatuses": {
-      "paid": "Paid",
-      "pending": "Open",
-      "overdue": "Overdue"
+    "toasts": {
+      "alreadySigned": "This contract is already signed.",
+      "signingOpened": "Signature opened on Autentique.",
+      "signingOpenedDescription": "Sign in the new tab. The status updates when you come back.",
+      "signingProcessing": "The signature is still being prepared.",
+      "signingProcessingDescription": "Try again in a few seconds."
     },
-    "changeRequestStatuses": {
-      "pending": "Awaiting seller",
-      "accepted": "Accepted",
-      "rejected": "Declined"
+    "errors": {
+      "forbidden": "Your profile can't access contracts.",
+      "notFound": "Contract not found.",
+      "unavailable": "Contracts are unavailable right now. Try again shortly.",
+      "failed": "We couldn't load the contracts.",
+      "signerBound": "Another user in your organization is already signing this contract.",
+      "orderCancelled": "The order was cancelled or the contract changed. Refresh the page.",
+      "emailNotConfirmed": "Confirm your email to sign contracts.",
+      "notSigner": "Only the buying organization signs this contract.",
+      "signForbidden": "Your profile can't sign contracts.",
+      "signFailed": "We couldn't open the signature. Try again.",
+      "noDocument": "No document: the order was cancelled before the contract was generated.",
+      "documentFailed": "We couldn't load the contract PDF."
     }
   },
   "Returns": {

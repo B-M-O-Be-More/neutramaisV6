@@ -1,23 +1,38 @@
 "use client";
 
-import { Box, Flex, Icon, Input, Stack, Text } from "@chakra-ui/react";
+import { Box, Flex, Icon, NativeSelect, Stack, Text } from "@chakra-ui/react";
 import React from "react";
-import { Controller, useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { LuFileText, LuMapPinned, LuShield } from "react-icons/lu";
+import {
+  LuChevronDown,
+  LuFileText,
+  LuMapPinned,
+  LuShield,
+} from "react-icons/lu";
 
 import type { CoverageMapLocation } from "@/components/CoverageMap";
 import OfferCategoryPicker from "@/components/OfferCategoryPicker";
 import SellerOfferCoverageSection from "@/components/SellerOfferCoverageSection";
 import SellerOfferLocationField from "@/components/SellerOfferLocationField";
 import { offerCategory } from "@/data/offerCategories";
+import {
+  descendantsOf,
+  selectionOf,
+  type OfferCategoryNode,
+} from "@/functions/offerCategoryTree";
 import { parseDecimal } from "@/functions/parseDecimal";
+import { NUMBERING_REGISTRIES } from "@/schemas/sellerOffer";
 
 import { SellerOfferCoverageStepProps } from "./interface";
 
 /**
  * Etapa 1 da oferta: categoria e cobertura.
- * - Conectividade e Infra Física: precisam de cobertura (KMZ) para publicar,
+ * - A categoria raiz vem da árvore da API; com filhas, aparece a escolha da
+ *   subcategoria. A escolha grava a família (telas próprias), o
+ *   `categoryId` e as flags da categoria na API.
+ * - Categorias com `requiresCoverage` (Conectividade e Infra Física, ou
+ *   outra que a API marcar): precisam de cobertura (KMZ) para publicar,
  *   mas ela só é vinculada à oferta já criada. Na criação, um aviso explica
  *   o passo seguinte; na edição, entra a área de cobertura
  *   (`SellerOfferCoverageSection`), com botão próprio. Nas duas, a
@@ -29,12 +44,17 @@ export function SellerOfferCoverageStep({
   control,
   register,
   errors,
+  setValue,
+  categories,
   organizationId,
   coverageEditor,
   locale,
 }: SellerOfferCoverageStepProps) {
   const { t } = useTranslation();
-  const category = useWatch({ control, name: "category" });
+  const [category, categoryId, requiresCoverage] = useWatch({
+    control,
+    name: ["category", "categoryId", "requiresCoverage"],
+  });
   const locations = useWatch({ control, name: "locations" });
   // Pins e raios das localidades de atendimento no mapa. O `useWatch` devolve
   // um array novo a cada tecla (inclusive no endereço ainda sem ponto): a
@@ -59,10 +79,40 @@ export function SellerOfferCoverageStep({
     [mapLocationsKey],
   );
   const definition = offerCategory(category);
-  const requiresCoverage = !!definition?.requiresCoverage;
-  // Só Conectividade e Infra Física têm cobertura geográfica; as demais
-  // mostram o aviso no lugar do mapa e do KMZ.
+  // Sem cobertura geográfica (flag da API), o aviso fica no lugar do mapa e
+  // do KMZ.
   const coverageNotApplicable = !!definition && !requiresCoverage;
+
+  // Raiz da categoria escolhida: pela árvore ou, sem ela, pela família.
+  const selected = categoryId ? categories.byId.get(categoryId) : undefined;
+  const rootId = selected?.rootId ?? (definition?.categoryId || null);
+  const root = rootId ? categories.byId.get(rootId) : undefined;
+  const subcategories = root ? descendantsOf(root) : [];
+
+  const familyLabel = (node: OfferCategoryNode) =>
+    node.family === "custom"
+      ? undefined
+      : t(`SellerOfferCreate.categories.${node.family}.label`);
+
+  const choose = (node: OfferCategoryNode, isRootChange: boolean) => {
+    const selection = selectionOf(node, familyLabel(node));
+    const options = { shouldDirty: true };
+    setValue("category", selection.category, {
+      ...options,
+      shouldValidate: !!errors.category,
+    });
+    setValue("categoryId", selection.categoryId, options);
+    setValue("categoryLabel", selection.categoryLabel, options);
+    setValue("requiresCoverage", selection.requiresCoverage, options);
+    setValue("hasNumericStock", selection.hasNumericStock, options);
+    // Outra raiz, outro template: os campos genéricos recomeçam. Entre
+    // subcategorias da mesma raiz, os campos herdados mantêm o valor.
+    if (isRootChange) {
+      setValue("templateValues", {}, options);
+      setValue("rulesEnabled", {}, options);
+      setValue("ruleValues", {}, options);
+    }
+  };
 
   const tError = (message?: string) => (message ? t(message) : undefined);
 
@@ -94,17 +144,76 @@ export function SellerOfferCoverageStep({
         </Stack>
       </Flex>
 
-      <Controller
-        control={control}
-        name="category"
-        render={({ field }) => (
-          <OfferCategoryPicker
-            value={field.value || null}
-            onChange={field.onChange}
-            error={tError(errors.category?.message)}
-          />
-        )}
+      <OfferCategoryPicker
+        options={categories.roots}
+        value={rootId}
+        onChange={(node) => choose(node, node.id !== rootId)}
+        error={tError(errors.category?.message ?? errors.categoryId?.message)}
       />
+
+      {root && subcategories.length > 0 && (
+        <Stack gap="6px">
+          <Text
+            asChild
+            color="#0F1729"
+            fontSize="14px"
+            fontWeight={700}
+            lineHeight="21px"
+          >
+            <label htmlFor="offer-subcategory">
+              {t("SellerOfferCreate.coverage.subcategoryLabel")}
+            </label>
+          </Text>
+          <NativeSelect.Root>
+            <NativeSelect.Field
+              id="offer-subcategory"
+              value={selected && selected.id !== root.id ? selected.id : ""}
+              onChange={(event) => {
+                const node = event.target.value
+                  ? categories.byId.get(event.target.value)
+                  : root;
+                if (node) choose(node, false);
+              }}
+              aria-describedby="offer-subcategory-hint"
+              h="47px"
+              ps="17px"
+              pe="32px"
+              bg="white"
+              borderWidth="1px"
+              borderColor="#E5E8EE"
+              rounded="14px"
+              fontSize="14px"
+              color="#0F1729"
+            >
+              <option value="">
+                {t("SellerOfferCreate.coverage.subcategoryNone")}
+              </option>
+              {subcategories.map((node) => (
+                <option key={node.id} value={node.id}>
+                  {`${"— ".repeat(node.depth - 1)}${node.name}`}
+                </option>
+              ))}
+            </NativeSelect.Field>
+            <NativeSelect.Indicator>
+              <LuChevronDown color="#98A6B3" />
+            </NativeSelect.Indicator>
+          </NativeSelect.Root>
+          <Text
+            id="offer-subcategory-hint"
+            color="#8A9AB5"
+            fontSize="12px"
+            lineHeight="18px"
+          >
+            {t("SellerOfferCreate.coverage.subcategoryHint")}
+          </Text>
+        </Stack>
+      )}
+
+      {categories.hasError && (
+        <Text color="#B45309" fontSize="12px" lineHeight="18px" role="status">
+          {t("SellerOfferCreate.coverage.categoriesFallback")}
+        </Text>
+      )}
 
       {coverageNotApplicable ? (
         <Box p={{ base: 0, md: "28px" }}>
@@ -144,33 +253,45 @@ export function SellerOfferCoverageStep({
                 fontSize="13px"
                 lineHeight="19.5px"
               >
-                {t(`SellerOfferCreate.coverage.notApplicable.${category}`)}
+                {t([
+                  `SellerOfferCreate.coverage.notApplicable.${category}`,
+                  "SellerOfferCreate.coverage.notApplicable.custom",
+                ])}
               </Text>
             </Stack>
-            {/* Abrangência sem KMZ (ex.: LACNIC, ANATEL). A marketplace-api
-                ainda não tem campo para ela: fica no assistente e não é
-                enviada. */}
+            {/* Abrangência sem KMZ: o registro dos recursos numéricos
+                (LACNIC, ANATEL...), `registry` do template da categoria. */}
             {definition?.asksRegion && (
               <Stack gap="6px" w="full" maxW="384px">
-                <Input
-                  {...register("coverageRegion")}
-                  maxLength={120}
-                  aria-label={t("SellerOfferCreate.coverage.regionLabel")}
-                  aria-describedby="offer-coverage-region-hint"
-                  aria-invalid={!!errors.coverageRegion}
-                  placeholder={t(
-                    "SellerOfferCreate.coverage.regionPlaceholder",
-                  )}
-                  h="47px"
-                  px="17px"
-                  bg="white"
-                  borderWidth="1px"
-                  borderColor={errors.coverageRegion ? "#EF4444" : "#E5E8EE"}
-                  rounded="14px"
-                  fontSize="14px"
-                  color="#0F1729"
-                  _placeholder={{ color: "rgba(15,23,41,0.5)" }}
-                />
+                <NativeSelect.Root>
+                  <NativeSelect.Field
+                    {...register("coverageRegion")}
+                    aria-label={t("SellerOfferCreate.coverage.regionLabel")}
+                    aria-describedby="offer-coverage-region-hint"
+                    aria-invalid={!!errors.coverageRegion}
+                    h="47px"
+                    ps="17px"
+                    pe="32px"
+                    bg="white"
+                    borderWidth="1px"
+                    borderColor={errors.coverageRegion ? "#EF4444" : "#E5E8EE"}
+                    rounded="14px"
+                    fontSize="14px"
+                    color="#0F1729"
+                  >
+                    <option value="">
+                      {t("SellerOfferCreate.coverage.regionPlaceholder")}
+                    </option>
+                    {NUMBERING_REGISTRIES.map((registry) => (
+                      <option key={registry} value={registry}>
+                        {t(`SellerOfferCreate.coverage.registries.${registry}`)}
+                      </option>
+                    ))}
+                  </NativeSelect.Field>
+                  <NativeSelect.Indicator>
+                    <LuChevronDown color="#98A6B3" />
+                  </NativeSelect.Indicator>
+                </NativeSelect.Root>
                 {errors.coverageRegion && (
                   <Text color="#EF4444" fontSize="12px" lineHeight="18px">
                     {tError(errors.coverageRegion.message)}

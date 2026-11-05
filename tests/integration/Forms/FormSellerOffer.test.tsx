@@ -1,21 +1,52 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import FormSellerOffer from "@/components/Forms/FormSellerOffer";
+import { clearCategoryTemplateCache } from "@/hooks/useCategoryTemplate";
 import { ForbiddenError } from "@/services/errors";
-import { productCatalogService } from "@/services/productCatalog.service";
+import { mapboxGeocodingService } from "@/services/mapboxGeocoding.service";
+import {
+  productCatalogService,
+  type ProductCategory,
+} from "@/services/productCatalog.service";
 
-import { renderWithProviders, screen, waitFor } from "../../test-utils";
+import {
+  fireEvent,
+  renderWithProviders,
+  screen,
+  waitFor,
+} from "../../test-utils";
 
 // A geo-api não lista versões: o assistente só mostra os KMZs enviados nele.
+// As sugestões chegam depois da pausa da digitação e da busca: com a suíte
+// inteira em paralelo, passam do 1 s padrão do findBy.
+const OPTIONS_TIMEOUT = { timeout: 5_000 };
+
 vi.mock("@/services/geoCoverage.service", () => ({
   geoCoverageService: {
     uploadKmz: vi.fn(),
   },
 }));
 
+// Sugestões de endereço da localidade A (Conectividade e Infra Física).
+vi.mock("@/services/mapboxGeocoding.service", () => ({
+  mapboxGeocodingService: {
+    isAvailable: vi.fn(() => true),
+    search: vi.fn(),
+  },
+}));
+
+const ADDRESS = {
+  id: "addr-1",
+  label: "Av. Dom Luís, 300, Fortaleza - CE",
+  longitude: -38.4931,
+  latitude: -3.7375,
+};
+
 // Marketplace-api da publicação: cada teste define as respostas.
 vi.mock("@/services/productCatalog.service", () => ({
   productCatalogService: {
+    listCategories: vi.fn(),
+    getCategory: vi.fn(),
     listSpecifications: vi.fn(),
     getCatalog: vi.fn(),
     createSpecification: vi.fn(),
@@ -28,6 +59,107 @@ vi.mock("@/services/productCatalog.service", () => ({
 
 const ORGANIZATION = "018f4c2a-9b31-7d64-a0e5-2f7c1b8d3e90";
 const onPublished = vi.fn();
+
+// Árvore da plataforma: as seis raízes conhecidas e uma subcategoria de
+// Softwares com campos próprios no template.
+const SOFTWARE_ID = "0193a000-0000-7000-8000-000000000c05";
+const MONITORING_ID = "0193a000-0000-7000-8000-0000000000f1";
+const root = (
+  id: string,
+  name: string,
+  flags: Partial<ProductCategory> = {},
+  children: ProductCategory[] | null = null,
+): ProductCategory => ({
+  id,
+  parentId: null,
+  name,
+  description: null,
+  templateVersion: 1,
+  requiresCoverage: false,
+  hasNumericStock: false,
+  isActive: true,
+  displayOrder: 0,
+  template: null,
+  rules: null,
+  children,
+  ...flags,
+});
+const MONITORING: ProductCategory = {
+  ...root(MONITORING_ID, "Monitoramento"),
+  parentId: SOFTWARE_ID,
+};
+// Subcategoria com regras condicionais: uma obrigatória e uma opcional.
+const BACKUP_ID = "0193a000-0000-7000-8000-0000000000f2";
+const BACKUP: ProductCategory = {
+  ...root(BACKUP_ID, "Backup", { displayOrder: 1 }),
+  parentId: SOFTWARE_ID,
+};
+const BACKUP_RULES: ProductCategory["rules"] = [
+  {
+    key: "fastActivation",
+    name: "Ativação rápida",
+    description: "Selo para quem ativa em até 48 horas.",
+    required: true,
+    valueFields: [
+      {
+        key: "maxAcceptanceHours",
+        label: "Horas para aceitar",
+        type: "number",
+        required: true,
+        min: 1,
+        max: 72,
+      },
+    ],
+  },
+  {
+    key: "extendedSupport",
+    name: "Suporte estendido",
+    required: false,
+    valueFields: [
+      { key: "months", label: "Meses", type: "number", required: true, min: 1 },
+    ],
+  },
+];
+const CATEGORY_TREE: ProductCategory[] = [
+  root("0193a000-0000-7000-8000-000000000c01", "Conectividade", {
+    requiresCoverage: true,
+  }),
+  root("0193a000-0000-7000-8000-000000000c02", "Infra física", {
+    requiresCoverage: true,
+    displayOrder: 1,
+  }),
+  root("0193a000-0000-7000-8000-000000000c03", "Hardware e CPE", {
+    hasNumericStock: true,
+    displayOrder: 2,
+  }),
+  root("0193a000-0000-7000-8000-000000000c04", "Recursos numéricos", {
+    hasNumericStock: true,
+    displayOrder: 3,
+  }),
+  root(SOFTWARE_ID, "Softwares e gerenciamento", { displayOrder: 4 }, [
+    MONITORING,
+    BACKUP,
+  ]),
+  root("0193a000-0000-7000-8000-000000000c06", "Protocolos e serviços", {
+    displayOrder: 5,
+  }),
+];
+const MONITORING_TEMPLATE: ProductCategory["template"] = [
+  {
+    key: "monitoredDevices",
+    label: "Dispositivos monitorados",
+    type: "number",
+    required: true,
+    min: 1,
+  },
+  {
+    key: "tool",
+    label: "Ferramenta",
+    type: "single_choice",
+    required: false,
+    options: ["zabbix", "prtg"],
+  },
+];
 
 function renderForm() {
   return renderWithProviders(
@@ -48,6 +180,44 @@ const category = (key: string) =>
     name: new RegExp(`SellerOfferCreate.categories.${key}.label`),
   });
 
+/**
+ * Escolhe a localidade A (obrigatória em Conectividade e Infra Física) e o
+ * raio. O combobox do Chakra sincroniza o texto no tick seguinte: tecla a
+ * tecla, letras se perdem no jsdom com a máquina carregada. O endereço entra
+ * inteiro, menos a última letra, numa mudança só; a última vem do teclado,
+ * porque o combobox decide abrir a lista pelo texto anterior à tecla.
+ */
+async function fillFirstLocation(user: ReturnType<typeof renderForm>["user"]) {
+  const input = screen.getByRole("combobox", {
+    name: /SellerOfferCreate.coverage.locationLabel/,
+  });
+  await user.click(input);
+  fireEvent.change(input, { target: { value: "Av Dom Lui" } });
+  await user.type(input, "s");
+  await user.click(
+    await screen.findByRole(
+      "option",
+      { name: /Av\. Dom Luís, 300/ },
+      OPTIONS_TIMEOUT,
+    ),
+  );
+  await user.type(
+    await screen.findByLabelText(/SellerOfferCreate.coverage.radiusLabel/),
+    "10",
+  );
+}
+
+/** Escolhe o registro dos recursos numéricos (obrigatório na etapa 1). */
+async function selectRegion(
+  user: ReturnType<typeof renderForm>["user"],
+  registry = "lacnic",
+) {
+  await user.selectOptions(
+    screen.getByLabelText("SellerOfferCreate.coverage.regionLabel"),
+    registry,
+  );
+}
+
 beforeAll(() => {
   // O jsdom não implementa URLs de Blob (prévia da imagem).
   URL.createObjectURL = vi.fn(() => "blob:offer-image");
@@ -55,8 +225,18 @@ beforeAll(() => {
 });
 
 // Software não tem KMZ, velocidade obrigatória nem bloco extra: é o caminho
-// mais curto até a etapa 4.
-async function goToPricing() {
+// mais curto até a etapa 4. `options` entra na subcategoria e nos campos
+// genéricos do template.
+async function goToPricing(
+  options: {
+    afterCategory?: (
+      user: ReturnType<typeof renderForm>["user"],
+    ) => Promise<void>;
+    beforeTechnicalContinue?: (
+      user: ReturnType<typeof renderForm>["user"],
+    ) => Promise<void>;
+  } = {},
+) {
   const rendered = renderForm();
   const { user } = rendered;
   const paste = async (label: RegExp, text: string) => {
@@ -65,6 +245,7 @@ async function goToPricing() {
   };
 
   await user.click(category("software"));
+  await options.afterCategory?.(user);
   await user.click(continueButton());
 
   await screen.findByLabelText(/SellerOfferCreate.basicInfo.nameLabel/);
@@ -85,6 +266,7 @@ async function goToPricing() {
     /SellerOfferCreate.technicalSpecs.deliveryTimeLabel/,
     "5 dias úteis",
   );
+  await options.beforeTechnicalContinue?.(user);
   await user.click(continueButton());
 
   await screen.findByLabelText(/SellerOfferCreate.pricing.pricingModelLabel/);
@@ -92,8 +274,8 @@ async function goToPricing() {
 }
 
 /** Preenche a etapa 4 e chega à revisão final. */
-async function goToReview() {
-  const rendered = await goToPricing();
+async function goToReview(options: Parameters<typeof goToPricing>[0] = {}) {
+  const rendered = await goToPricing(options);
   const { user, paste } = rendered;
   await user.selectOptions(
     screen.getByLabelText(/SellerOfferCreate.pricing.pricingModelLabel/),
@@ -111,8 +293,24 @@ async function goToReview() {
 
 // Formulário pesado (5 etapas, mapa, preview): no jsdom a primeira montagem e
 // a digitação em vários campos levam alguns segundos — acima dos 5 s padrão.
-describe("FormSellerOffer", { timeout: 20_000 }, () => {
-  beforeEach(() => vi.clearAllMocks());
+// Fluxos de várias etapas: isolados levam 5 a 8 s; com a suíte inteira em
+// paralelo, passam de 20 s.
+describe("FormSellerOffer", { timeout: 90_000 }, () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    clearCategoryTemplateCache();
+    vi.mocked(mapboxGeocodingService.search).mockResolvedValue([ADDRESS]);
+    vi.mocked(productCatalogService.listCategories).mockResolvedValue(
+      CATEGORY_TREE,
+    );
+    vi.mocked(productCatalogService.getCategory).mockImplementation(
+      async (categoryId) => ({
+        ...root(categoryId, "categoria"),
+        template: categoryId === MONITORING_ID ? MONITORING_TEMPLATE : [],
+        rules: categoryId === BACKUP_ID ? BACKUP_RULES : [],
+      }),
+    );
+  });
 
   it("exige a categoria antes de avançar", async () => {
     const { user } = renderForm();
@@ -127,7 +325,7 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
     ).toBeVisible();
   });
 
-  it("Conectividade avisa que a cobertura vem depois, mostra a localidade A/Z e avança", async () => {
+  it("Conectividade avisa que a cobertura vem depois, exige a localidade A e avança", async () => {
     const { user } = renderForm();
 
     await user.click(category("connectivity"));
@@ -144,11 +342,32 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       }),
     ).toBeVisible();
 
+    // A localidade A é obrigatória no template de Conectividade.
+    await user.click(continueButton());
+    expect(
+      await screen.findByText("SellerOfferCreate.errors.locationRequired"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/SellerOfferCreate.basicInfo.nameLabel/),
+    ).not.toBeVisible();
+
+    await fillFirstLocation(user);
     await user.click(continueButton());
 
     expect(
       await screen.findByLabelText(/SellerOfferCreate.basicInfo.nameLabel/),
     ).toBeVisible();
+  });
+
+  it("Infra Física também exige a localidade A", async () => {
+    const { user } = renderForm();
+
+    await user.click(category("physicalInfra"));
+    await user.click(continueButton());
+
+    expect(
+      await screen.findByText("SellerOfferCreate.errors.locationRequired"),
+    ).toBeInTheDocument();
   });
 
   it("Hardware mostra 'Cobertura não aplicável', sem KMZ nem localidade, e avança", async () => {
@@ -179,13 +398,30 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
     ).toBeVisible();
   });
 
-  it("Recursos Numéricos pedem a região dentro do card", async () => {
+  it("Recursos Numéricos exigem o registro dentro do card", async () => {
     const { user } = renderForm();
 
     await user.click(category("numberingResources"));
 
     expect(
       screen.getByLabelText("SellerOfferCreate.coverage.regionLabel"),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("option", {
+        name: "SellerOfferCreate.coverage.registries.nic_br",
+      }),
+    ).toBeInTheDocument();
+
+    await user.click(continueButton());
+    expect(
+      await screen.findByText("SellerOfferCreate.errors.regionRequired"),
+    ).toBeInTheDocument();
+
+    await selectRegion(user);
+    await user.click(continueButton());
+
+    expect(
+      await screen.findByLabelText(/SellerOfferCreate.basicInfo.nameLabel/),
     ).toBeVisible();
   });
 
@@ -296,12 +532,25 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
         screen.getByLabelText(/SellerOfferCreate.hardware.conditionLabel/),
         "new",
       );
+      await user.click(
+        screen.getByLabelText(/SellerOfferCreate.hardware.warrantyLabel/),
+      );
+      await user.paste("12");
+      await user.selectOptions(
+        screen.getByLabelText(/SellerOfferCreate.hardware.serializationLabel/),
+        "yes",
+      );
     }
 
     async function goToTechnicalSpecs(categoryKey = "hardware") {
       const rendered = renderForm();
       const { user } = rendered;
       await user.click(category(categoryKey));
+      // Campos obrigatórios da etapa 1 em cada categoria.
+      if (categoryKey === "numberingResources") await selectRegion(user);
+      if (categoryKey === "connectivity" || categoryKey === "physicalInfra") {
+        await fillFirstLocation(user);
+      }
       await user.click(continueButton());
 
       await user.click(
@@ -423,9 +672,67 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       expect(
         screen.getByText("SellerOfferCreate.errors.numberingHolderRequired"),
       ).toBeInTheDocument();
+      // O tipo é uma lista com as opções do template.
+      expect(
+        screen.getByRole("option", {
+          name: "SellerOfferCreate.numbering.resourceTypes.asn",
+        }),
+      ).toBeInTheDocument();
     });
 
-    it("Hardware exige fabricante, modelo e condição", async () => {
+    it("Conectividade exige os IPs inclusos (só dígitos)", async () => {
+      const { user } = await goToTechnicalSpecs("connectivity");
+      const includedIps = screen.getByLabelText(
+        /SellerOfferCreate.technicalSpecs.includedIpsLabel/,
+      );
+
+      await user.click(continueButton());
+
+      expect(
+        await screen.findByText("SellerOfferCreate.errors.includedIpsRequired"),
+      ).toBeInTheDocument();
+
+      await user.type(includedIps, "8a");
+      expect(includedIps).toHaveValue("8");
+      await waitFor(() =>
+        expect(
+          screen.queryByText("SellerOfferCreate.errors.includedIpsRequired"),
+        ).not.toBeInTheDocument(),
+      );
+    });
+
+    it("Infra Física exige capacidade, unidade vendida e energia/espaço/porta", async () => {
+      const { user } = await goToTechnicalSpecs("physicalInfra");
+
+      expect(
+        screen.getByRole("group", { name: "SellerOfferCreate.infra.title" }),
+      ).toBeVisible();
+      // Fora de Conectividade não há IPs inclusos.
+      expect(
+        screen.queryByLabelText(
+          /SellerOfferCreate.technicalSpecs.includedIpsLabel/,
+        ),
+      ).not.toBeInTheDocument();
+
+      await user.click(continueButton());
+
+      expect(
+        await screen.findByText("SellerOfferCreate.errors.capacityRequired"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("SellerOfferCreate.errors.soldUnitRequired"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("SellerOfferCreate.errors.powerSpacePortRequired"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", {
+          name: "SellerOfferCreate.infra.soldUnits.rack_unit",
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it("Hardware exige fabricante, modelo, condição, garantia e serialização", async () => {
       const { user } = await goToTechnicalSpecs();
 
       expect(
@@ -446,6 +753,18 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       ).toBeInTheDocument();
       expect(
         screen.getByText("SellerOfferCreate.errors.conditionRequired"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("SellerOfferCreate.errors.warrantyRequired"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("SellerOfferCreate.errors.serializationRequired"),
+      ).toBeInTheDocument();
+      // Usado é uma das condições do template.
+      expect(
+        screen.getByRole("option", {
+          name: "SellerOfferCreate.hardware.conditions.used",
+        }),
       ).toBeInTheDocument();
       // O envio é da etapa Logística, ainda não validada.
       expect(
@@ -535,31 +854,38 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       ).toBeInTheDocument();
     });
 
-    it("mostra os SLAs no preview e avança para a Logística", async () => {
-      const { user } = await goToTechnicalSpecs();
+    // Preenche o bloco de Hardware inteiro (5 campos) antes de avançar.
+    it(
+      "mostra os SLAs no preview e avança para a Logística",
+      {
+        timeout: 90_000,
+      },
+      async () => {
+        const { user } = await goToTechnicalSpecs();
 
-      expect(
-        screen.getByText("SellerOfferCreate.steps.logistics"),
-      ).toBeInTheDocument();
-      await user.type(
-        screen.getByLabelText(
-          /SellerOfferCreate.technicalSpecs.technicalSlaLabel/,
-        ),
-        "98,5",
-      );
-      expect(screen.getByText("98,5%")).toBeInTheDocument();
-      expect(screen.getByText("48h")).toBeInTheDocument();
+        expect(
+          screen.getByText("SellerOfferCreate.steps.logistics"),
+        ).toBeInTheDocument();
+        await user.type(
+          screen.getByLabelText(
+            /SellerOfferCreate.technicalSpecs.technicalSlaLabel/,
+          ),
+          "98,5",
+        );
+        expect(screen.getByText("98,5%")).toBeInTheDocument();
+        expect(screen.getByText("48h")).toBeInTheDocument();
 
-      await fillHardware(user);
-      await user.click(continueButton());
+        await fillHardware(user);
+        await user.click(continueButton());
 
-      expect(
-        await screen.findByText("SellerOfferCreate.logistics.rulesTitle"),
-      ).toBeVisible();
-    });
+        expect(
+          await screen.findByText("SellerOfferCreate.logistics.rulesTitle"),
+        ).toBeVisible();
+      },
+    );
 
     // Percorre três etapas antes de chegar à Logística: mais lento no jsdom.
-    describe("etapa Logística (Hardware)", { timeout: 40_000 }, () => {
+    describe("etapa Logística (Hardware)", { timeout: 90_000 }, () => {
       async function goToLogistics() {
         const rendered = await goToTechnicalSpecs();
         const { user } = rendered;
@@ -837,10 +1163,6 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
     const OFFERING = { id: "0192a0b1-d4e5-7f60-8a9b-0c1d2e3f4a5c" };
 
     beforeEach(() => {
-      vi.mocked(productCatalogService.listSpecifications).mockResolvedValue([]);
-      vi.mocked(productCatalogService.getCatalog).mockResolvedValue({
-        id: "catalog-1",
-      } as never);
       vi.mocked(productCatalogService.createSpecification).mockResolvedValue({
         id: "spec-1",
       } as never);
@@ -877,7 +1199,7 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       ).toBeInTheDocument();
     });
 
-    it("cria o plano da categoria, cria a oferta e publica", async () => {
+    it("cria a especificação na categoria, cria a oferta e publica", async () => {
       const { user } = await goToReview();
 
       await user.click(publishButton());
@@ -895,10 +1217,11 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
           }),
         ),
       );
-      // Sem plano da categoria: garante o catálogo e cria o plano.
-      expect(productCatalogService.getCatalog).toHaveBeenCalled();
+      // Uma especificação por oferta, na categoria da árvore da plataforma.
       expect(productCatalogService.createSpecification).toHaveBeenCalledWith({
         name: "Softwares e Gerenciamento",
+        categoryId: "0193a000-0000-7000-8000-000000000c05",
+        characteristics: {},
       });
       expect(productCatalogService.createOffering).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -924,24 +1247,106 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
       );
     });
 
-    it("reaproveita o plano que já existe com o nome da categoria", async () => {
-      vi.mocked(productCatalogService.listSpecifications).mockResolvedValue([
-        {
-          id: "spec-existing",
-          name: "softwares e gerenciamento",
-          isActive: true,
-        },
-      ] as never);
-      const { user } = await goToReview();
+    // Percorre as cinco etapas com a documentação da categoria: mais lento.
+    it(
+      "cria uma especificação nova com os valores do template e o estoque na oferta (Recursos Numéricos)",
+      {
+        timeout: 90_000,
+      },
+      async () => {
+        const { user } = renderForm();
+        const paste = async (label: RegExp, text: string) => {
+          await user.click(screen.getByLabelText(label));
+          await user.paste(text);
+        };
 
-      await user.click(publishButton());
+        await user.click(category("numberingResources"));
+        await selectRegion(user, "nic_br");
+        await user.click(continueButton());
 
-      await waitFor(() => expect(onPublished).toHaveBeenCalled());
-      expect(productCatalogService.createSpecification).not.toHaveBeenCalled();
-      expect(productCatalogService.createOffering).toHaveBeenCalledWith(
-        expect.objectContaining({ specificationId: "spec-existing" }),
-      );
-    });
+        await screen.findByLabelText(/SellerOfferCreate.basicInfo.nameLabel/);
+        await paste(/SellerOfferCreate.basicInfo.nameLabel/, "Bloco IPv6 /48");
+        await paste(
+          /SellerOfferCreate.basicInfo.shortDescriptionLabel/,
+          "Bloco /48 via NIC.br",
+        );
+        await paste(
+          /SellerOfferCreate.basicInfo.descriptionLabel/,
+          "Bloco IPv6 /48 via NIC.br com transferência de titularidade e suporte.",
+        );
+        await user.click(continueButton());
+
+        await screen.findByLabelText(
+          /SellerOfferCreate.technicalSpecs.technicalSlaLabel/,
+        );
+        await paste(/SellerOfferCreate.technicalSpecs.technicalSlaLabel/, "99");
+        await paste(
+          /SellerOfferCreate.technicalSpecs.deliveryTimeLabel/,
+          "5 dias úteis",
+        );
+        await user.selectOptions(
+          screen.getByLabelText(
+            /SellerOfferCreate.numbering.resourceTypeLabel/,
+          ),
+          "ipv6",
+        );
+        await paste(/SellerOfferCreate.numbering.blockLabel/, "1 bloco /48");
+        await paste(
+          /SellerOfferCreate.numbering.holderLabel/,
+          "Transferência definitiva",
+        );
+        await user.click(continueButton());
+
+        await screen.findByLabelText(
+          /SellerOfferCreate.pricing.pricingModelLabel/,
+        );
+        await user.selectOptions(
+          screen.getByLabelText(/SellerOfferCreate.pricing.pricingModelLabel/),
+          "monthly",
+        );
+        await paste(/SellerOfferCreate.pricing.priceLabel/, "800,00");
+        await paste(
+          /SellerOfferCreate.pricing.cancellationLabel/,
+          "30 dias corridos sem multa",
+        );
+        // Recursos Numéricos só publicam com o estoque.
+        await user.click(continueButton());
+        expect(
+          await screen.findByText("SellerOfferCreate.errors.stockRequired"),
+        ).toBeInTheDocument();
+        await paste(/SellerOfferCreate.pricing.stockLabel/, "5");
+        await user.click(continueButton());
+        await screen.findByText("SellerOfferCreate.review.truthfulnessNotice");
+
+        await user.click(publishButton());
+
+        await waitFor(() => expect(onPublished).toHaveBeenCalled());
+        // Não procura plano de mesmo nome: cada oferta tem a sua especificação.
+        expect(productCatalogService.listSpecifications).not.toHaveBeenCalled();
+        expect(productCatalogService.getCatalog).not.toHaveBeenCalled();
+        expect(productCatalogService.createSpecification).toHaveBeenCalledTimes(
+          1,
+        );
+        expect(productCatalogService.createSpecification).toHaveBeenCalledWith({
+          name: "Recursos Numéricos",
+          categoryId: "0193a000-0000-7000-8000-000000000c04",
+          characteristics: {
+            resourceType: "ipv6",
+            block: "1 bloco /48",
+            allowedUse: "Transferência definitiva",
+            registry: "nic_br",
+          },
+        });
+        expect(productCatalogService.createOffering).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: "Bloco IPv6 /48",
+            specificationId: "spec-1",
+            monthlyPrice: "800.00",
+            stockQuantity: 5,
+          }),
+        );
+      },
+    );
 
     it("sem KYC verificado, salva rascunho e a nova tentativa não duplica a oferta", async () => {
       vi.mocked(productCatalogService.transitionOffering).mockRejectedValueOnce(
@@ -993,6 +1398,104 @@ describe("FormSellerOffer", { timeout: 20_000 }, () => {
         screen.queryByText("SellerOfferCreate.publish.savedAsDraft"),
       ).not.toBeInTheDocument();
       expect(productCatalogService.transitionOffering).not.toHaveBeenCalled();
+    });
+
+    it("subcategoria: pede os campos próprios do template e cria a especificação nela", async () => {
+      const chooseSubcategory = async (
+        user: ReturnType<typeof renderForm>["user"],
+      ) => {
+        await user.selectOptions(
+          await screen.findByLabelText(
+            "SellerOfferCreate.coverage.subcategoryLabel",
+          ),
+          MONITORING_ID,
+        );
+      };
+      const fillTemplate = async (
+        user: ReturnType<typeof renderForm>["user"],
+      ) => {
+        // Obrigatório vazio segura a etapa.
+        await user.click(continueButton());
+        expect(
+          await screen.findByText("SellerOfferCreate.errors.templateRequired"),
+        ).toBeInTheDocument();
+        await user.type(
+          screen.getByLabelText(/Dispositivos monitorados/),
+          "250",
+        );
+        await user.selectOptions(screen.getByLabelText(/Ferramenta/), "zabbix");
+      };
+      const { user } = await goToReview({
+        afterCategory: chooseSubcategory,
+        beforeTechnicalContinue: fillTemplate,
+      });
+
+      expect(
+        screen.getAllByText(
+          "SellerOfferCreate.categories.software.label › Monitoramento",
+        ).length,
+      ).toBeGreaterThan(0);
+
+      await user.click(publishButton());
+
+      await waitFor(() =>
+        expect(productCatalogService.createSpecification).toHaveBeenCalledWith({
+          name: "Monitoramento",
+          categoryId: MONITORING_ID,
+          characteristics: { monitoredDevices: 250, tool: "zabbix" },
+        }),
+      );
+      expect(productCatalogService.getCategory).toHaveBeenCalledWith(
+        MONITORING_ID,
+        expect.anything(),
+      );
+    });
+
+    it("regras da categoria: obrigatória trava a etapa, opcional ligada pede os valores e tudo vai em ruleValues", async () => {
+      const chooseBackup = async (
+        user: ReturnType<typeof renderForm>["user"],
+      ) => {
+        await user.selectOptions(
+          await screen.findByLabelText(
+            "SellerOfferCreate.coverage.subcategoryLabel",
+          ),
+          BACKUP_ID,
+        );
+      };
+      const fillRules = async (user: ReturnType<typeof renderForm>["user"]) => {
+        expect(
+          await screen.findByText("SellerOfferCreate.rules.title"),
+        ).toBeInTheDocument();
+        // A obrigatória vazia segura a etapa.
+        await user.click(continueButton());
+        expect(
+          await screen.findByText("SellerOfferCreate.errors.templateRequired"),
+        ).toBeInTheDocument();
+        await user.type(screen.getByLabelText(/Horas para aceitar/), "48");
+        // A opcional só pede valor depois de ligada.
+        expect(screen.queryByLabelText(/Meses/)).not.toBeInTheDocument();
+        await user.click(
+          screen.getByLabelText("SellerOfferCreate.rules.apply"),
+        );
+        await user.type(await screen.findByLabelText(/Meses/), "12");
+      };
+      const { user } = await goToReview({
+        afterCategory: chooseBackup,
+        beforeTechnicalContinue: fillRules,
+      });
+
+      await user.click(publishButton());
+
+      await waitFor(() =>
+        expect(productCatalogService.createOffering).toHaveBeenCalledWith(
+          expect.objectContaining({
+            ruleValues: {
+              fastActivation: { maxAcceptanceHours: 48 },
+              extendedSupport: { months: 12 },
+            },
+          }),
+        ),
+      );
     });
   });
 });

@@ -2,141 +2,151 @@
 
 import React from "react";
 
-import { placeholderContracts } from "@/data/contractsPlaceholder";
-import type {
-  Contract,
-  ContractChangeRequest,
-  ContractsSummary,
-} from "@/types/contracts";
+import {
+  sortContractEntries,
+  summarizeContracts,
+} from "@/functions/contractFormat";
+import { useContractAutoRefresh } from "@/hooks/useContractAutoRefresh";
+import { contractsService } from "@/services/contracts.service";
+import {
+  ForbiddenError,
+  NetworkError,
+  NotFoundError,
+  ServerError,
+  TimeoutError,
+  ValidationError,
+} from "@/services/errors";
+import { ordersService, type ProductOrder } from "@/services/orders.service";
+import type { ContractEntry, OrderContract } from "@/types/contracts";
 
 import type { UseContractsReturn } from "./interface";
 
-const DAY = 24 * 60 * 60 * 1000;
+const PAGE_SIZE = 100;
+// Limite de segurança: 5000 contratos.
+const MAX_PAGES = 50;
 
-/** Dias inteiros até a data (arredondados para cima); 0 se já passou. */
-export function daysUntil(iso: string, now: number): number {
-  const diff = new Date(iso).getTime() - now;
-  return Number.isFinite(diff) && diff > 0 ? Math.ceil(diff / DAY) : 0;
+/** Chave i18n da falha de leitura de contratos. */
+export function contractsErrorKey(error: unknown): string {
+  if (error instanceof ForbiddenError) return "Contracts.errors.forbidden";
+  // 422: o contractId da URL não é UUID — nenhum contrato tem esse ID.
+  if (error instanceof NotFoundError || error instanceof ValidationError) {
+    return "Contracts.errors.notFound";
+  }
+  if (
+    error instanceof ServerError ||
+    error instanceof NetworkError ||
+    error instanceof TimeoutError
+  ) {
+    return "Contracts.errors.unavailable";
+  }
+  return "Contracts.errors.failed";
 }
 
-/** Próximo ID sequencial do ano: CR-2026-015. */
-function buildChangeRequestId(contracts: Contract[]): string {
-  const prefix = `CR-${new Date().getFullYear()}-`;
-  const last = contracts
-    .flatMap((contract) => contract.changeRequests)
-    .reduce((max, request) => {
-      if (!request.id.startsWith(prefix)) return max;
-      const sequence = Number(request.id.slice(prefix.length));
-      return Number.isFinite(sequence) ? Math.max(max, sequence) : max;
-    }, 0);
-  return `${prefix}${String(last + 1).padStart(3, "0")}`;
-}
-
-/** Aplica `patch` ao contrato `id` da lista. */
-function patchContract(
-  list: Contract[],
-  id: string,
-  patch: (contract: Contract) => Contract,
-): Contract[] {
-  return list.map((contract) =>
-    contract.id === id ? patch(contract) : contract,
-  );
+/** Lê todas as páginas da lista de contratos da organização. */
+async function fetchAllContracts(
+  signal: AbortSignal,
+): Promise<OrderContract[]> {
+  const contracts: OrderContract[] = [];
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const result = await contractsService.list(
+      { page, size: PAGE_SIZE },
+      { signal },
+    );
+    contracts.push(...result.items);
+    if (result.items.length < PAGE_SIZE || contracts.length >= result.total) {
+      break;
+    }
+  }
+  return contracts;
 }
 
 /**
- * Contratos do buyer. A API de contratos ainda não existe: a lista nasce dos
- * dados do design e as ações alteram o estado local, com a mesma assinatura
- * assíncrona que as chamadas à API terão.
+ * Junta a cada contrato o pedido que o originou (produto, valor, data). Os
+ * pedidos lidos ficam no `cache`; um pedido que falha fica null e o contrato
+ * aparece sem esses dados.
+ */
+export async function attachOrders(
+  contracts: OrderContract[],
+  cache: Map<string, ProductOrder>,
+  signal: AbortSignal,
+): Promise<ContractEntry[]> {
+  const missing = [
+    ...new Set(
+      contracts
+        .map((contract) => contract.orderId)
+        .filter((id) => !cache.has(id)),
+    ),
+  ];
+  const results = await Promise.allSettled(
+    missing.map((id) => ordersService.getOrder(id, { signal })),
+  );
+  results.forEach((result, index) => {
+    if (result.status === "fulfilled") cache.set(missing[index], result.value);
+  });
+  return contracts.map((contract) => ({
+    contract,
+    order: cache.get(contract.orderId) ?? null,
+  }));
+}
+
+/**
+ * Contratos de pedido do Buyer (contracts-api, perfil Buyer com
+ * `contract:read`), com o pedido de cada um, do mais novo ao mais antigo.
+ * Volta a ler sozinho ao retomar a aba e enquanto um envio à Autentique está
+ * em andamento.
  */
 export function useContracts(): UseContractsReturn {
-  const [now] = React.useState(() => Date.now());
-  const [contracts, setContracts] = React.useState<Contract[]>(() =>
-    placeholderContracts(now),
-  );
-  const [pendingId, setPendingId] = React.useState<string | null>(null);
+  const [entries, setEntries] = React.useState<ContractEntry[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [errorKey, setErrorKey] = React.useState<string | null>(null);
+  const [attempt, setAttempt] = React.useState(0);
+  const orders = React.useRef(new Map<string, ProductOrder>());
+  // Releitura em segundo plano: uma falha mantém a lista que já está na tela.
+  const isSilent = React.useRef(false);
 
-  const summary = React.useMemo<ContractsSummary>(
-    () => ({
-      active: contracts.filter((contract) => contract.status !== "suspended")
-        .length,
-      renewing: contracts.filter((contract) => contract.status === "renewing")
-        .length,
-      suspended: contracts.filter((contract) => contract.status === "suspended")
-        .length,
-      changeRequests: contracts.reduce(
-        (total, contract) =>
-          total +
-          contract.changeRequests.filter(
-            (request) => request.status === "pending",
-          ).length,
-        0,
-      ),
-    }),
-    [contracts],
-  );
+  React.useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
 
-  const toggleAutoRenew = React.useCallback(async (id: string) => {
-    setPendingId(id);
-    setContracts((list) =>
-      patchContract(list, id, (contract) => ({
-        ...contract,
-        autoRenew: !contract.autoRenew,
-      })),
-    );
-    setPendingId(null);
-    return true;
+    fetchAllContracts(signal)
+      .then((list) => attachOrders(list, orders.current, signal))
+      .then((list) => {
+        if (signal.aborted) return;
+        setEntries(sortContractEntries(list));
+        setErrorKey(null);
+      })
+      .catch((error) => {
+        if (signal.aborted || isSilent.current) return;
+        setEntries([]);
+        setErrorKey(contractsErrorKey(error));
+      })
+      .finally(() => {
+        if (signal.aborted) return;
+        isSilent.current = false;
+        setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [attempt]);
+
+  const reload = React.useCallback(() => {
+    isSilent.current = false;
+    setIsLoading(true);
+    setErrorKey(null);
+    setAttempt((n) => n + 1);
   }, []);
 
-  // O seller avalia e responde com a proposta de aditivo (ou recusa).
-  const requestAmendment = React.useCallback(
-    async (id: string, description: string) => {
-      if (!contracts.some((contract) => contract.id === id)) return null;
+  const refresh = React.useCallback(() => {
+    isSilent.current = true;
+    setAttempt((n) => n + 1);
+  }, []);
 
-      setPendingId(id);
-      const request: ContractChangeRequest = {
-        id: buildChangeRequestId(contracts),
-        description,
-        requestedAt: new Date().toISOString(),
-        status: "pending",
-      };
-      setContracts((list) =>
-        patchContract(list, id, (contract) => ({
-          ...contract,
-          changeRequests: [request, ...contract.changeRequests],
-        })),
-      );
-      setPendingId(null);
-      return request;
-    },
-    [contracts],
+  useContractAutoRefresh(
+    entries.map(({ contract }) => contract.status),
+    refresh,
   );
 
-  // O contrato segue ativo até o seller processar o pedido.
-  const requestCancellation = React.useCallback(
-    async (id: string) => {
-      const current = contracts.find((contract) => contract.id === id);
-      if (!current || current.cancellationRequested) return false;
+  const summary = React.useMemo(() => summarizeContracts(entries), [entries]);
 
-      setPendingId(id);
-      setContracts((list) =>
-        patchContract(list, id, (contract) => ({
-          ...contract,
-          cancellationRequested: true,
-        })),
-      );
-      setPendingId(null);
-      return true;
-    },
-    [contracts],
-  );
-
-  return {
-    contracts,
-    summary,
-    now,
-    pendingId,
-    toggleAutoRenew,
-    requestAmendment,
-    requestCancellation,
-  };
+  return { entries, summary, isLoading, errorKey, reload, refresh };
 }

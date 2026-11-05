@@ -27,8 +27,14 @@ import {
   locationsToCoverageNetworkPoints,
   coverageNetworkPointsToLocations,
 } from "@/functions/coverageNetworkPoints";
-import { offerCategory } from "@/data/offerCategories";
+import {
+  EMPTY_OFFER_TEMPLATE,
+  formTemplateFields,
+  type OfferTemplate,
+} from "@/functions/templateFields";
+import { useCategoryTemplate } from "@/hooks/useCategoryTemplate";
 import { useObjectUrl } from "@/hooks/useObjectUrl";
+import { useOfferCategories } from "@/hooks/useOfferCategories";
 import {
   useOfferingCoverageEditor,
   type OfferingCoveragePoints,
@@ -40,6 +46,7 @@ import {
   offerProductType,
   sellerOfferSchema,
   SELLER_OFFER_DEFAULTS,
+  type SellerOfferValidationContext,
   type SellerOfferValues,
 } from "@/schemas/sellerOffer";
 import type { OfferingImage } from "@/services/productCatalog.service";
@@ -57,7 +64,7 @@ type StepKey =
   | "review";
 
 const STEP_FIELDS: Record<StepKey, (keyof SellerOfferValues)[]> = {
-  coverage: ["category", "locations", "coverageRegion"],
+  coverage: ["category", "categoryId", "locations", "coverageRegion"],
   basicInfo: ["name", "shortDescription", "description"],
   technicalSpecs: [
     "speedValue",
@@ -71,10 +78,17 @@ const STEP_FIELDS: Record<StepKey, (keyof SellerOfferValues)[]> = {
     "hardwareCondition",
     "hardwareWarranty",
     "hardwareSerialization",
+    "includedIps",
+    "infraCapacity",
+    "infraSoldUnit",
+    "infraPowerSpacePort",
     "numberingResourceType",
     "numberingBlock",
     "numberingHolder",
     "attributes",
+    "templateValues",
+    "rulesEnabled",
+    "ruleValues",
   ],
   logistics: [
     "shippingOriginPostalCode",
@@ -147,6 +161,24 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
   const initialValues = isEdit ? props.initialValues : undefined;
   const { t } = useTranslation();
   const [step, setStep] = React.useState(isEdit ? (props.initialStep ?? 0) : 0);
+  // Campos genéricos e regras do template da categoria escolhida: o schema
+  // os lê pelo contexto da validação. O resolver lê a ref na hora de
+  // validar; o efeito abaixo troca o template quando a categoria muda.
+  const templateRef = React.useRef<OfferTemplate>(EMPTY_OFFER_TEMPLATE);
+  const resolver = React.useMemo(() => {
+    const validate = yupResolver(sellerOfferSchema);
+    return (
+      ...[values, , options]: Parameters<typeof validate>
+    ): ReturnType<typeof validate> =>
+      validate(
+        values,
+        {
+          templateFields: templateRef.current.fields,
+          rules: templateRef.current.rules,
+        },
+        options,
+      );
+  }, []);
 
   const {
     control,
@@ -158,8 +190,8 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     resetField,
     setValue,
     formState: { errors },
-  } = useForm<SellerOfferValues>({
-    resolver: yupResolver(sellerOfferSchema),
+  } = useForm<SellerOfferValues, SellerOfferValidationContext>({
+    resolver,
     // Valida ao avançar (cada etapa pelo `trigger`); depois disso, o efeito
     // abaixo revalida a etapa a cada mudança.
     mode: "onSubmit",
@@ -187,6 +219,9 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
 
   const [
     category,
+    categoryId,
+    categoryLabel,
+    requiresCoverage,
     productType,
     name,
     shortDescription,
@@ -199,6 +234,9 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     control,
     name: [
       "category",
+      "categoryId",
+      "categoryLabel",
+      "requiresCoverage",
       "productType",
       "name",
       "shortDescription",
@@ -243,15 +281,33 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     coveragePoints,
   );
   // As localidades salvas chegam com a cobertura (GET /offerCoverage):
-  // preenchem a lista, se o seller ainda não mexeu nela.
+  // preenchem a lista, se o seller ainda não mexeu nela. O endereço vem da
+  // especificação (localidade A/Z), que a cobertura não guarda.
   const { savedPoints } = coverageEditor;
+  const savedLabelsKey = JSON.stringify(
+    initialValues?.locations.map((location) => location.label) ?? [],
+  );
   React.useEffect(() => {
     if (!savedPoints?.length || getFieldState("locations").isDirty) return;
     resetField("locations", {
-      defaultValue: coverageNetworkPointsToLocations(savedPoints),
+      defaultValue: coverageNetworkPointsToLocations(
+        savedPoints,
+        JSON.parse(savedLabelsKey) as string[],
+      ),
     });
-  }, [savedPoints, getFieldState, resetField]);
-  const requiresCoverage = !!offerCategory(category)?.requiresCoverage;
+  }, [savedPoints, savedLabelsKey, getFieldState, resetField]);
+  const categories = useOfferCategories();
+  const categoryTemplate = useCategoryTemplate(categoryId || null);
+  const offerTemplate = React.useMemo<OfferTemplate>(
+    () => ({
+      fields: formTemplateFields(categoryTemplate.template, category),
+      rules: categoryTemplate.rules,
+    }),
+    [categoryTemplate.template, categoryTemplate.rules, category],
+  );
+  React.useEffect(() => {
+    templateRef.current = offerTemplate;
+  }, [offerTemplate]);
   // O tipo acompanha a categoria (também na edição): Hardware tem Logística.
   const isPhysical = offerProductType({ category, productType }) === "physical";
   const steps = isPhysical ? PHYSICAL_STEPS : SERVICE_STEPS;
@@ -295,6 +351,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
       props.offering,
       getValues(),
       props.initialValues,
+      offerTemplate,
     );
     if (outcome.status === "saved") {
       const warnings = outcome.warnings.map((key) => t(key));
@@ -325,7 +382,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
     }
 
     setNotice(null);
-    const outcome = await publish(getValues());
+    const outcome = await publish(getValues(), offerTemplate);
 
     if (outcome.status === "published" || outcome.status === "needsCoverage") {
       const values = getValues();
@@ -333,9 +390,11 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
         offeringId: outcome.offeringId,
         needsCoverage: outcome.status === "needsCoverage",
         name: values.name.trim(),
-        categoryLabel: values.category
-          ? t(`SellerOfferCreate.categories.${values.category}.label`)
-          : "",
+        categoryLabel:
+          values.categoryLabel ||
+          (values.category
+            ? t(`SellerOfferCreate.categories.${values.category}.label`)
+            : ""),
         price: formatMoney(values.price, values.currency, locale) ?? "",
         acceptanceSla: formatHours(values.acceptanceSla) ?? "",
         warnings: outcome.warnings.map((key) => t(key)),
@@ -422,6 +481,8 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
                 control={control}
                 register={register}
                 errors={errors}
+                setValue={setValue}
+                categories={categories}
                 organizationId={organizationId}
                 coverageEditor={isEdit ? coverageEditor : undefined}
                 locale={locale}
@@ -442,6 +503,13 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
                 control={control}
                 register={register}
                 errors={errors}
+                template={{
+                  fields: offerTemplate.fields,
+                  rules: offerTemplate.rules,
+                  isLoading: categoryTemplate.isLoading,
+                  hasError: categoryTemplate.hasError,
+                  onRetry: categoryTemplate.refetch,
+                }}
               />
             </Box>
 
@@ -546,6 +614,7 @@ export function FormSellerOffer(props: FormSellerOfferProps) {
         <Box position={{ xl: "sticky" }} top="24px">
           <SellerOfferPreview
             category={category || null}
+            categoryLabel={categoryLabel || undefined}
             name={name}
             description={shortDescription}
             imageUrl={imageUrl}

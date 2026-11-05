@@ -8,6 +8,8 @@ export interface AddressAutocompleteProps {
   label: string;
   /** Complemento cinza ao lado do rótulo (ex.: "(quando aplicável)"). */
   labelHint?: string;
+  /** Mostra o "*" de campo obrigatório no rótulo. */
+  required?: boolean;
   placeholder?: string;
   /**
    * Texto inicial do campo (o endereço já escolhido). Depois de montado, o

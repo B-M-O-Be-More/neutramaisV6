@@ -114,6 +114,31 @@ describe("BFF da publicação de oferta", () => {
     expect(sent().body).toEqual({ shipping: { weightKg: 2 } });
   });
 
+  it("POST e PATCH productOffering repassam os valores das regras do template", async () => {
+    const ruleValues = {
+      fastActivation: { maxAcceptanceHours: 48 },
+      extendedSupport: null,
+    };
+    await offeringRoute.POST(
+      jsonRequest("/api/productCatalog/productOffering", "POST", {
+        name: "Link",
+        specificationId: "spec-1",
+        monthlyPrice: "100.00",
+        ruleValues,
+      }),
+    );
+    expect(sent().body).toMatchObject({ ruleValues });
+
+    fetchMock.mockClear();
+    await detailRoute.PATCH(
+      jsonRequest(`/api/productCatalog/productOffering/${OFFERING}`, "PATCH", {
+        ruleValues,
+      }),
+      params(OFFERING),
+    );
+    expect(sent().body).toEqual({ ruleValues });
+  });
+
   it("POST productSpecification repassa nome e descrição", async () => {
     await specificationRoute.POST(
       jsonRequest("/api/productCatalog/productSpecification", "POST", {

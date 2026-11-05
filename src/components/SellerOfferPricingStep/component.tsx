@@ -41,7 +41,8 @@ function symbolOf(currency: string, language: string | undefined): string {
 
 /**
  * Etapa 4 da criação de oferta (Figma 2073-50238): modelo de preço, moeda,
- * preço, setup, estoque, cancelamento, vigência e patrocínio.
+ * preço, setup, estoque (obrigatório nas categorias com estoque numérico),
+ * cancelamento, vigência e patrocínio.
  */
 export function SellerOfferPricingStep({
   control,
@@ -50,6 +51,8 @@ export function SellerOfferPricingStep({
 }: SellerOfferPricingStepProps) {
   const { t, i18n } = useTranslation();
   const currency = useWatch({ control, name: "currency" }) ?? "BRL";
+  // Categoria com estoque numérico (flag da API) só publica com estoque.
+  const stockRequired = !!useWatch({ control, name: "hasNumericStock" });
   const currencySymbol = symbolOf(currency, i18n.language);
 
   const tError = (message?: string) => (message ? t(message) : undefined);
@@ -219,6 +222,7 @@ export function SellerOfferPricingStep({
         <OfferFormField
           id="offer-stock"
           label={t("SellerOfferCreate.pricing.stockLabel")}
+          required={stockRequired}
           error={stockError}
         >
           <Input

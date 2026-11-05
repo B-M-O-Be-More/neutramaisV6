@@ -15,6 +15,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import type { IconType } from "react-icons";
 import {
+  LuBadgeCheck,
   LuDollarSign,
   LuEye,
   LuImage,
@@ -208,9 +209,18 @@ export function SellerOfferDetail({
   // Os valores do assistente já vêm normalizados do `metadata`.
   const values = offeringToFormValues(offering, specificationName);
   const category = offerCategory(values.category);
-  const categoryLabel = category
-    ? t(`SellerOfferCreate.categories.${category.key}.label`)
-    : specificationName;
+  // Em subcategoria (ou categoria nova), o nome da especificação é o dela.
+  const familyLabel =
+    category && category.key !== "custom"
+      ? t(`SellerOfferCreate.categories.${category.key}.label`)
+      : undefined;
+  const categoryLabel =
+    familyLabel &&
+    specificationName &&
+    offering.categoryId &&
+    offering.categoryId !== category?.categoryId
+      ? `${familyLabel} › ${specificationName}`
+      : (familyLabel ?? specificationName);
   const currency = values.currency;
 
   const reference = `OFR-${offering.id.slice(0, 8).toUpperCase()}`;
@@ -308,11 +318,17 @@ export function SellerOfferDetail({
     },
   ];
 
-  const coverage = !category?.requiresCoverage
+  // `coverageRequired` vem da categoria da oferta na API (NEU-561).
+  const requiresCoverage =
+    offering.coverageRequired ?? !!category?.requiresCoverage;
+  const coverage = !requiresCoverage
     ? {
         title: t("SellerOfferCreate.coverage.notApplicableTitle"),
         text: category
-          ? t(`SellerOfferCreate.coverage.notApplicable.${category.key}`)
+          ? t([
+              `SellerOfferCreate.coverage.notApplicable.${category.key}`,
+              "SellerOfferCreate.coverage.notApplicable.custom",
+            ])
           : t("SellerOfferDetail.coverage.unknownCategory"),
         action: null,
       }
@@ -480,6 +496,32 @@ export function SellerOfferDetail({
                   </Text>
                 </Flex>
               )}
+              {/* Selos das regras condicionais do template (NEU-627). */}
+              {offering.badges?.map((badge) => (
+                <Flex
+                  key={badge.code}
+                  align="center"
+                  gap="4px"
+                  px="11px"
+                  py="3px"
+                  bg="#EEF3FF"
+                  borderWidth="1px"
+                  borderColor="#C7D8FF"
+                  rounded="10px"
+                >
+                  <Icon as={LuBadgeCheck} boxSize="12px" color="#1F5AFF" />
+                  <Text
+                    color="#1F5AFF"
+                    fontSize="11px"
+                    fontWeight={600}
+                    lineHeight="16.5px"
+                  >
+                    {t(`SellerOfferCreate.rules.badges.${badge.code}`, {
+                      defaultValue: badge.label,
+                    })}
+                  </Text>
+                </Flex>
+              ))}
               <Text color="#A0ABB8" fontSize="11px" lineHeight="16.5px">
                 {subtitle}
               </Text>

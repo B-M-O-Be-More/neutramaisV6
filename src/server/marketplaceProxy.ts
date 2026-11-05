@@ -66,6 +66,25 @@ function buildQueryString(params?: Record<string, QueryValue>): string {
 }
 
 /**
+ * A marketplace-api recusa token vencido ou inválido com 403 "Invalid access
+ * token", sem `code` — o mesmo status da falta de permissão. Vira 401 para o
+ * front renovar a sessão e repetir; 403 com `code` (ex.:
+ * `MKT_PERMISSION_REQUIRED`) segue 403.
+ */
+function isExpiredTokenRefusal(status: number, text: string): boolean {
+  if (status !== 403) return false;
+  try {
+    const body = JSON.parse(text) as {
+      message?: unknown;
+      metadata?: { code?: unknown } | null;
+    };
+    return body.message === "Invalid access token" && !body.metadata?.code;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Encaminha uma requisição para a marketplace-api e devolve a resposta upstream
  * (corpo + status) sem alterar o envelope. Erros de infraestrutura viram
  * envelopes de erro tipados.
@@ -115,8 +134,11 @@ export async function forwardToMarketplace({
       return new NextResponse(null, { status: 204, headers: correlation });
     }
 
-    return new NextResponse(await upstream.text(), {
-      status: upstream.status,
+    const text = await upstream.text();
+    return new NextResponse(text, {
+      status: isExpiredTokenRefusal(upstream.status, text)
+        ? 401
+        : upstream.status,
       headers: {
         "Content-Type":
           upstream.headers.get("Content-Type") ?? "application/json",

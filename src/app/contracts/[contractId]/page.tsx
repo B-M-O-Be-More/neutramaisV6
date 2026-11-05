@@ -1,32 +1,35 @@
 "use client";
 
 import {
-  Box,
   Button,
   Flex,
   Icon,
   SimpleGrid,
+  Skeleton,
   Stack,
   Text,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
-import { useParams } from "next/navigation";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { LuChevronLeft, LuDownload } from "react-icons/lu";
+import { LuChevronLeft, LuDownload, LuRefreshCw } from "react-icons/lu";
 
-import ContractChangeRequests from "@/components/ContractChangeRequests";
-import ContractClauses from "@/components/ContractClauses";
 import ContractDetailActions from "@/components/ContractDetailActions";
-import ContractPayments from "@/components/ContractPayments";
+import ContractDocumentPreview from "@/components/ContractDocumentPreview";
+import ContractSignaturePanel from "@/components/ContractSignaturePanel";
+import ContractStatusBadge from "@/components/ContractStatusBadge";
 import ContractSummary from "@/components/ContractSummary";
 import AuthenticatedLayout from "@/components/Layouts/Authenticated";
-import { toaster } from "@/components/ui/toaster";
-import { CONTRACT_STATUS_STYLES } from "@/data/contractStatus";
+import {
+  ProfileSessionProvider,
+  useProfileSession,
+} from "@/contexts/ProfileSessionContext";
 import { currencyLocale } from "@/functions/currencyLocale";
-import { formatProposalMoney } from "@/functions/proposalFormat";
+import { orderItemNames, shortId } from "@/functions/contractFormat";
+import { useContract } from "@/hooks/useContract";
 import { useContractActions } from "@/hooks/useContractActions";
-import { useContracts } from "@/hooks/useContracts";
+import { useContractDocument } from "@/hooks/useContractDocument";
+import type { ContractEntry } from "@/types/contracts";
 
 /** Volta para a lista de contratos (breadcrumb). */
 function BackToContracts() {
@@ -55,60 +58,36 @@ function BackToContracts() {
   );
 }
 
-function ContractDetailContent({ contractId }: { contractId: string }) {
+const PAGE_PROPS = {
+  maxW: "1280px",
+  px: { base: 4, md: "32px" },
+  py: { base: 6, md: "28px" },
+} as const;
+
+function ContractDetailView({
+  entry,
+  refresh,
+}: {
+  entry: ContractEntry;
+  refresh: () => void;
+}) {
   const { t, i18n } = useTranslation();
   const locale = currencyLocale(i18n.language);
-  const contractsState = useContracts();
-  const actionsFor = useContractActions(contractsState);
-  const [isAmendmentOpen, setIsAmendmentOpen] = React.useState(false);
-
-  const contract = contractsState.contracts.find(
-    (item) => item.id === contractId,
+  const { context } = useProfileSession();
+  const { contract, order } = entry;
+  const pdf = useContractDocument(contract.contractId, contract.documentHash);
+  const actions = useContractActions({ onChanged: refresh })(
+    contract,
+    pdf.blob,
   );
 
-  if (!contract) {
-    return (
-      <Stack
-        maxW="1280px"
-        px={{ base: 4, md: "32px" }}
-        py={{ base: 6, md: "28px" }}
-        gap="16px"
-        align="flex-start"
-      >
-        <BackToContracts />
-        <Text color="#0F1729" fontSize="15px" fontWeight={700}>
-          {t("Contracts.detail.notFound")}
-        </Text>
-      </Stack>
-    );
-  }
-
-  const status = CONTRACT_STATUS_STYLES[contract.status];
-  const actions = actionsFor(contract);
-  const showComingSoon = () =>
-    toaster.create({ type: "info", title: t("Contracts.comingSoon") });
-
-  // "Solicitar aditivo" das ações abre o formulário da seção e leva até ele.
-  const openAmendment = () => {
-    setIsAmendmentOpen(true);
-    document
-      .getElementById(`contract-${contract.id}-change-requests`)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const submitAmendment = async (description: string) => {
-    if (await actions.onSubmitAmendment(description)) {
-      setIsAmendmentOpen(false);
-    }
-  };
+  const names = order ? orderItemNames(order) : [];
+  const title = names.length
+    ? names.join(", ")
+    : t("Contracts.card.untitled", { id: shortId(contract.orderId) });
 
   return (
-    <Stack
-      maxW="1280px"
-      px={{ base: 4, md: "32px" }}
-      py={{ base: 6, md: "28px" }}
-      gap="24px"
-    >
+    <Stack {...PAGE_PROPS} gap="24px">
       <Flex
         as="nav"
         align="center"
@@ -126,13 +105,13 @@ function ContractDetailContent({ contractId }: { contractId: string }) {
           lineHeight="21px"
           aria-current="page"
         >
-          {contract.id}
+          {shortId(contract.contractId)}
         </Text>
       </Flex>
 
       <Flex
         direction={{ base: "column", md: "row" }}
-        align={{ base: "flex-start", md: "flex-start" }}
+        align="flex-start"
         justify="space-between"
         gap="16px"
       >
@@ -144,107 +123,139 @@ function ContractDetailContent({ contractId }: { contractId: string }) {
             fontWeight={800}
             lineHeight="33px"
           >
-            {contract.productName}
+            {title}
           </Text>
           <Text color="#8A9AB5" fontSize="13px" lineHeight="19.5px">
             {[
-              contract.sellerName,
-              contract.id,
-              t("Contracts.detail.order", { id: contract.orderId }),
+              t("Contracts.card.contract", {
+                id: shortId(contract.contractId),
+              }),
+              t("Contracts.card.order", { id: shortId(contract.orderId) }),
             ].join(" · ")}
           </Text>
         </Stack>
 
         <Flex align="center" gap="12px" flexShrink={0}>
-          <Button
-            variant="plain"
-            h="auto"
-            px="10px"
-            py="6px"
-            gap="6px"
-            bg="#EEF3FF"
-            borderWidth="1px"
-            borderColor="#C7D8FF"
-            rounded="13px"
-            color="#1F5AFF"
-            fontSize="13px"
-            fontWeight={600}
-            lineHeight="19.5px"
-            _hover={{ bg: "#E0EAFF" }}
-            onClick={showComingSoon}
-          >
-            <Icon as={LuDownload} boxSize="13px" />
-            {t("Contracts.detail.downloadPdf")}
-          </Button>
-          <Flex
-            align="center"
-            gap="6px"
-            px="12px"
-            py="6px"
-            bg={status.bg}
-            borderWidth="1px"
-            borderColor="rgba(0, 0, 0, 0.1)"
-            rounded="14px"
-            color={status.color}
-          >
-            <Box boxSize="8px" rounded="full" bg={status.color} />
-            <Text fontSize="13px" fontWeight={700} lineHeight="19.5px">
-              {t(`Contracts.statuses.${contract.status}`)}
-            </Text>
-          </Flex>
+          {actions.canDownload && (
+            <Button
+              variant="plain"
+              h="auto"
+              px="10px"
+              py="6px"
+              gap="6px"
+              bg="#EEF3FF"
+              borderWidth="1px"
+              borderColor="#C7D8FF"
+              rounded="13px"
+              color="#1F5AFF"
+              fontSize="13px"
+              fontWeight={600}
+              lineHeight="19.5px"
+              _hover={{ bg: "#E0EAFF" }}
+              loading={actions.isDownloading}
+              onClick={actions.onDownload}
+            >
+              <Icon as={LuDownload} boxSize="13px" />
+              {t("Contracts.actions.downloadPdf")}
+            </Button>
+          )}
+          <ContractStatusBadge status={contract.status} size="md" />
         </Flex>
       </Flex>
 
       <SimpleGrid columns={{ base: 1, lg: 3 }} gap="20px" alignItems="start">
         <Stack gap="20px" gridColumn={{ lg: "span 2" }} minW={0}>
-          <ContractClauses clauses={contract.clauses} />
-          <ContractPayments
-            payments={contract.payments}
-            locale={locale}
-            onDownloadInvoice={showComingSoon}
+          <ContractSignaturePanel
+            contract={contract}
+            currentUserId={context?.user_id ?? null}
+            signAction={actions.signAction}
+            isSigning={actions.isSigning}
+            onSign={actions.onSign}
+            onRefresh={refresh}
           />
-          <ContractChangeRequests
-            contractId={contract.id}
-            requests={contract.changeRequests}
-            locale={locale}
-            isFormOpen={isAmendmentOpen}
-            isSubmitting={actions.isPending}
-            onOpenForm={() => setIsAmendmentOpen(true)}
-            onCloseForm={() => setIsAmendmentOpen(false)}
-            onSubmit={submitAmendment}
+          <ContractDocumentPreview
+            documentHash={contract.documentHash}
+            url={pdf.url}
+            isVerified={pdf.isVerified}
+            isLoading={pdf.isLoading}
+            errorKey={pdf.errorKey}
+            onRetry={pdf.reload}
           />
         </Stack>
 
         <Stack gap="16px" minW={0}>
-          <ContractSummary contract={contract} locale={locale} />
-          <ContractDetailActions
-            autoRenew={contract.autoRenew}
-            cancellationRequested={contract.cancellationRequested}
-            exitFee={
-              contract.exitFee
-                ? formatProposalMoney(contract.exitFee, locale)
-                : null
-            }
-            isPending={actions.isPending}
-            onRequestAmendment={openAmendment}
-            onToggleAutoRenew={actions.onToggleAutoRenew}
-            onConfirmCancellation={actions.onConfirmCancellation}
-          />
+          <ContractSummary entry={entry} locale={locale} />
+          <ContractDetailActions orderId={contract.orderId} {...actions} />
         </Stack>
       </SimpleGrid>
     </Stack>
   );
 }
 
-// Detalhe do contrato do buyer (Figma 2190-14094): cláusulas, histórico de
-// pagamentos, aditivos, dados e ações. A API de contratos ainda não existe —
-// useContracts devolve os dados do design.
-export default function ContractDetailPage() {
-  const { contractId } = useParams<{ contractId: string }>();
+function ContractDetailContent({ contractId }: { contractId: string }) {
+  const { t } = useTranslation();
+  const { entry, isLoading, errorKey, reload, refresh } =
+    useContract(contractId);
+
+  if (isLoading) {
+    return (
+      <Stack {...PAGE_PROPS} gap="24px" aria-busy="true">
+        <Skeleton h="24px" w="220px" rounded="8px" />
+        <Skeleton h="56px" rounded="12px" />
+        <Skeleton h="420px" rounded="14px" />
+      </Stack>
+    );
+  }
+
+  if (!entry) {
+    const canRetry =
+      errorKey !== "Contracts.errors.forbidden" &&
+      errorKey !== "Contracts.errors.notFound";
+    return (
+      <Stack {...PAGE_PROPS} gap="16px" align="flex-start">
+        <BackToContracts />
+        <Text role="alert" color="#0F1729" fontSize="15px" fontWeight={700}>
+          {t(errorKey ?? "Contracts.errors.failed")}
+        </Text>
+        {canRetry && (
+          <Button
+            variant="plain"
+            h="36px"
+            px="14px"
+            gap="6px"
+            rounded="10px"
+            borderWidth="1px"
+            borderColor="#E5E8EE"
+            color="#1F5AFF"
+            fontSize="13px"
+            fontWeight={600}
+            onClick={reload}
+          >
+            <Icon as={LuRefreshCw} boxSize="13px" />
+            {t("Contracts.retry")}
+          </Button>
+        )}
+      </Stack>
+    );
+  }
+
+  return <ContractDetailView entry={entry} refresh={refresh} />;
+}
+
+// Detalhe do contrato de pedido do buyer: status da assinatura, PDF conferido
+// pelo SHA-256, dados do pedido e as ações (assinar na Autentique, baixar).
+export default function ContractDetailPage({
+  params,
+}: {
+  params: Promise<{ contractId: string }>;
+}) {
+  const { contractId } = React.use(params);
 
   return (
     <AuthenticatedLayout>
-      <ContractDetailContent contractId={decodeURIComponent(contractId)} />
+      <ProfileSessionProvider profile="buyer">
+        <ContractDetailContent contractId={decodeURIComponent(contractId)} />
+      </ProfileSessionProvider>
     </AuthenticatedLayout>
   );
 }

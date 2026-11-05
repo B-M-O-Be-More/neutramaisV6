@@ -7,12 +7,11 @@ import { ConflictError, ServerError } from "@/services/errors";
 import {
   productCatalogService,
   type ProductOffering,
+  type ProductSpecification,
 } from "@/services/productCatalog.service";
 
 vi.mock("@/services/productCatalog.service", () => ({
   productCatalogService: {
-    listSpecifications: vi.fn(),
-    getCatalog: vi.fn(),
     createSpecification: vi.fn(),
     createOffering: vi.fn(),
     bindCoverage: vi.fn(),
@@ -26,7 +25,21 @@ const OFFERING_ID = "33333333-3333-4333-8333-333333333333";
 // Conectividade: precisa de cobertura (KMZ), que só entra depois de criar.
 const VALUES: SellerOfferValues = {
   category: "connectivity",
-  locations: [],
+  categoryId: "0193a000-0000-7000-8000-000000000c01",
+  categoryLabel: "Conectividade",
+  requiresCoverage: true,
+  hasNumericStock: false,
+  templateValues: {},
+  rulesEnabled: {},
+  ruleValues: {},
+  locations: [
+    {
+      label: "Av. Paulista, 1000, São Paulo - SP",
+      longitude: -46.65,
+      latitude: -23.56,
+      radiusKm: "5",
+    },
+  ],
   coverageRegion: "",
   name: "Link Dedicado 1 Gbps",
   shortDescription: "Link simétrico com SLA",
@@ -42,6 +55,10 @@ const VALUES: SellerOfferValues = {
   hardwareCondition: "",
   hardwareWarranty: "",
   hardwareSerialization: "",
+  includedIps: "8",
+  infraCapacity: "",
+  infraSoldUnit: "",
+  infraPowerSpacePort: "",
   numberingResourceType: "",
   numberingBlock: "",
   numberingHolder: "",
@@ -75,28 +92,20 @@ const VALUES: SellerOfferValues = {
 };
 
 // Software: sem cobertura, publica direto.
-const SOFTWARE: SellerOfferValues = { ...VALUES, category: "software" };
-
-const spec = (id: string, name: string) => ({
-  id,
-  organizationId: "org-1",
-  catalogId: "cat-1",
-  name,
-  description: null,
-  estimatedInstallationDays: null,
-  capacity: null,
-  isActive: true,
-  createdAt: "",
-  updatedAt: "",
-});
+const SOFTWARE: SellerOfferValues = {
+  ...VALUES,
+  category: "software",
+  categoryId: "0193a000-0000-7000-8000-000000000c05",
+  categoryLabel: "Softwares e Gerenciamento",
+  requiresCoverage: false,
+};
 
 describe("usePublishOffering", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(productCatalogService.listSpecifications).mockResolvedValue([
-      spec("spec-connectivity", "Conectividade"),
-      spec("spec-software", "Softwares e Gerenciamento"),
-    ]);
+    vi.mocked(productCatalogService.createSpecification).mockResolvedValue({
+      id: "spec-new",
+    } as ProductSpecification);
     vi.mocked(productCatalogService.createOffering).mockResolvedValue({
       id: OFFERING_ID,
     } as ProductOffering);
@@ -118,6 +127,28 @@ describe("usePublishOffering", () => {
     expect(productCatalogService.createOffering).toHaveBeenCalledTimes(1);
     expect(productCatalogService.bindCoverage).not.toHaveBeenCalled();
     expect(productCatalogService.transitionOffering).not.toHaveBeenCalled();
+  });
+
+  it("cria a especificação na categoria, com os valores do template, e a oferta nela", async () => {
+    const { result } = renderHook(() => usePublishOffering());
+
+    await act(async () => {
+      await result.current.publish(VALUES);
+    });
+
+    expect(productCatalogService.createSpecification).toHaveBeenCalledWith({
+      name: "Conectividade",
+      categoryId: "0193a000-0000-7000-8000-000000000c01",
+      characteristics: {
+        bandwidthMbps: 1000,
+        technicalSlaPercent: 99.5,
+        locationA: "Av. Paulista, 1000, São Paulo - SP",
+        includedIps: 8,
+      },
+    });
+    expect(productCatalogService.createOffering).toHaveBeenCalledWith(
+      expect.objectContaining({ specificationId: "spec-new" }),
+    );
   });
 
   it("categoria com KMZ e patrocínio: aplica o patrocínio no rascunho", async () => {

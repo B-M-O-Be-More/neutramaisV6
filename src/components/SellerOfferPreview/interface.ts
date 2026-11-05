@@ -2,6 +2,8 @@ import type { OfferCategory } from "@/data/offerCategories";
 
 export interface SellerOfferPreviewProps {
   category: OfferCategory | null;
+  /** Raiz › subcategoria; ausente usa o rótulo da família. */
+  categoryLabel?: string;
   name?: string;
   description?: string;
   /** Imagem escolhida na etapa 2 (URL local); ausente mostra "Sem imagem". */

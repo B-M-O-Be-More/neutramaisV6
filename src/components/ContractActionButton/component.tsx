@@ -43,8 +43,8 @@ const TONES: Record<
 };
 
 /**
- * Ação de um contrato: aditivo, renovação automática, cancelamento, ver o
- * contrato. `block` ocupa a largura toda (card "Ações" do detalhe).
+ * Ação de um contrato: assinar, baixar o PDF, ver o detalhe. `block` ocupa a
+ * largura toda (card "Ações" do detalhe).
  */
 export function ContractActionButton({
   tone,

@@ -56,6 +56,21 @@ describe("BFF da publicação de oferta com a sessão de perfil", () => {
     expect(bearer()).toBe("Bearer seller-profile-token");
   });
 
+  it("repassa a moeda dos preços (exigida em serviço) e descarta isPublic", async () => {
+    await offeringRoute.POST(
+      jsonRequest("/api/productCatalog/productOffering", {
+        name: "Link",
+        specificationId: "spec-1",
+        monthlyPrice: "100.00",
+        currency: "BRL",
+        isPublic: true,
+      }),
+    );
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.currency).toBe("BRL");
+    expect(body).not.toHaveProperty("isPublic");
+  });
+
   it("lê e cria planos com o token do perfil", async () => {
     await specificationRoute.GET();
     expect(bearer()).toBe("Bearer seller-profile-token");
@@ -67,6 +82,44 @@ describe("BFF da publicação de oferta com a sessão de perfil", () => {
       }),
     );
     expect(bearer()).toBe("Bearer seller-profile-token");
+  });
+
+  it("token vencido (403 'Invalid access token' sem code) vira 401 para renovar", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      text: async () =>
+        '{"message":"Invalid access token","data":null,"metadata":{"correlationId":"c-1"}}',
+      headers: { get: () => "application/json" },
+    });
+    const expired = await specificationRoute.GET();
+    expect(expired.status).toBe(401);
+
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 403,
+      text: async () =>
+        '{"message":"Missing permission","data":null,"metadata":{"code":"MKT_PERMISSION_REQUIRED"}}',
+      headers: { get: () => "application/json" },
+    });
+    const forbidden = await specificationRoute.GET();
+    expect(forbidden.status).toBe(403);
+  });
+
+  it("repassa categoryId e characteristics ao criar a especificação", async () => {
+    await specificationRoute.POST(
+      jsonRequest("/api/productCatalog/productSpecification", {
+        name: "Infra Física",
+        categoryId: "0193a000-0000-7000-8000-000000000c02",
+        characteristics: { soldUnit: "port" },
+        catalogId: "descartado",
+      }),
+    );
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      name: "Infra Física",
+      categoryId: "0193a000-0000-7000-8000-000000000c02",
+      characteristics: { soldUnit: "port" },
+    });
   });
 
   it("lê o catálogo com o token do perfil", async () => {
