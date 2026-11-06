@@ -6984,5 +6984,165 @@
       "permission": "Your user is not allowed to change prices.",
       "failed": "Could not save the price. Try again."
     }
+  },
+  "Checkout": {
+    "title": "Checkout",
+    "steps": {
+      "summary": "Summary and contract",
+      "method": "Payment method",
+      "verification": "Verification",
+      "payment": "Payment",
+      "done": "Confirmed"
+    },
+    "address": {
+      "title": "Delivery address",
+      "description": "Applies to every physical product in this checkout. Shipping is quoted for this postal code.",
+      "fields": {
+        "recipient": "Recipient name",
+        "postalCode": "Postal code (CEP)",
+        "street": "Street",
+        "number": "Number",
+        "complement": "Complement",
+        "district": "District",
+        "city": "City",
+        "state": "State"
+      },
+      "errors": {
+        "recipient": "2 to 150 characters.",
+        "postalCode": "8-digit postal code.",
+        "street": "2 to 200 characters.",
+        "number": "Up to 20 characters.",
+        "complement": "Up to 150 characters.",
+        "district": "2 to 100 characters.",
+        "city": "2 to 100 characters.",
+        "state": "Choose the state."
+      }
+    },
+    "order": {
+      "position": "Order {{index}} of {{total}}",
+      "quantity_one": "{{count}} unit",
+      "quantity_other": "{{count}} units",
+      "carrier": "Carrier for this order",
+      "needsPostalCode": "Enter the delivery postal code to see shipping options.",
+      "quoteFailed": "We couldn't quote shipping for this postal code. Check it or try again.",
+      "quoteRfq": "Shipping for this product is agreed with the seller, so it can't be bought through checkout.",
+      "noCarrier": "No carrier serves this postal code.",
+      "cheapest": "Cheapest",
+      "fastest": "Fastest",
+      "days_one": "Up to {{max}} business day",
+      "days_other": "{{min}} to {{max}} business days",
+      "pickup": "Pickup at seller",
+      "free": "Free"
+    },
+    "summary": {
+      "breakdown": "Financial breakdown",
+      "products": "Products",
+      "shipping": "Shipping",
+      "fee": "Neutra+ fee",
+      "feeLater": "Calculated when the order is created",
+      "total": "Estimated total",
+      "escrowTitle": "Protected payment",
+      "escrowDescription": "Neutra+ holds the payment and releases it to the seller only after acceptance and delivery. Cancelling before acceptance refunds the full amount as Neutra+ credit within 7 days.",
+      "terms": "I agree to the Neutra+ Terms of Use and Escrow Policy. I understand the price is a snapshot of the offer and won't change after confirmation."
+    },
+    "problems": {
+      "invalidAddress": "Check the delivery address.",
+      "missingShipping": "Choose a carrier for each product.",
+      "acceptTerms": "Accept the terms to continue.",
+      "serviceNeedsViability": "Services need a feasibility check."
+    },
+    "blocked": {
+      "kyc": "Your organization can't buy yet. Finish your registration to continue.",
+      "empty": "Your cart is empty.",
+      "fixCart": "Some items in your cart need fixing before checkout.",
+      "service": "Services (such as connectivity and infrastructure) need an address feasibility check, which isn't available in checkout yet. For now, check out physical products only."
+    },
+    "method": {
+      "creditTitle": "Use Neutra+ credit",
+      "creditAvailable": "Available credit:",
+      "noCredit": "no balance",
+      "creditApplied": "Credit applied",
+      "title": "Payment method",
+      "pix": "PIX",
+      "pixDescription": "Instant approval · QR code",
+      "soon": "Coming soon",
+      "card": "Credit card",
+      "cardDescription": "Visa, Mastercard and other brands",
+      "totalNow": "Total due now"
+    },
+    "verification": {
+      "title": "Authenticator verification",
+      "description": "For security, financial actions require the code from your authenticator app (TOTP).",
+      "notice": "Authentication is required to buy, pay orders, change tax data and perform financial actions, under Neutra+ rules.",
+      "codeLabel": "6-digit code",
+      "submit": "Verify code",
+      "processing": "Creating orders…",
+      "enroll": "Set up an authenticator in your profile"
+    },
+    "card": {
+      "title": "Card payment",
+      "total": "Card total:",
+      "submit": "Pay {{amount}}",
+      "notConfigured": "Card payment isn't configured in this environment (the Stripe publishable key is missing). The orders were created and are awaiting payment."
+    },
+    "result": {
+      "following": "Confirming payment…",
+      "followingDescription": "This takes a few seconds. Don't close this page.",
+      "orders_one": "Order",
+      "orders_other": "Orders",
+      "status": "Status",
+      "escrow": "Amount in escrow",
+      "success": {
+        "title": "Payment confirmed",
+        "description": "Your payment was accepted. The seller has until the acceptance deadline to confirm the order.",
+        "status": "Payment approved"
+      },
+      "pending": {
+        "title": "Payment processing",
+        "description": "Your payment is still being processed. Follow it in My orders.",
+        "status": "Payment pending"
+      },
+      "approval": {
+        "title": "Sent for approval",
+        "description": "This purchase is above your limit. The Owner or Finance has up to 72 hours to approve it.",
+        "status": "Awaiting approval"
+      },
+      "error": {
+        "title": "Payment error",
+        "description": "Your payment didn't go through. Please try again.",
+        "status": "Not completed"
+      }
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "back": "Back",
+      "toPayment": "Continue to payment",
+      "toVerification": "Go to verification",
+      "retry": "Try again",
+      "home": "Back to home",
+      "orders": "See my orders",
+      "backToCart": "Back to cart"
+    },
+    "errors": {
+      "mfa": "Your session needs authenticator verification. Enter a new code.",
+      "mfaEnrollment": "Your account doesn't have an authenticator yet.",
+      "outOfStock": "A product doesn't have stock for this quantity. Adjust your cart.",
+      "purchaseLimit": "The quantity exceeds the purchase limit per organization.",
+      "priceNotAvailable": "No offer price covers this quantity.",
+      "mixedCurrencies": "Offers in different currencies: check out one currency at a time.",
+      "approvalPending": "This checkout is awaiting approval from the Owner or Finance.",
+      "offerChanged": "The offer or shipping changed. Go back to the summary and review the amounts.",
+      "walletReservation": "We couldn't reserve your Neutra+ credit. Try without credit or later.",
+      "mixedTypes": "Buy physical products and services from the same seller separately.",
+      "shippingTooHigh": "Shipping exceeds the seller's order amount. Choose another carrier.",
+      "busy": "The checkout is being processed. Try again in a few seconds.",
+      "conflict": "The checkout couldn't be created. Check your cart and try again.",
+      "forbidden": "Your profile isn't allowed to buy.",
+      "invalid": "Some checkout data is in the wrong format.",
+      "unavailable": "The orders service is unavailable. Try again shortly.",
+      "cardDeclined": "The card wasn't approved.",
+      "failed": "We couldn't finish. Please try again.",
+      "paymentUnavailable": "Your order was created and is awaiting payment, but the payment service is unavailable. Try again shortly: the same order will be used."
+    }
   }
 }

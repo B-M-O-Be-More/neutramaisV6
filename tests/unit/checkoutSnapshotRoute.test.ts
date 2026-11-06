@@ -27,7 +27,7 @@ describe("BFF do snapshot de checkout", () => {
 
   beforeEach(() => {
     fetchMock = vi.fn().mockResolvedValue(
-      new Response('{"message":"","data":{"schemaVersion":2}}', {
+      new Response('{"message":"","data":{"schemaVersion":3}}', {
         status: 200,
         headers: { "Content-Type": "application/json" },
       }),
@@ -37,7 +37,7 @@ describe("BFF do snapshot de checkout", () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it("lê a versão 2 com o token do perfil Buyer", async () => {
+  it("lê a versão 3 com o token do perfil Buyer", async () => {
     const response = await GET(
       new Request("http://localhost/x"),
       routeParams(OFFERING_ID),
@@ -46,7 +46,7 @@ describe("BFF do snapshot de checkout", () => {
     expect(response.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe(
-      `https://upstream.test/marketplace/api/v2/productCatalog/productOffering/${OFFERING_ID}/checkoutSnapshot?schemaVersion=2`,
+      `https://upstream.test/marketplace/api/v2/productCatalog/productOffering/${OFFERING_ID}/checkoutSnapshot?schemaVersion=3`,
     );
     expect(init.headers.Authorization).toBe("Bearer buyer-token");
   });

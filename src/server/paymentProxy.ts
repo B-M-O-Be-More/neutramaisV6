@@ -32,6 +32,8 @@ export interface PaymentForwardOptions {
   method?: "GET" | "POST";
   /** Corpo JSON (só no POST). */
   body?: unknown;
+  /** Headers extras do contrato, ex.: `Idempotency-Key` no pagamento. */
+  headers?: Record<string, string>;
 }
 
 function buildQueryString(params?: Record<string, QueryValue>): string {
@@ -88,6 +90,7 @@ export async function forwardToPayment({
   params,
   method = "GET",
   body,
+  headers,
 }: PaymentForwardOptions): Promise<NextResponse> {
   if (!PAYMENT_API_URL) {
     return envelopeError(
@@ -109,6 +112,7 @@ export async function forwardToPayment({
           [CORRELATION_ID_HEADER]: crypto.randomUUID(),
           ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
           ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
+          ...headers,
         },
         body: body !== undefined ? JSON.stringify(body) : undefined,
         cache: "no-store",

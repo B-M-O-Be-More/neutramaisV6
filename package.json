@@ -20,6 +20,8 @@
     "@emotion/react": "^11.14.0",
     "@hcaptcha/react-hcaptcha": "^2.0.2",
     "@hookform/resolvers": "^5.2.2",
+    "@stripe/react-stripe-js": "7.0.0",
+    "@stripe/stripe-js": "10.1.0",
     "framer-motion": "^12.25.0",
     "globe.gl": "^2.46.2",
     "i18next": "^25.10.10",

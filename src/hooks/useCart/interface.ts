@@ -9,4 +9,6 @@ export interface UseCartReturn {
   add: (offeringId: string) => void;
   setQuantity: (offeringId: string, quantity: number) => void;
   remove: (offeringId: string) => void;
+  /** Esvazia o carrinho (depois que o checkout gravou os pedidos). */
+  clear: () => void;
 }
