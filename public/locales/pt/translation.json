@@ -2154,7 +2154,7 @@
         "label": "Tempo médio de resposta",
         "caption": "aceite do pedido"
       },
-       "assessment": {
+      "assessment": {
         "label": "Avaliação",
         "caption": "Score"
       }
@@ -2183,11 +2183,11 @@
     },
     "creditBanner": {
       "badge": "CRÉDITO NEUTRA+",
-      "title": "Limite pré-aprovado para o seu provedor crescer.",
-      "description": "Compre agora e pague em até 12x no faturamento, sem burocracia bancária.",
+      "title": "Limite pré-aprovado para saque fazendo o seu provedor crescer.",
+      "description": "Faça seu saque e receba em até 30 dias na sua conta bancária, sem burocracia e com total segurança.",
       "cta": "Solicitar meu limite",
       "availableLimit": "Limite disponível",
-      "limitValue": "R$ 250.000",
+      "limitValue": "R$ 2.500,00",
       "escrowAlt": "Escrow Neutra+: o valor é liberado ao seller após o aceite e a entrega confirmada."
     },
     "videoShowcase": {
@@ -2217,7 +2217,7 @@
       "saleCta": "Ver mais",
       "saleImageAlt": "Roteadores e equipamentos de rede de grandes marcas",
       "creditBadge": "CRÉDITO NEUTRA+",
-      "creditTitle": "Use seus créditos para pagar",
+      "creditTitle": "Use seus créditos para pagar ofertas",
       "creditCta": "Veja como!",
       "availableLimit": "Limite disponível",
       "creditAmount": "R$ 24.744",
@@ -2234,7 +2234,7 @@
     },
     "categories": {
       "title": "Explore por categoria",
-      "subtitle": "4 categorias disponíveis no MVP — templates aprovados por Operações, Produto e Jurídico",
+      "subtitle": "Tudo que você precisa, a apenas um clique de distância",
       "seeAll": "Ver todas as categorias",
       "items": {
         "connectivity": {
@@ -2274,6 +2274,32 @@
           ],
           "footer": "{{total}} SKUs"
         },
+        "protocols": {
+          "title": "Protocolos e Serviços",
+          "badge": "Roteamento",
+          "description": "BGP, OSPF, IS-IS, DNS, DHCP, NTP e mitigação DDoS em nuvem.",
+          "tags": [
+            "Anti DDoS",
+            "BGP",
+            "OSPF",
+            "IS-IS",
+            "DNS",
+            "NTP"
+          ],
+          "footer": "{{total}} ofertas"
+        },
+        "software": {
+          "title": "Softwares e Gerenciamento",
+          "badge": "Gestão de rede",
+          "description": "Sistemas BSS/OSS, monitoramento (NMS/Zabbix) e gerenciamento de IPs (IPAM).",
+          "tags": [
+            "BSS/OSS",
+            "NMS",
+            "Zabbix",
+            "IPAM"
+          ],
+          "footer": "{{total}} ofertas"
+        },
         "numbering": {
           "title": "Recursos Numéricos",
           "badge": "Regulatório",
@@ -2286,6 +2312,44 @@
           ],
           "footer": "{{total}} blocos"
         }
+      }
+    },
+    "promoStrip": {
+      "ariaLabel": "Campanhas em destaque",
+      "saldao": {
+        "eyebrow": "Saldão de Conectividade",
+        "titleLine1": "Até 40%",
+        "titleLine2": "off",
+        "tags": {
+          "setup": "Setup GRÁTIS",
+          "installments": "Até 12x sem juros"
+        }
+      },
+      "trends": {
+        "eyebrow": "Descubra as tendências",
+        "titleLine1": "Em alta",
+        "titleLine2": "na Neutra+",
+        "cta": "Ver tendências"
+      },
+      "linkWeek": {
+        "title": "Semana do Link Dedicado",
+        "offersUpTo": "Ofertas até",
+        "value": "30",
+        "off": "off",
+        "badge": "SLA 99,9% garantido"
+      },
+      "ont": {
+        "titleLine1": "ONT Wi-Fi 6",
+        "titleLine2": "com gestão remota",
+        "badge": "Até 10x sem juros",
+        "stock": "Estoque: {{count}} un."
+      },
+      "highlights": {
+        "eyebrow": "Destaques do momento",
+        "titleLine1": "Ofertas",
+        "titleLine2": "pra você",
+        "discount": "{{value}}% off",
+        "cta": "Ver todas"
       }
     },
     "promotions": {
@@ -2305,9 +2369,15 @@
           "description": "Recursos numéricos com delegação verificada · ANATEL",
           "cta": "Saiba mais"
         },
+        "forYou": {
+          "badge": "Feito para você",
+          "title": "Produtos selecionados para você",
+          "description": "Achamos que isso tem tudo a ver com o que você precisa",
+          "cta": "Ver agora"
+        },
         "highlight": {
           "badge": "Destaque do mês",
-          "title": "Top Sellers em SP · Score 4.9+",
+          "title": "Top Vendedores em SP · Score 4.9+",
           "description": "Provedores verificados com melhor SLA de ativação da região",
           "cta": "Explorar"
         }

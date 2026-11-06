@@ -5,6 +5,8 @@ import { Box, Button, Flex, Grid, Image, Stack, Text } from "@chakra-ui/react";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
+import { s } from "./scale";
+
 const VIDEOS = [
   { key: "escrow", duration: "0:42" },
   { key: "fiber", duration: "1:05" },
@@ -13,6 +15,11 @@ const VIDEOS = [
 
 type VideoKey = (typeof VIDEOS)[number]["key"];
 
+// Medidas do Figma (Neutra+ MP, nó 3300:59578). A partir de 1536px a seção
+// usa os valores do Figma 1:1 (--vs-s = 1,2316 sobre a base escrita aqui);
+// abaixo disso, a mesma proporção reduzida. No Figma o bloco tem 1612px e
+// sangra 57px de cada lado da coluna de 1498px: só aplicamos isso quando a
+// janela comporta (≥ 1632px), para nunca gerar rolagem horizontal.
 export function MarketplaceVideoShowcase() {
   const { t } = useTranslation();
   const [selectedVideo, setSelectedVideo] = useState<VideoKey>("escrow");
@@ -26,7 +33,12 @@ export function MarketplaceVideoShowcase() {
       aria-labelledby="marketplace-video-showcase-title"
       position="relative"
       overflow="hidden"
-      rounded="20px"
+      css={{
+        "--vs-s": "1",
+        "@media (min-width: 1536px)": { "--vs-s": "1.2316" },
+        "@media (min-width: 1632px)": { marginInline: s(-46.45) },
+      }}
+      rounded={s(16)}
       bg="#0F1729"
       color="white"
     >
@@ -52,28 +64,32 @@ export function MarketplaceVideoShowcase() {
       <Grid
         position="relative"
         alignItems="center"
-        gap={{ base: "28px", md: "24px" }}
+        gap={{ base: "28px", lg: s(32) }}
         p={{ base: "22px", md: "32px" }}
+        pt={{ lg: s(39) }}
+        pb={{ lg: s(39) }}
+        pl={{ lg: s(40) }}
+        pr={{ lg: s(46.45) }}
         templateColumns={{
           base: "minmax(0, 1fr)",
-          md: "minmax(0, 0.74fr) minmax(0, 1fr)",
+          lg: "minmax(0, 0.74fr) minmax(0, 1fr)",
+          xl: `${s(460)} minmax(0, 1fr)`,
         }}
       >
-        <Stack align="flex-start" gap={0} minW={0}>
+        <Stack align="flex-start" gap={s(16)} minW={0}>
           <Flex
             align="center"
-            gap="8px"
-            mb="14px"
-            py="4px"
-            pl="6px"
-            pr="12px"
+            gap={s(8)}
+            py={s(6)}
+            pl={s(8)}
+            pr={s(16)}
             rounded="full"
             bg="#1F5AFF"
           >
             <Flex
               align="center"
               justify="center"
-              boxSize="22px"
+              boxSize={s(24)}
               rounded="full"
               bg="white"
             >
@@ -81,10 +97,10 @@ export function MarketplaceVideoShowcase() {
                 src="/images/marketplace/video-showcase/tv-icon.svg"
                 alt=""
                 aria-hidden
-                boxSize="12px"
+                boxSize={s(13)}
               />
             </Flex>
-            <Text fontSize="11px" fontWeight={800} lineHeight="18px">
+            <Text fontSize={s(13)} fontWeight={800} lineHeight={s(19.5)}>
               Neutra+ TV
             </Text>
           </Flex>
@@ -92,44 +108,45 @@ export function MarketplaceVideoShowcase() {
           <Text
             id="marketplace-video-showcase-title"
             as="h2"
-            fontSize={{ base: "30px", md: "32px" }}
+            maxW={s(376)}
+            fontSize={{ base: "30px", md: s(40) }}
             fontWeight={900}
-            lineHeight={{ base: "32px", md: "34px" }}
-            letterSpacing="-0.8px"
+            lineHeight={{ base: "32px", md: s(42) }}
+            letterSpacing={{ base: "-0.8px", md: s(-1) }}
           >
             {t("Marketplace.videoShowcase.title")}
           </Text>
 
           <Text
-            mt="12px"
-            maxW="390px"
+            maxW={s(384)}
             color="rgba(255, 255, 255, 0.7)"
-            fontSize="12px"
-            lineHeight="18px"
+            fontSize={s(14)}
+            lineHeight={s(21)}
           >
             {t("Marketplace.videoShowcase.description")}
           </Text>
 
           <Text
-            mt="12px"
-            px="10px"
-            py="3px"
+            px={s(12)}
+            py={s(4)}
             rounded="full"
             bg="#10B981"
-            fontSize="9px"
+            fontSize={s(11)}
             fontWeight={800}
-            letterSpacing="0.2px"
-            lineHeight="14px"
+            letterSpacing={s(0.275)}
+            lineHeight={s(16.5)}
           >
             {t("Marketplace.videoShowcase.freeForBusiness")}
           </Text>
 
           <Stack
             as="ul"
-            gap="6px"
+            gap={s(6)}
             w="full"
-            mt="10px"
-            p={0}
+            m={0}
+            pt={s(4)}
+            px={0}
+            pb={0}
             listStyleType="none"
           >
             {VIDEOS.map((video) => {
@@ -142,12 +159,15 @@ export function MarketplaceVideoShowcase() {
                     type="button"
                     variant="plain"
                     w="full"
-                    h="42px"
+                    h={s(50)}
+                    minH={0}
                     justifyContent="flex-start"
-                    gap="10px"
-                    px="9px"
-                    rounded="12px"
-                    borderWidth="1px"
+                    gap={s(12)}
+                    px={s(12)}
+                    py={0}
+                    rounded={s(14)}
+                    borderWidth={s(1)}
+                    borderStyle="solid"
                     borderColor={
                       isSelected
                         ? "rgba(255, 255, 255, 0.3)"
@@ -166,7 +186,7 @@ export function MarketplaceVideoShowcase() {
                     <Flex
                       align="center"
                       justify="center"
-                      boxSize="24px"
+                      boxSize={s(28)}
                       flexShrink={0}
                       rounded="full"
                       bg={isSelected ? "white" : "rgba(255, 255, 255, 0.1)"}
@@ -175,15 +195,16 @@ export function MarketplaceVideoShowcase() {
                         src={`/images/marketplace/video-showcase/${isSelected ? "pause-icon" : "play-icon"}.svg`}
                         alt=""
                         aria-hidden
-                        boxSize="11px"
+                        boxSize={s(12)}
+                        ml={isSelected ? 0 : s(2)}
                       />
                     </Flex>
                     <Text
                       flex="1"
                       overflow="hidden"
-                      fontSize="10px"
+                      fontSize={s(13)}
                       fontWeight={600}
-                      lineHeight="16px"
+                      lineHeight={s(17.875)}
                       textAlign="left"
                       textOverflow="ellipsis"
                       whiteSpace="nowrap"
@@ -193,9 +214,9 @@ export function MarketplaceVideoShowcase() {
                     <Text
                       flexShrink={0}
                       color="rgba(255, 255, 255, 0.5)"
-                      fontSize="9px"
+                      fontSize={s(11)}
                       fontWeight={500}
-                      lineHeight="14px"
+                      lineHeight={s(16.5)}
                     >
                       {video.duration}
                     </Text>
@@ -205,40 +226,45 @@ export function MarketplaceVideoShowcase() {
             })}
           </Stack>
 
-          <Button
-            asChild
-            mt="14px"
-            h="38px"
-            px="16px"
-            gap="8px"
-            rounded="12px"
-            bg="white"
-            color="#0F1729"
-            fontSize="10px"
-            fontWeight={700}
-            _hover={{ bg: "#E8EDF7" }}
-          >
-            <Link href="/marketplace">
-              {t("Marketplace.videoShowcase.cta")}
-              <Image
-                src="/images/marketplace/video-showcase/arrow-right.svg"
-                alt=""
-                aria-hidden
-                boxSize="13px"
-              />
-            </Link>
-          </Button>
+          <Box pt={s(4)}>
+            <Button
+              asChild
+              h={s(40.3)}
+              minH={0}
+              px={s(20)}
+              gap={s(8)}
+              rounded={s(14)}
+              bg="white"
+              color="#0F1729"
+              fontSize={s(13)}
+              fontWeight={700}
+              lineHeight={s(19.5)}
+              _hover={{ bg: "#E8EDF7" }}
+            >
+              <Link href="/marketplace">
+                {t("Marketplace.videoShowcase.cta")}
+                <Image
+                  src="/images/marketplace/video-showcase/arrow-right.svg"
+                  alt=""
+                  aria-hidden
+                  boxSize={s(14)}
+                />
+              </Link>
+            </Button>
+          </Box>
         </Stack>
 
         <Box
           position="relative"
           w="full"
           overflow="hidden"
-          rounded="12px"
-          border="1px solid rgba(255, 255, 255, 0.1)"
+          rounded={s(14)}
+          borderWidth={s(1)}
+          borderStyle="solid"
+          borderColor="rgba(255, 255, 255, 0.1)"
           bg="black"
           aspectRatio="900 / 529"
-          boxShadow="0 24px 48px -12px rgba(0, 0, 0, 0.25)"
+          boxShadow={`0 ${s(25)} ${s(50)} ${s(-12)} rgba(0, 0, 0, 0.25)`}
           aria-label={t(`${videoTranslationKey}.title`)}
         >
           <Image
@@ -260,15 +286,17 @@ export function MarketplaceVideoShowcase() {
 
           <Text
             position="absolute"
-            top="12px"
-            left="12px"
-            maxW="calc(100% - 24px)"
+            top={s(12)}
+            left={s(16)}
+            maxW={`calc(100% - ${s(32)})`}
             overflow="hidden"
-            borderLeft="2px solid white"
-            pl="7px"
-            fontSize="10px"
+            borderLeftWidth={s(2)}
+            borderLeftStyle="solid"
+            borderLeftColor="white"
+            pl={s(8)}
+            fontSize={s(13)}
             fontWeight={600}
-            lineHeight="16px"
+            lineHeight={s(19.5)}
             textOverflow="ellipsis"
             whiteSpace="nowrap"
           >
@@ -277,48 +305,48 @@ export function MarketplaceVideoShowcase() {
 
           <Text
             position="absolute"
-            right="20px"
-            bottom="44px"
-            left="20px"
+            right={s(16)}
+            bottom={{ base: "44px", md: s(60.3) }}
+            left={s(16)}
             color="white"
-            fontSize={{ base: "14px", md: "16px" }}
+            fontSize={{ base: "14px", md: s(19) }}
             fontWeight={700}
-            lineHeight="1.25"
+            lineHeight={{ base: "1.25", md: s(28.5) }}
             textAlign="center"
-            textShadow="0 2px 6px rgba(0, 0, 0, 0.8)"
+            textShadow={`0 ${s(2)} ${s(6)} rgba(0, 0, 0, 0.8)`}
           >
             {t(`${videoTranslationKey}.caption`)}
           </Text>
 
           <Flex
             position="absolute"
-            right="12px"
-            bottom="12px"
-            left="12px"
+            right={{ base: "12px", md: s(60) }}
+            bottom={{ base: "12px", md: s(25) }}
+            left={{ base: "12px", md: s(60) }}
             align="center"
-            gap="8px"
+            gap={s(12)}
           >
             <Image
               src="/images/marketplace/video-showcase/player-pause.svg"
               alt=""
               aria-hidden
-              boxSize="14px"
+              boxSize={s(16)}
               flexShrink={0}
             />
             <Box
-              h="3px"
+              h={s(4)}
               flex="1"
               overflow="hidden"
               rounded="full"
               bg="rgba(255, 255, 255, 0.25)"
             >
-              <Box h="full" w="12%" bg="#1F5AFF" />
+              <Box h="full" w="11.6%" bg="#1F5AFF" />
             </Box>
             <Text
               flexShrink={0}
               color="rgba(255, 255, 255, 0.8)"
-              fontSize="9px"
-              lineHeight="14px"
+              fontSize={s(11)}
+              lineHeight={s(16.5)}
             >
               0:01
             </Text>
@@ -326,7 +354,7 @@ export function MarketplaceVideoShowcase() {
               src="/images/marketplace/video-showcase/player-mute.svg"
               alt=""
               aria-hidden
-              boxSize="14px"
+              boxSize={s(16)}
               flexShrink={0}
             />
           </Flex>

@@ -1,7 +1,13 @@
 import type { IconType } from "react-icons";
 
 /** Paletas disponíveis para o card de categoria. */
-export type MarketplaceCategoryTone = "blue" | "violet" | "emerald" | "amber";
+export type MarketplaceCategoryTone =
+  | "blue"
+  | "violet"
+  | "emerald"
+  | "amber"
+  | "pink"
+  | "cyan";
 
 export interface MarketplaceCategoryCardProps {
   /** Ícone da categoria, exibido no quadro superior esquerdo. */

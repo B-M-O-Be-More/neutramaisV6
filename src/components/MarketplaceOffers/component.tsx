@@ -19,6 +19,7 @@ import MarketplaceCategoryFilter from "@/components/MarketplaceCategoryFilter";
 import { MarketplaceCategoryFilterValue } from "@/components/MarketplaceCategoryFilter/interface";
 import MarketplaceOfferCard from "@/components/MarketplaceOfferCard";
 import { MarketplaceOfferCardProps } from "@/components/MarketplaceOfferCard/interface";
+import { currencyLocale } from "@/functions/currencyLocale";
 import { useProductOfferings } from "@/hooks/useProductOfferings";
 import type { ProductOffering } from "@/services/productCatalog.service";
 
@@ -33,10 +34,6 @@ const PURCHASE_HREF = "/login";
 // Chaves de `metadata` que viram texto no resumo do card. As demais são
 // ignoradas até ganharem tradução.
 const METADATA_HIGHLIGHTS = ["ipFixo"] as const;
-
-function currencyLocale(language: string): string {
-  return language.startsWith("pt") ? "pt-BR" : language;
-}
 
 /** "500 Mbps" → { value: "500", unit: "Mbps" }. */
 function splitSpeed(speed: string): { value: string; unit?: string } {
@@ -200,7 +197,12 @@ export function MarketplaceOffers({
         >
           <Icon as={LuPackageSearch} boxSize="22px" color="#8A9AB5" />
         </Flex>
-        <Text fontSize="14px" fontWeight={600} lineHeight="21px" color="#0F1729">
+        <Text
+          fontSize="14px"
+          fontWeight={600}
+          lineHeight="21px"
+          color="#0F1729"
+        >
           {message}
         </Text>
         {hasError ? (

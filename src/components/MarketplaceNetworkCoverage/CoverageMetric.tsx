@@ -1,7 +1,9 @@
 "use client";
 
-import { Flex, Icon, Stack, Text } from "@chakra-ui/react";
+import { Icon, Stack, Text } from "@chakra-ui/react";
 import type { IconType } from "react-icons";
+
+import { s } from "./scale";
 
 interface CoverageMetricProps {
   icon: IconType;
@@ -12,20 +14,22 @@ interface CoverageMetricProps {
 export function CoverageMetric({ icon, value, label }: CoverageMetricProps) {
   return (
     <Stack
-      gap="2px"
+      gap={0}
       minW={0}
-      minH="65px"
-      p="14px"
-      bg="rgba(255, 255, 255, 0.9)"
-      border="1px solid #E1E7F0"
-      rounded="12px"
-      boxShadow="0 4px 12px rgba(15, 23, 41, 0.03)"
+      p={s(12)}
+      bg="white"
+      border="1px solid #E5E8EE"
+      rounded={s(14)}
     >
-      <Flex align="center" gap="5px" color="#1F5AFF">
-        <Icon as={icon} boxSize="19px" flexShrink={0} />
-
-      </Flex>
-      <Text fontSize="24px" fontWeight={800} lineHeight="36px" color="#0F1729">
+      <Icon as={icon} boxSize={s(16)} flexShrink={0} color="#1F5AFF" />
+      <Text
+        pt={s(6)}
+        fontSize={s(20)}
+        fontWeight={800}
+        lineHeight={s(30)}
+        color="#0F1729"
+        whiteSpace="nowrap"
+      >
         {value}
       </Text>
       <Text
@@ -33,11 +37,9 @@ export function CoverageMetric({ icon, value, label }: CoverageMetricProps) {
         overflow="hidden"
         textOverflow="ellipsis"
         whiteSpace="nowrap"
-        fontSize="13px"
-        fontWeight={400}
-        lineHeight="13px"
-        color="#8A9AB5
-"
+        fontSize={s(11)}
+        lineHeight={s(16.5)}
+        color="#8A9AB5"
       >
         {label}
       </Text>

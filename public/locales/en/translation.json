@@ -2144,7 +2144,7 @@
     },
     "hero": {
       "logoAlt": "Neutra+",
-      "catalog": "View Catalog", 
+      "catalog": "View Catalog",
       "badge": "100% B2B platform · Multi-tenant · KYC/KYB verified",
       "headline": "The marketplace for",
       "headlineHighlight": "telecom providers.",
@@ -2174,7 +2174,7 @@
         "label": "Average response time",
         "caption": "order acceptance"
       },
-       "assessment": {
+      "assessment": {
         "label": "Assessment",
         "caption": "Score"
       }
@@ -2203,11 +2203,11 @@
     },
     "creditBanner": {
       "badge": "NEUTRA+ CREDIT",
-      "title": "Pre-approved credit so your provider can grow.",
-      "description": "Buy now and pay in up to 12 monthly installments on your invoice, with no bank bureaucracy.",
+      "title": "Pre-approved withdrawal limit to grow your provider.",
+      "description": "Withdraw and receive it in your bank account within 30 days, with no red tape and full security.",
       "cta": "Request my limit",
       "availableLimit": "Available limit",
-      "limitValue": "R$ 250,000",
+      "limitValue": "R$ 2,500.00",
       "escrowAlt": "Neutra+ escrow: funds are released to the seller after order acceptance and confirmed delivery."
     },
     "videoShowcase": {
@@ -2237,7 +2237,7 @@
       "saleCta": "See more",
       "saleImageAlt": "Routers and network equipment from leading brands",
       "creditBadge": "NEUTRA+ CREDIT",
-      "creditTitle": "Use your credits to pay",
+      "creditTitle": "Use your credits to pay for offers",
       "creditCta": "See how!",
       "availableLimit": "Available limit",
       "creditAmount": "R$ 24,744",
@@ -2255,7 +2255,7 @@
     "categories": {
       "title": "Explore by category",
       "headlineOpportunity": "New opportunity detected near your region!",
-      "subtitle": "4 categories available in the MVP — templates approved by Operations, Product and Legal",
+      "subtitle": "Everything you need, just one click away",
       "seeAll": "See all categories",
       "items": {
         "connectivity": {
@@ -2295,6 +2295,32 @@
           ],
           "footer": "{{total}} SKUs"
         },
+        "protocols": {
+          "title": "Protocols and Services",
+          "badge": "Routing",
+          "description": "BGP, OSPF, IS-IS, DNS, DHCP, NTP and cloud DDoS mitigation.",
+          "tags": [
+            "Anti-DDoS",
+            "BGP",
+            "OSPF",
+            "IS-IS",
+            "DNS",
+            "NTP"
+          ],
+          "footer": "{{total}} offers"
+        },
+        "software": {
+          "title": "Software and Management",
+          "badge": "Network management",
+          "description": "BSS/OSS systems, monitoring (NMS/Zabbix) and IP address management (IPAM).",
+          "tags": [
+            "BSS/OSS",
+            "NMS",
+            "Zabbix",
+            "IPAM"
+          ],
+          "footer": "{{total}} offers"
+        },
         "numbering": {
           "title": "Numbering Resources",
           "badge": "Regulatory",
@@ -2307,6 +2333,44 @@
           ],
           "footer": "{{total}} blocks"
         }
+      }
+    },
+    "promoStrip": {
+      "ariaLabel": "Featured campaigns",
+      "saldao": {
+        "eyebrow": "Connectivity Sale",
+        "titleLine1": "Up to 40%",
+        "titleLine2": "off",
+        "tags": {
+          "setup": "FREE setup",
+          "installments": "Up to 12 interest-free payments"
+        }
+      },
+      "trends": {
+        "eyebrow": "Discover the trends",
+        "titleLine1": "Trending",
+        "titleLine2": "on Neutra+",
+        "cta": "See trends"
+      },
+      "linkWeek": {
+        "title": "Dedicated Link Week",
+        "offersUpTo": "Offers up to",
+        "value": "30",
+        "off": "off",
+        "badge": "99.9% SLA guaranteed"
+      },
+      "ont": {
+        "titleLine1": "Wi-Fi 6 ONT",
+        "titleLine2": "with remote management",
+        "badge": "Up to 10 interest-free payments",
+        "stock": "Stock: {{count}} units"
+      },
+      "highlights": {
+        "eyebrow": "Current highlights",
+        "titleLine1": "Offers",
+        "titleLine2": "for you",
+        "discount": "{{value}}% off",
+        "cta": "See all"
       }
     },
     "promotions": {
@@ -2325,6 +2389,12 @@
           "title": "IPv6 /48 available now",
           "description": "Numbering resources with verified delegation · ANATEL",
           "cta": "Learn more"
+        },
+        "forYou": {
+          "badge": "Made for you",
+          "title": "Products picked for you",
+          "description": "We think these match exactly what you need",
+          "cta": "See now"
         },
         "highlight": {
           "badge": "Highlight of the month",

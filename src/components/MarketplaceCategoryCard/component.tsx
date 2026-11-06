@@ -28,6 +28,8 @@ const TONES: Record<
   violet: { surface: "#F3EEFF", border: "#D3BFFD", accent: "#8B5CF6" },
   emerald: { surface: "#EDFBF5", border: "#AAECD5", accent: "#10B981" },
   amber: { surface: "#FFFBEB", border: "#FDE68A", accent: "#F59E0B" },
+  pink: { surface: "#FEF0F7", border: "#F9C4DE", accent: "#EC4899" },
+  cyan: { surface: "#ECFAFE", border: "#A5E6F5", accent: "#0891B2" },
 };
 
 /**
@@ -59,81 +61,96 @@ export function MarketplaceCategoryCard({
       transition="border-color 0.15s ease"
       _hover={{ borderColor: palette.accent }}
     >
+      {/* Figma (Neutra/Card/Claro/Grande/Dois ícones): padding 21px, 16px
+          entre o topo (ícone + selo) e o corpo, 20px entre textos e chips. */}
       <Stack h="full" gap="12px" p="21px">
-        <Flex align="flex-start" justify="space-between" gap="8px">
-          <Flex
-            align="center"
-            justify="center"
-            boxSize="44px"
-            flexShrink={0}
-            rounded="14px"
-            bg={palette.surface}
-            borderWidth="1px"
-            borderColor={palette.border}
-          >
-            <Icon as={icon} boxSize="22px" color={palette.accent} />
+        <Stack gap="16px">
+          <Flex align="flex-start" justify="space-between" gap="8px">
+            <Flex
+              align="center"
+              justify="center"
+              boxSize="44px"
+              flexShrink={0}
+              rounded="14px"
+              bg={palette.surface}
+              borderWidth="1px"
+              borderColor={palette.border}
+            >
+              <Icon as={icon} boxSize="22px" color={palette.accent} />
+            </Flex>
+
+            {badge ? (
+              <Text
+                flexShrink={0}
+                px="8px"
+                py="2px"
+                rounded="full"
+                bg={palette.accent}
+                color="white"
+                fontSize="10px"
+                fontWeight={700}
+                lineHeight="15px"
+              >
+                {badge}
+              </Text>
+            ) : null}
           </Flex>
 
-          {badge ? (
-            <Text
-              flexShrink={0}
-              px="8px"
-              py="2px"
-              rounded="full"
-              bg={palette.accent}
-              color="white"
-              fontSize="10px"
-              fontWeight={700}
-              lineHeight="15px"
-            >
-              {badge}
-            </Text>
-          ) : null}
-        </Flex>
-
-        <Box>
-          <LinkOverlay asChild>
-            <Link href={href}>
+          <Stack gap="20px">
+            <Box>
+              <LinkOverlay asChild>
+                <Link href={href}>
+                  <Text
+                    fontSize="15px"
+                    fontWeight={700}
+                    lineHeight="22.5px"
+                    color="#0F1729"
+                  >
+                    {title}
+                  </Text>
+                </Link>
+              </LinkOverlay>
               <Text
-                fontSize="15px"
-                fontWeight={700}
-                lineHeight="22.5px"
-                color="#0F1729"
+                pt="4px"
+                fontSize="12px"
+                fontWeight={500}
+                lineHeight="19.5px"
+                color="#5A6478"
+                textAlign="justify"
               >
-                {title}
+                {description}
               </Text>
-            </Link>
-          </LinkOverlay>
-          <Text
-            pt="4px"
-            fontSize="12px"
-            fontWeight={500}
-            lineHeight="19.5px"
-            color="#5A6478"
-          >
-            {description}
-          </Text>
-        </Box>
+            </Box>
 
-        <Flex wrap="wrap" gap="4px">
-          {tags.map((tag) => (
-            <Text
-              key={tag}
-              px="9px"
-              py="3px"
-              rounded="8px"
-              bg="rgba(255, 255, 255, 0.7)"
-              borderWidth="1px"
-              borderColor="rgba(255, 255, 255, 0.8)"
-              fontSize="11px"
-              fontWeight={500}
-              lineHeight="16.5px"
-              color="#5A6478"
+            {/* O Figma reserva 50px para os chips (8px entre linhas, 4px
+                entre colunas). */}
+            <Flex
+              wrap="wrap"
+              columnGap="4px"
+              rowGap="8px"
+              minH="50px"
+              alignContent="flex-start"
             >
-              {tag}
-            </Text>
-          ))}
-        </Flex>
+              {tags.map((tag) => (
+                <Text
+                  key={tag}
+                  px="9px"
+                  py="3px"
+                  rounded="8px"
+                  bg="rgba(255, 255, 255, 0.7)"
+                  borderWidth="1px"
+                  borderColor="rgba(255, 255, 255, 0.8)"
+                  fontSize="11px"
+                  fontWeight={500}
+                  lineHeight="16.5px"
+                  color="#5A6478"
+                >
+                  {tag}
+                </Text>
+              ))}
+            </Flex>
+          </Stack>
+        </Stack>
 
         {/* `mt="auto"` alinha o rodapé na base, mantendo os cards da linha
             com a mesma altura mesmo com descrições de tamanhos diferentes. */}

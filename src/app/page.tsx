@@ -13,7 +13,9 @@ import MarketplaceHero from "@/components/MarketplaceHero";
 import MarketplaceHowItWorks from "@/components/MarketplaceHowItWorks";
 import MarketplaceNetworkCoverage from "@/components/MarketplaceNetworkCoverage";
 import MarketplaceOffers from "@/components/MarketplaceOffers";
+import MarketplacePromoStrip from "@/components/MarketplacePromoStrip";
 import MarketplacePromotions from "@/components/MarketplacePromotions";
+import MarketplacePublicPrices from "@/components/MarketplacePublicPrices";
 import MarketplaceStats from "@/components/MarketplaceStats";
 import { MarketplaceStatsData } from "@/components/MarketplaceStats/interface";
 import MarketplaceVideoShowcase from "@/components/MarketplaceVideoShowcase";
@@ -47,25 +49,37 @@ export default function Home() {
     <Box minH="100dvh" bg="white">
       <MarketplaceHeader />
 
+      {/* Figma 1:1 (Neutra+ MP, nó 3300:58734): conteúdo de até 1498px,
+          24px entre aviso, banner e métricas, 28px até a primeira seção da
+          landing e 40px entre as seções. */}
       <Stack
-        maxW="1216px"
+        maxW="1546px"
         mx="auto"
         px={{ base: 4, md: "24px" }}
-        pt={{ base: 6, md: "32px" }}
+        pt={{ base: 6, md: "20px" }}
         pb="0"
-        gap={{ base: 6, md: "24px" }}
+        gap={{ base: 6, md: "28px" }}
       >
-        <MarketplaceHero />
-        <MarketplaceStats data={PLACEHOLDER_STATS} />
-        <MarketplaceCatalog />
-        <MarketplaceNetworkCoverage />
-        <MarketplaceCategories counts={PLACEHOLDER_CATEGORY_COUNTS} />
-        <MarketplaceCreditBanner />
-        <MarketplaceVideoShowcase />
-        <MarketplacePromotions />
-        <MarketplaceOffers />
-        <MarketplaceHowItWorks />
-        <MarketplaceCtaBanner />
+        <Stack gap={{ base: 6, md: "24px" }}>
+          <MarketplaceHero />
+          <MarketplaceStats data={PLACEHOLDER_STATS} />
+        </Stack>
+        <Stack gap={{ base: 6, md: "40px" }}>
+          <MarketplaceCatalog />
+          <MarketplaceNetworkCoverage />
+          <MarketplaceCategories counts={PLACEHOLDER_CATEGORY_COUNTS} />
+          <MarketplacePromoStrip />
+          <MarketplaceCreditBanner />
+          <MarketplaceVideoShowcase />
+          <MarketplacePublicPrices />
+          <MarketplaceOffers />
+          <MarketplacePromotions />
+          {/* No Figma, "Como funciona" e o banner final ficam a 20px. */}
+          <Stack gap={{ base: 6, md: "20px" }}>
+            <MarketplaceHowItWorks />
+            <MarketplaceCtaBanner />
+          </Stack>
+        </Stack>
       </Stack>
 
       <MarketplaceFooter />

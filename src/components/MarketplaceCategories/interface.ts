@@ -6,6 +6,15 @@ export type MarketplaceCategoryKey =
   | "numbering";
 
 /**
+ * Categorias exibidas na galeria da home: as do MVP mais as que ainda não têm
+ * contagem na API.
+ */
+export type MarketplaceCategoryShowcaseKey =
+  | MarketplaceCategoryKey
+  | "protocols"
+  | "software";
+
+/**
  * Contagem de itens por categoria, já formatada para exibição (ex.: "1.243").
  * A unidade ("ofertas", "SKUs", "blocos") vem do i18n de cada categoria.
  */

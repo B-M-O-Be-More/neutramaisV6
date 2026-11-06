@@ -20,7 +20,7 @@ export function MarketplaceCtaBanner({
 
   return (
     // Mesmo respiro extra antes da seção usado nas demais seções da home.
-    <Box pt={{ base: "20px", md: "44px" }}>
+    <Box>
       <Box
         as="section"
         position="relative"
@@ -54,7 +54,8 @@ export function MarketplaceCtaBanner({
           align={{ base: "stretch", md: "flex-start" }}
           justify="space-between"
           gap={{ base: "28px", md: "40px" }}
-          p={{ base: "24px", md: "40px" }}
+          px={{ base: "24px", md: "40px" }}
+          py={{ base: "24px", md: "28px" }}
         >
           <Stack gap={0} maxW="576px" align="flex-start">
             <Text
@@ -82,7 +83,12 @@ export function MarketplaceCtaBanner({
             >
               {t("Marketplace.ctaBanner.title")}
             </Text>
-            <Text pt="12px" fontSize="14px" lineHeight="22.75px" color="#8A9AB5">
+            <Text
+              pt="12px"
+              fontSize="14px"
+              lineHeight="22.75px"
+              color="#8A9AB5"
+            >
               {t("Marketplace.ctaBanner.description")}
             </Text>
           </Stack>

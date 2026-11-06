@@ -74,7 +74,8 @@ export function CoverageGlobe() {
       controls.enablePan = false;
 
       // Começa sobre as Américas, como na referência.
-      globe.pointOfView({ lat: 5, lng: -60, altitude: 4 });
+      // Altitude 2,1: o globo ocupa ~3/4 da altura, como no Figma.
+      globe.pointOfView({ lat: 5, lng: -60, altitude: 2.1 });
 
       const resizeObserver = new ResizeObserver(() => {
         globe.width(container.clientWidth).height(container.clientHeight);
@@ -100,9 +101,8 @@ export function CoverageGlobe() {
       ref={containerRef}
       role="img"
       aria-label="Globo com continentes pontilhados e rotas de cobertura entre provedores"
-      w="full"
-      maxW="660px"
-      aspectRatio={1.4}
+      position="absolute"
+      inset={0}
     />
   );
 }

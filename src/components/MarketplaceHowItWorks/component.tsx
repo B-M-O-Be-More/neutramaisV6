@@ -37,7 +37,7 @@ export function MarketplaceHowItWorks() {
 
   return (
     // Mesmo respiro extra antes da seção usado nas demais seções da home.
-    <Box pt={{ base: "20px", md: "44px" }}>
+    <Box>
       <Stack
         as="section"
         align="center"
@@ -48,9 +48,10 @@ export function MarketplaceHowItWorks() {
         borderColor="#E5E8EE"
         rounded="16px"
       >
-        <Stack align="center" gap={0} textAlign="center">
+        {/* Figma: cabeçalho com 147px (selo, 16px, título e subtítulo). */}
+        <Stack align="center" gap={0} textAlign="center" minH={{ md: "147px" }}>
           <Text
-            mb="12px"
+            mb={{ base: "12px", md: "16px" }}
             px="12px"
             py="4px"
             rounded="full"

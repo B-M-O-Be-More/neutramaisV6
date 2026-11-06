@@ -26,6 +26,7 @@ import SearchNetworkFilters, {
 } from "@/components/SearchNetworkFilters";
 import SearchNetworkOfferCard from "@/components/SearchNetworkOfferCard";
 import { useSession } from "@/contexts/SessionContext";
+import { currencyLocale } from "@/functions/currencyLocale";
 import { useOrganizationAddress } from "@/hooks/useOrganizationAddress";
 import { useOrganizationOfferings } from "@/hooks/useOrganizationOfferings";
 import { useSendDirectProposal } from "@/hooks/useSendDirectProposal";
@@ -46,10 +47,6 @@ function formatPostalCode(value: string): string {
   return digits.length === 8
     ? `${digits.slice(0, 5)}-${digits.slice(5)}`
     : value;
-}
-
-function currencyLocale(language: string): string {
-  return language.startsWith("pt") ? "pt-BR" : language;
 }
 
 /**

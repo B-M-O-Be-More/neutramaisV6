@@ -2163,7 +2163,7 @@
         "label": "Tiempo medio de respuesta",
         "caption": "aceptación del pedido"
       },
-       "assessment": {
+      "assessment": {
         "label": "Evaluación",
         "caption": "Puntaje"
       }
@@ -2192,11 +2192,11 @@
     },
     "creditBanner": {
       "badge": "CRÉDITO NEUTRA+",
-      "title": "Crédito preaprobado para que tu proveedor crezca.",
-      "description": "Compra ahora y paga hasta en 12 cuotas en tu factura, sin burocracia bancaria.",
+      "title": "Límite preaprobado para retiro que hace crecer a tu proveedor.",
+      "description": "Haz tu retiro y recíbelo en hasta 30 días en tu cuenta bancaria, sin burocracia y con total seguridad.",
       "cta": "Solicitar mi límite",
       "availableLimit": "Límite disponible",
-      "limitValue": "R$ 250.000",
+      "limitValue": "R$ 2.500,00",
       "escrowAlt": "Escrow Neutra+: el importe se libera al vendedor después de aceptar y confirmar la entrega."
     },
     "videoShowcase": {
@@ -2226,7 +2226,7 @@
       "saleCta": "Ver más",
       "saleImageAlt": "Routers y equipos de red de grandes marcas",
       "creditBadge": "CRÉDITO NEUTRA+",
-      "creditTitle": "Usa tus créditos para pagar",
+      "creditTitle": "Usa tus créditos para pagar ofertas",
       "creditCta": "¡Descubre cómo!",
       "availableLimit": "Límite disponible",
       "creditAmount": "R$ 24.744",
@@ -2243,7 +2243,7 @@
     },
     "categories": {
       "title": "Explora por categoría",
-      "subtitle": "4 categorías disponibles en el MVP — plantillas aprobadas por Operaciones, Producto y Jurídico",
+      "subtitle": "Todo lo que necesitas, a solo un clic de distancia",
       "seeAll": "Ver todas las categorías",
       "items": {
         "connectivity": {
@@ -2283,6 +2283,32 @@
           ],
           "footer": "{{total}} SKUs"
         },
+        "protocols": {
+          "title": "Protocolos y Servicios",
+          "badge": "Enrutamiento",
+          "description": "BGP, OSPF, IS-IS, DNS, DHCP, NTP y mitigación DDoS en la nube.",
+          "tags": [
+            "Anti DDoS",
+            "BGP",
+            "OSPF",
+            "IS-IS",
+            "DNS",
+            "NTP"
+          ],
+          "footer": "{{total}} ofertas"
+        },
+        "software": {
+          "title": "Software y Gestión",
+          "badge": "Gestión de red",
+          "description": "Sistemas BSS/OSS, monitoreo (NMS/Zabbix) y gestión de direcciones IP (IPAM).",
+          "tags": [
+            "BSS/OSS",
+            "NMS",
+            "Zabbix",
+            "IPAM"
+          ],
+          "footer": "{{total}} ofertas"
+        },
         "numbering": {
           "title": "Recursos Numéricos",
           "badge": "Regulatorio",
@@ -2295,6 +2321,44 @@
           ],
           "footer": "{{total}} bloques"
         }
+      }
+    },
+    "promoStrip": {
+      "ariaLabel": "Campañas destacadas",
+      "saldao": {
+        "eyebrow": "Liquidación de Conectividad",
+        "titleLine1": "Hasta 40%",
+        "titleLine2": "off",
+        "tags": {
+          "setup": "Setup GRATIS",
+          "installments": "Hasta 12 cuotas sin interés"
+        }
+      },
+      "trends": {
+        "eyebrow": "Descubre las tendencias",
+        "titleLine1": "En alza",
+        "titleLine2": "en Neutra+",
+        "cta": "Ver tendencias"
+      },
+      "linkWeek": {
+        "title": "Semana del Enlace Dedicado",
+        "offersUpTo": "Ofertas hasta",
+        "value": "30",
+        "off": "off",
+        "badge": "SLA 99,9% garantizado"
+      },
+      "ont": {
+        "titleLine1": "ONT Wi-Fi 6",
+        "titleLine2": "con gestión remota",
+        "badge": "Hasta 10 cuotas sin interés",
+        "stock": "Stock: {{count}} un."
+      },
+      "highlights": {
+        "eyebrow": "Destacados del momento",
+        "titleLine1": "Ofertas",
+        "titleLine2": "para ti",
+        "discount": "{{value}}% off",
+        "cta": "Ver todas"
       }
     },
     "promotions": {
@@ -2313,6 +2377,12 @@
           "title": "IPv6 /48 disponible ahora",
           "description": "Recursos numéricos con delegación verificada · ANATEL",
           "cta": "Más información"
+        },
+        "forYou": {
+          "badge": "Hecho para ti",
+          "title": "Productos seleccionados para ti",
+          "description": "Creemos que esto tiene todo que ver con lo que necesitas",
+          "cta": "Ver ahora"
         },
         "highlight": {
           "badge": "Destacado del mes",
