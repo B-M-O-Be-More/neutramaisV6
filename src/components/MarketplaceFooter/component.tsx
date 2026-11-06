@@ -12,13 +12,12 @@ const FOOTER_LINKS: { key: MarketplaceFooterLinkKey; href: string }[] = [
   { key: "compliance", href: "/compliance" },
 ];
 
+// Meios de pagamento aceitos pela plataforma: Pix, cartão de crédito e
+// Crédito Neutra+ (como no Figma).
 const PAYMENT_METHODS = [
   { key: "pix", icon: "pix.svg" },
   { key: "creditCard", icon: "credit-card.svg" },
-  { key: "boleto", icon: "boleto.svg" },
-  { key: "ted", icon: "ted.svg" },
   { key: "credit", icon: "credit.svg" },
-  { key: "billing", icon: "billing.svg" },
 ] as const;
 
 const FOOTER_ASSETS = "/images/marketplace/footer";
