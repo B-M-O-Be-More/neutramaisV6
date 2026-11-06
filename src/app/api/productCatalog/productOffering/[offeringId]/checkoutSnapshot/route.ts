@@ -3,7 +3,7 @@ import { envelopeError } from "@/server/identityProxy";
 import { forwardToMarketplace } from "@/server/marketplaceProxy";
 
 // BFF: GET /api/productCatalog/productOffering/{offeringId}/checkoutSnapshot
-//   → marketplace-api GET /productCatalog/productOffering/{id}/checkoutSnapshot?schemaVersion=2
+//   → marketplace-api GET /productCatalog/productOffering/{id}/checkoutSnapshot?schemaVersion=3
 // Oferta como o checkout a vê: preços por faixa, moeda, tipo, estoque e o
 // `snapshotVersion` que o pedido confere. Exige `org:read_self` (perfil
 // Buyer). 403 na própria oferta (sem autocompra); 404 fora de venda.
@@ -23,7 +23,7 @@ export async function GET(
   return forwardToMarketplace({
     method: "GET",
     path: `/productCatalog/productOffering/${offeringId}/checkoutSnapshot`,
-    params: { schemaVersion: 2 },
+    params: { schemaVersion: 3 },
     profileSession: true,
   });
 }

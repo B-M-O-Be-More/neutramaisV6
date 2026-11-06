@@ -6972,5 +6972,165 @@
       "permission": "Su usuario no tiene permiso para cambiar precios.",
       "failed": "No fue posible guardar el precio. Intente de nuevo."
     }
+  },
+  "Checkout": {
+    "title": "Checkout",
+    "steps": {
+      "summary": "Resumen y contrato",
+      "method": "Método de pago",
+      "verification": "Verificación",
+      "payment": "Pago",
+      "done": "Confirmado"
+    },
+    "address": {
+      "title": "Dirección de entrega",
+      "description": "Vale para todos los productos físicos de este checkout. El envío se cotiza para este código postal.",
+      "fields": {
+        "recipient": "Nombre de quien recibe",
+        "postalCode": "Código postal (CEP)",
+        "street": "Calle",
+        "number": "Número",
+        "complement": "Complemento",
+        "district": "Barrio",
+        "city": "Ciudad",
+        "state": "Estado"
+      },
+      "errors": {
+        "recipient": "De 2 a 150 caracteres.",
+        "postalCode": "Código postal de 8 dígitos.",
+        "street": "De 2 a 200 caracteres.",
+        "number": "Hasta 20 caracteres.",
+        "complement": "Hasta 150 caracteres.",
+        "district": "De 2 a 100 caracteres.",
+        "city": "De 2 a 100 caracteres.",
+        "state": "Elige el estado."
+      }
+    },
+    "order": {
+      "position": "Pedido {{index}} de {{total}}",
+      "quantity_one": "{{count}} unidad",
+      "quantity_other": "{{count}} unidades",
+      "carrier": "Transportista para este pedido",
+      "needsPostalCode": "Indica el código postal de entrega para ver las opciones de envío.",
+      "quoteFailed": "No fue posible cotizar el envío para este código postal. Revísalo o inténtalo de nuevo.",
+      "quoteRfq": "El envío de este producto se acuerda con el vendedor y no se puede comprar por el checkout.",
+      "noCarrier": "Ningún transportista atiende este código postal.",
+      "cheapest": "Más barato",
+      "fastest": "Más rápido",
+      "days_one": "Hasta {{max}} día hábil",
+      "days_other": "De {{min}} a {{max}} días hábiles",
+      "pickup": "Retiro en el vendedor",
+      "free": "Gratis"
+    },
+    "summary": {
+      "breakdown": "Detalle financiero",
+      "products": "Valor de los productos",
+      "shipping": "Envío",
+      "fee": "Tasa Neutra+",
+      "feeLater": "Se calcula al crear el pedido",
+      "total": "Total estimado",
+      "escrowTitle": "Pago protegido",
+      "escrowDescription": "Neutra+ retiene el pago y solo lo libera al vendedor después de la aceptación y la entrega. Cancelar antes de la aceptación reembolsa el total en crédito Neutra+, disponible en hasta 7 días.",
+      "terms": "Acepto los Términos de Uso y la Política de Escrow de Neutra+. Entiendo que el precio es una foto de la oferta y no cambia después de la confirmación."
+    },
+    "problems": {
+      "invalidAddress": "Revisa la dirección de entrega.",
+      "missingShipping": "Elige el transportista de cada producto.",
+      "acceptTerms": "Acepta los términos para continuar.",
+      "serviceNeedsViability": "Los servicios necesitan la consulta de viabilidad."
+    },
+    "blocked": {
+      "kyc": "Tu organización todavía no puede comprar. Completa el registro para seguir.",
+      "empty": "Tu carrito está vacío.",
+      "fixCart": "Hay artículos en el carrito que necesitan ajustes antes del checkout.",
+      "service": "Los servicios (como conectividad e infraestructura) necesitan la consulta de viabilidad en la dirección, que aún no está disponible en el checkout. Por ahora, finaliza solo productos físicos."
+    },
+    "method": {
+      "creditTitle": "Usar crédito Neutra+",
+      "creditAvailable": "Crédito disponible:",
+      "noCredit": "sin saldo",
+      "creditApplied": "Crédito aplicado",
+      "title": "Método de pago",
+      "pix": "PIX",
+      "pixDescription": "Aprobación instantánea · Genera código QR",
+      "soon": "Próximamente",
+      "card": "Tarjeta de crédito",
+      "cardDescription": "Visa, Mastercard y otras marcas",
+      "totalNow": "Total a pagar ahora"
+    },
+    "verification": {
+      "title": "Verificación del autenticador",
+      "description": "Por seguridad, las acciones financieras exigen el código de tu aplicación autenticadora (TOTP).",
+      "notice": "La autenticación es obligatoria para comprar, pagar pedidos, cambiar datos fiscales y realizar acciones financieras, según las reglas de Neutra+.",
+      "codeLabel": "Código de 6 dígitos",
+      "submit": "Verificar código",
+      "processing": "Creando pedidos…",
+      "enroll": "Activar autenticador en el perfil"
+    },
+    "card": {
+      "title": "Pago con tarjeta",
+      "total": "Total en la tarjeta:",
+      "submit": "Pagar {{amount}}",
+      "notConfigured": "El pago con tarjeta no está configurado en este entorno (falta la clave publicable de Stripe). Los pedidos se crearon y esperan el pago."
+    },
+    "result": {
+      "following": "Confirmando el pago…",
+      "followingDescription": "Esto tarda unos segundos. No cierres esta página.",
+      "orders_one": "Pedido",
+      "orders_other": "Pedidos",
+      "status": "Estado",
+      "escrow": "Valor en escrow",
+      "success": {
+        "title": "Pago confirmado",
+        "description": "Tu pago fue aceptado. El vendedor tiene hasta el plazo de aceptación para confirmar el pedido.",
+        "status": "Pago aprobado"
+      },
+      "pending": {
+        "title": "Pago en proceso",
+        "description": "Tu pago aún se está procesando. Síguelo en Mis pedidos.",
+        "status": "Pago pendiente"
+      },
+      "approval": {
+        "title": "Enviado para aprobación",
+        "description": "La compra supera tu límite. El Dueño o Finanzas tiene hasta 72 horas para aprobarla.",
+        "status": "Esperando aprobación"
+      },
+      "error": {
+        "title": "Error de pago",
+        "description": "Tu pago no se realizó. Inténtalo de nuevo.",
+        "status": "No concluido"
+      }
+    },
+    "actions": {
+      "cancel": "Cancelar",
+      "back": "Volver",
+      "toPayment": "Continuar al pago",
+      "toVerification": "Ir a la verificación",
+      "retry": "Intentar de nuevo",
+      "home": "Volver al inicio",
+      "orders": "Ver mis pedidos",
+      "backToCart": "Volver al carrito"
+    },
+    "errors": {
+      "mfa": "La sesión necesita la verificación del autenticador. Escribe un código nuevo.",
+      "mfaEnrollment": "Tu cuenta todavía no tiene autenticador.",
+      "outOfStock": "Un producto no tiene stock para esa cantidad. Ajusta el carrito.",
+      "purchaseLimit": "La cantidad supera el límite de compra por organización.",
+      "priceNotAvailable": "Ningún precio de la oferta cubre esa cantidad.",
+      "mixedCurrencies": "Ofertas en monedas distintas: haz un checkout por moneda.",
+      "approvalPending": "Este checkout espera la aprobación del Dueño o de Finanzas.",
+      "offerChanged": "La oferta o el envío cambió. Vuelve al resumen y revisa los valores.",
+      "walletReservation": "No fue posible reservar el crédito Neutra+. Intenta sin crédito o más tarde.",
+      "mixedTypes": "Compra por separado productos físicos y servicios del mismo vendedor.",
+      "shippingTooHigh": "El envío supera el valor del pedido para el vendedor. Elige otro transportista.",
+      "busy": "El checkout está en proceso. Inténtalo de nuevo en unos segundos.",
+      "conflict": "No fue posible crear el checkout. Revisa el carrito e inténtalo de nuevo.",
+      "forbidden": "Tu perfil no tiene permiso para comprar.",
+      "invalid": "Algún dato del checkout está fuera de formato.",
+      "unavailable": "El servicio de pedidos no está disponible. Inténtalo de nuevo en un momento.",
+      "cardDeclined": "La tarjeta no fue aprobada.",
+      "failed": "No fue posible concluir. Inténtalo de nuevo.",
+      "paymentUnavailable": "Tu pedido fue creado y espera el pago, pero el servicio de pago no está disponible. Inténtalo de nuevo en un momento: se usará el mismo pedido."
+    }
   }
 }

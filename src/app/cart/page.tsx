@@ -24,7 +24,6 @@ import CartSellerGroup from "@/components/CartSellerGroup";
 import CartSummaryCard from "@/components/CartSummaryCard";
 import CartTrustList from "@/components/CartTrustList";
 import AuthenticatedLayout from "@/components/Layouts/Authenticated";
-import { toaster } from "@/components/ui/toaster";
 import {
   ProfileSessionProvider,
   useProfileSession,
@@ -277,14 +276,8 @@ function CartContent({ addOfferingId }: { addOfferingId?: string }) {
         </Stack>
 
         <Stack gap="16px" minW={0}>
-          <CartAddressCard
-            onAddAddress={() =>
-              toaster.create({
-                type: "info",
-                title: t("Cart.address.comingSoon"),
-              })
-            }
-          />
+          {/* O endereço de entrega é preenchido no 1º passo do checkout. */}
+          <CartAddressCard onAddAddress={() => router.push("/checkout")} />
           <CartSummaryCard
             subtotals={view.subtotals}
             creditMinor={creditMinor}
@@ -292,12 +285,7 @@ function CartContent({ addOfferingId }: { addOfferingId?: string }) {
             locale={locale}
             notice={notice}
             canCheckout={canCheckout}
-            onCheckout={() =>
-              toaster.create({
-                type: "info",
-                title: t("Cart.summary.comingSoon"),
-              })
-            }
+            onCheckout={() => router.push("/checkout")}
           />
           <CartCreditToggle
             availableMinor={available}

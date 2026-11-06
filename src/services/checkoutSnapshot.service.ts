@@ -25,9 +25,13 @@ export interface SnapshotPrice {
   maxQuantity: number | null;
 }
 
-/** `GET /productOffering/{id}/checkoutSnapshot?schemaVersion=2`. */
+/**
+ * `GET /productOffering/{id}/checkoutSnapshot?schemaVersion=3`. A v3 é a v2
+ * mais `ruleValues`; o `snapshotVersion` não muda com quantidade nem lugares,
+ * e é ele que o checkout confere (`expectedSnapshotVersion`).
+ */
 export interface CheckoutSnapshot {
-  schemaVersion: 2;
+  schemaVersion: 2 | 3;
   offeringId: string;
   sellerOrganizationId: string;
   revision: number;
@@ -51,6 +55,8 @@ export interface CheckoutSnapshot {
   } | null;
   /** Pacote de envio do produto físico (`postingDays`: dias para postar). */
   shipping: { postingDays?: number } | null;
+  /** Produto físico: o checkout exige cotação de frete (`shippingQuote`). */
+  shippingQuoteRequired?: boolean;
 }
 
 export const checkoutSnapshotService = {

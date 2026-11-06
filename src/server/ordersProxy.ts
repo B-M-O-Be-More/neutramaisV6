@@ -36,6 +36,33 @@ export interface OrdersForwardOptions {
    * ler como texto, com o nome do arquivo e sem cache.
    */
   binary?: boolean;
+  /**
+   * Headers extras do contrato, ex.: `Idempotency-Key` no checkout. O BFF
+   * repassa só os que a rota escolheu; nunca os do browser em bloco.
+   */
+  headers?: Record<string, string>;
+}
+
+/**
+ * A orders-api manda alguns códigos só no header `X-Error-Code` (ex.:
+ * `MFA_REQUIRED` no 403 do checkout), com o corpo `{"detail": ...}` sem
+ * `code`. O BFF copia o código para a raiz do corpo JSON, onde o
+ * `upstreamErrorCode` do front lê; o corpo que já tem `code` fica como está.
+ */
+export function withHeaderErrorCode(
+  status: number,
+  text: string,
+  headerCode: string | null,
+): string {
+  if (status < 400 || !headerCode) return text;
+  try {
+    const body = JSON.parse(text) as unknown;
+    if (!body || typeof body !== "object" || Array.isArray(body)) return text;
+    if ((body as { code?: unknown }).code) return text;
+    return JSON.stringify({ ...body, code: headerCode });
+  } catch {
+    return text;
+  }
 }
 
 function buildQueryString(params?: Record<string, QueryValue>): string {
@@ -103,6 +130,7 @@ export async function forwardToOrders({
   params,
   body,
   binary = false,
+  headers,
 }: OrdersForwardOptions): Promise<NextResponse> {
   if (!ORDERS_API_URL) {
     return envelopeError(
@@ -124,6 +152,7 @@ export async function forwardToOrders({
           [CORRELATION_ID_HEADER]: crypto.randomUUID(),
           ...(body ? { "Content-Type": "application/json" } : {}),
           ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
+          ...headers,
         },
         ...(body ? { body: JSON.stringify(body) } : {}),
         cache: "no-store",
@@ -150,7 +179,12 @@ export async function forwardToOrders({
       });
     }
 
-    return new NextResponse(await upstream.text(), {
+    const text = withHeaderErrorCode(
+      upstream.status,
+      await upstream.text(),
+      upstream.headers.get("X-Error-Code"),
+    );
+    return new NextResponse(text, {
       status: upstream.status,
       headers: {
         "Content-Type":

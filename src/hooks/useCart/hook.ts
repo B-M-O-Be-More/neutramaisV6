@@ -56,5 +56,10 @@ export function useCart(organizationId: string): UseCartReturn {
     [organizationId],
   );
 
-  return { entries, add, setQuantity, remove };
+  const clear = React.useCallback(
+    () => saveCart(organizationId, []),
+    [organizationId],
+  );
+
+  return { entries, add, setQuantity, remove, clear };
 }
